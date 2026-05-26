@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
     let processed = 0
     let skipped = 0
 
-    for (const [userId, convIds] of userConvMap.entries()) {
+    for (const [userId, convIds] of Array.from(userConvMap.entries())) {
       // 既にジャーナルが作成済みならスキップ（UNIQUE(user_id, date) 制約）
       const { data: existing } = await supabase
         .from('guchi_journals')
