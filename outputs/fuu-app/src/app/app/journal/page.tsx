@@ -10,7 +10,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClientSupabaseClient } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase'
 
 interface Journal {
   id: string
@@ -38,7 +38,7 @@ export default function JournalPage() {
   useEffect(() => {
     async function loadJournals() {
       try {
-        const supabase = createClientSupabaseClient()
+        const supabase = createClient()
         const { data: { session } } = await supabase.auth.getSession()
 
         if (session?.user) {
