@@ -194,7 +194,7 @@ function LoginForm() {
         </h2>
         <p style={{ fontSize: 13, color: '#666', lineHeight: 1.8, margin: 0 }}>
           <strong style={{ color: '#E91E63' }}>{email}</strong> に<br />
-          6桁のコードを送りました。
+          コードを送りました。
         </p>
       </div>
 
@@ -203,10 +203,10 @@ function LoginForm() {
           type="text"
           inputMode="numeric"
           pattern="[0-9]*"
-          maxLength={6}
+          maxLength={8}
           value={otp}
           onChange={e => { setOtp(e.target.value.replace(/\D/g, '')); setError('') }}
-          placeholder="000000"
+          placeholder="00000000"
           autoFocus
           style={{
             width: '100%', padding: '18px 16px', borderRadius: 14,
@@ -235,6 +235,7 @@ function LoginForm() {
             color: '#fff', border: 'none', borderRadius: 50,
             fontSize: 16, fontWeight: 700,
             cursor: loading || otp.length < 6 ? 'not-allowed' : 'pointer',
+
             marginTop: 12, fontFamily: 'inherit',
           }}
         >
