@@ -19,7 +19,7 @@ import { createClient } from '@supabase/supabase-js'
 export async function POST(request: Request) {
   try {
     // ── 1. 現在のユーザーを認証 ──────────────────────────────────
-    const supabase = createRouteHandlerSupabaseClient(request)
+    const supabase = createServerSupabaseClient()
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
     if (sessionError || !session?.user) {

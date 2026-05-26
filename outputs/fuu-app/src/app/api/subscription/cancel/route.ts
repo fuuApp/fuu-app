@@ -17,7 +17,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
  */
 export async function POST(request: Request) {
   // ── 1. 認証確認 ──────────────────────────────────────────────
-  const supabase = createRouteHandlerSupabaseClient(request)
+  const supabase = createServerSupabaseClient()
   const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
   if (sessionError || !session?.user) {

@@ -21,7 +21,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 
 export async function POST(request: Request) {
   try {
-    const supabase = createRouteHandlerSupabaseClient(request)
+    const supabase = createServerSupabaseClient()
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
     if (sessionError || !session?.user) {
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
-    const supabase = createRouteHandlerSupabaseClient(request)
+    const supabase = createServerSupabaseClient()
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
     if (sessionError || !session?.user) {
