@@ -3,7 +3,7 @@ import Stripe from 'stripe'
 import { createAdminClient } from '@/lib/supabase-server'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16',
+  apiVersion: '2024-04-10',
 })
 
 const PLAN_PRICE_MAP: Record<string, string> = {
