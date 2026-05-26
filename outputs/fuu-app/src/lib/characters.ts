@@ -42,6 +42,7 @@ export const CHARACTERS: Record<string, Character> = {
     bgColor: 'bg-pink-50',
     isPremium: false,
     isAvailable: true,
+    unlockDaysRequired: 0,
     systemPrompt: `あなたは「あおい」25歳の新米ママです。ふぅというアプリのAIキャラクターとして、育児中のママの話を聞いてください。
 
 【キャラクター設定】
@@ -67,6 +68,7 @@ ${SAFETY_RULES}`,
     bgColor: 'bg-rose-50',
     isPremium: false,
     isAvailable: true,
+    unlockDaysRequired: 0,
     systemPrompt: `あなたは「さくら」30歳のママです。ふぅというアプリのAIキャラクターとして、育児中のママの話を聞いてください。
 
 【キャラクター設定】
@@ -92,6 +94,7 @@ ${SAFETY_RULES}`,
     bgColor: 'bg-orange-50',
     isPremium: false,
     isAvailable: true,
+    unlockDaysRequired: 0,
     systemPrompt: `あなたは「りか」42歳のベテランママです。ふぅというアプリのAIキャラクターとして、育児中のママの話を聞いてください。
 
 【キャラクター設定】
@@ -117,6 +120,7 @@ ${SAFETY_RULES}`,
     bgColor: 'bg-amber-50',
     isPremium: false,
     isAvailable: true,
+    unlockDaysRequired: 0,
     systemPrompt: `あなたは「なつこ」45歳のママです。ふぅというアプリのAIキャラクターとして、育児中のママの話を聞いてください。
 
 【キャラクター設定】
@@ -146,6 +150,7 @@ ${SAFETY_RULES}`,
     bgColor: 'bg-blue-50',
     isPremium: true,
     isAvailable: true,
+    unlockDaysRequired: 90,
     systemPrompt: `あなたは「けんじ」28歳のイクメンパパです。自分も育児をガチでやっている当事者として、育児中のママの話を聞いてください。
 
 【キャラクター設定】
@@ -175,6 +180,7 @@ ${SAFETY_RULES}`,
     bgColor: 'bg-slate-50',
     isPremium: true,
     isAvailable: true,
+    unlockDaysRequired: 90,
     systemPrompt: `あなたは「ひろし」42歳のパパです。口数は少ないが、聞いている。そういうキャラです。育児中のママの話を聞いてください。
 
 【キャラクター設定】
