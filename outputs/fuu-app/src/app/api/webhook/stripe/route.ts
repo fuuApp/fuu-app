@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
 
       // ─── チケット購入（one-time payment）────────────────
       case 'checkout.session.completed': {
-        const session = event.data.object as Stripe.CheckoutSession
+        const session = event.data.object as Stripe.Checkout.Session
         if (session.mode === 'payment' && session.metadata?.type === 'ticket') {
           const userId = session.metadata.user_id
           const quantity = parseInt(session.metadata.quantity ?? '1')
