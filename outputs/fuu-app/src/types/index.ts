@@ -13,6 +13,7 @@ export interface Character {
   bgColor: string
   isPremium: boolean    // trueはプレミアム以上のみ
   isAvailable: boolean  // falseは将来実装
+  unlockDaysRequired: number  // 使用開始から何日後に解放されるか（0=即時解放）
   systemPrompt: string
 }
 
