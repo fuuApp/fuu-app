@@ -25,7 +25,7 @@ const PLANS = [
   {
     id: 'premium',
     name: 'プレミアム',
-    price: 1,480,
+    price: 1480,
     color: 'linear-gradient(135deg,#C2185B,#880E4F)',
     badge: 'おすすめ',
     features: [
