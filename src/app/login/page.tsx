@@ -1,5 +1,8 @@
 'use client'
 
+// Vercelエッジキャッシュを無効化（常に最新コードを返す）
+export const dynamic = 'force-dynamic'
+
 import { useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
