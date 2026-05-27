@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 
-// Supabaseが設定済みかどうかを判定
 const isSupabaseConfigured =
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
   process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://your-project.supabase.co' &&
@@ -10,25 +9,18 @@ const isSupabaseConfigured =
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
-  // ─── Supabase未設定時（デモモード）はすべてスルー ──────────
   if (!isSupabaseConfigured) {
     return NextResponse.next()
   }
 
-  // ─── レスポンスを作成（Cookie書き込みのため） ───────────────
-  let res = NextResponse.next({
-    request: { headers: req.headers },
-  })
+  let res = NextResponse.next({ request: { headers: req.headers } })
 
-  // ─── Supabase クライアント（Edge対応） ──────────────────────
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return req.cookies.get(name)?.value
-        },
+        get(name: string) { return req.cookies.get(name)?.value },
         set(name: string, value: string, options: CookieOptions) {
           req.cookies.set({ name, value, ...options })
           res = NextResponse.next({ request: { headers: req.headers } })
@@ -43,15 +35,10 @@ export async function middleware(req: NextRequest) {
     }
   )
 
-  // ─── セッション取得（Cookie を自動リフレッシュ） ────────────
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  const { data: { session } } = await supabase.auth.getSession()
 
-  // ─── /app/* へのアクセス保護 ────────────────────────────────────
   if (pathname.startsWith('/app')) {
     if (!session) {
-      // 未ログイン → /signin へリダイレクト
       const loginUrl = req.nextUrl.clone()
       loginUrl.pathname = '/login'
       loginUrl.searchParams.set('next', pathname)
@@ -59,7 +46,6 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // ─── ログイン済みユーザーが /signin にアクセスした場合 ──────
   if (pathname === '/login' && session) {
     const appUrl = req.nextUrl.clone()
     appUrl.pathname = '/app'
@@ -70,11 +56,6 @@ export async function middleware(req: NextRequest) {
   return res
 }
 
-// ─── middleware を適用するパスのパターン ──────────────────────
 export const config = {
-  matcher: [
-    '/app/:path*',
-    ,
-    '/login',
-  ],
+  matcher: ['/app/:path*', '/login'],
 }
