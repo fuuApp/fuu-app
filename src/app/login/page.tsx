@@ -1,13 +1,16 @@
-import { redirect } from 'next/navigation'
+import OtpForm from './OtpForm'
+
+export const dynamic = 'force-dynamic'
 
 type Props = {
   searchParams: { next?: string; error?: string }
 }
 
-export default function LoginPage({ searchParams }: Props) {
-  const params = new URLSearchParams()
-  if (searchParams.next) params.set('next', searchParams.next)
-  if (searchParams.error) params.set('error', searchParams.error)
-  const qs = params.toString()
-  redirect(`/login/otp${qs ? '?' + qs : ''}`)
+export default function Page({ searchParams }: Props) {
+  return (
+    <OtpForm
+      nextPath={searchParams.next ?? '/app'}
+      authError={searchParams.error ?? ''}
+    />
+  )
 }
