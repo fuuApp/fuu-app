@@ -1,16 +1,13 @@
-// Server Component — searchParams をそのまま props で渡すことで
-// Next.js が動的ルートと認識し、Vercel エッジキャッシュを使わない
-import LoginClient from './LoginClient'
+import { redirect } from 'next/navigation'
 
 type Props = {
   searchParams: { next?: string; error?: string }
 }
 
-export default function Page({ searchParams }: Props) {
-  return (
-    <LoginClient
-      nextPath={searchParams.next ?? '/app'}
-      authError={searchParams.error ?? ''}
-    />
-  )
+export default function LoginPage({ searchParams }: Props) {
+  const params = new URLSearchParams()
+  if (searchParams.next) params.set('next', searchParams.next)
+  if (searchParams.error) params.set('error', searchParams.error)
+  const qs = params.toString()
+  redirect(`/signin${qs ? '?' + qs : ''}`)
 }

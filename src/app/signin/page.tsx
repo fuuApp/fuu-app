@@ -1,5 +1,4 @@
-// Server Component — searchParams をそのまま props で渡す
-import LoginClient from '../login/LoginClient'
+import LoginClient from './LoginClient'
 
 type Props = {
   searchParams: { next?: string; error?: string }
