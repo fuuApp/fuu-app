@@ -53,14 +53,14 @@ export async function middleware(req: NextRequest) {
     if (!session) {
       // 未ログイン → /signin へリダイレクト
       const loginUrl = req.nextUrl.clone()
-      loginUrl.pathname = '/signin'
+      loginUrl.pathname = '/login'
       loginUrl.searchParams.set('next', pathname)
       return NextResponse.redirect(loginUrl)
     }
   }
 
   // ─── ログイン済みユーザーが /signin にアクセスした場合 ──────
-  if (pathname === '/signin' && session) {
+  if (pathname === '/login' && session) {
     const appUrl = req.nextUrl.clone()
     appUrl.pathname = '/app'
     appUrl.search = ''
@@ -74,7 +74,7 @@ export async function middleware(req: NextRequest) {
 export const config = {
   matcher: [
     '/app/:path*',
-    '/signin',
+    ,
     '/login',
   ],
 }
