@@ -48,31 +48,23 @@ export async function middleware(req: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession()
 
-  // ─── /app/* へのアクセス保護 ────────────────────────────────
+  // ─── /app/* へのアクセス保護 ────────────────────────────────────
   if (pathname.startsWith('/app')) {
     if (!session) {
-      // 未ログイン → ログインページへリダイレクト
+      // 未ログイン → /signin へリダイレクト
       const loginUrl = req.nextUrl.clone()
-      loginUrl.pathname = '/login'
-      // ログイン後に元のURLへ戻れるようにパラメータを付ける
+      loginUrl.pathname = '/signin'
       loginUrl.searchParams.set('next', pathname)
       return NextResponse.redirect(loginUrl)
     }
   }
 
-  // ─── ログイン済みユーザーが /login にアクセスした場合 ────────
-  if (pathname === '/login' && session) {
+  // ─── ログイン済みユーザーが /signin にアクセスした場合 ──────
+  if (pathname === '/signin' && session) {
     const appUrl = req.nextUrl.clone()
     appUrl.pathname = '/app'
     appUrl.search = ''
     return NextResponse.redirect(appUrl)
-  }
-
-  // ─── /login は Vercel CDN にキャッシュさせない ───────────────
-  if (pathname === '/login') {
-    res.headers.set('CDN-Cache-Control', 'no-store')
-    res.headers.set('Vercel-CDN-Cache-Control', 'no-store')
-    res.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate')
   }
 
   return res
@@ -81,9 +73,8 @@ export async function middleware(req: NextRequest) {
 // ─── middleware を適用するパスのパターン ──────────────────────
 export const config = {
   matcher: [
-    // /app/* と /login のみに適用
-    // _next/static, _next/image, favicon.ico は除外
     '/app/:path*',
+    '/signin',
     '/login',
   ],
 }

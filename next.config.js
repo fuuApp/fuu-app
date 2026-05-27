@@ -6,15 +6,13 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['@anthropic-ai/sdk', 'stripe'],
   },
-  async headers() {
+  async redirects() {
     return [
+      // /login → /signin に永続リダイレクト（PRERENDERキャッシュ回避）
       {
-        // ログインページはCDNにキャッシュさせない
         source: '/login',
-        headers: [
-          { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate' },
-          { key: 'Pragma', value: 'no-cache' },
-        ],
+        destination: '/signin',
+        permanent: false,
       },
     ]
   },
