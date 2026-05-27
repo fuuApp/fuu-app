@@ -40,7 +40,7 @@ export async function middleware(req: NextRequest) {
   if (pathname.startsWith('/app')) {
     if (!session) {
       const loginUrl = req.nextUrl.clone()
-      loginUrl.pathname = '/login'
+      loginUrl.pathname = '/signin'
       loginUrl.searchParams.set('next', pathname)
       return NextResponse.redirect(loginUrl)
     }
@@ -57,5 +57,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/app/:path*', '/login'],
+  matcher: ['/app/:path*', '/signin'],
 }
