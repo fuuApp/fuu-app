@@ -9,9 +9,7 @@ const isSupabaseConfigured =
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
-  if (!isSupabaseConfigured) {
-    return NextResponse.next()
-  }
+  if (!isSupabaseConfigured) return NextResponse.next()
 
   let res = NextResponse.next({ request: { headers: req.headers } })
 
@@ -40,13 +38,13 @@ export async function middleware(req: NextRequest) {
   if (pathname.startsWith('/app')) {
     if (!session) {
       const loginUrl = req.nextUrl.clone()
-      loginUrl.pathname = '/login'
+      loginUrl.pathname = '/login/otp'
       loginUrl.searchParams.set('next', pathname)
       return NextResponse.redirect(loginUrl)
     }
   }
 
-  if (pathname === '/login' && session) {
+  if (pathname === '/login/otp' && session) {
     const appUrl = req.nextUrl.clone()
     appUrl.pathname = '/app'
     appUrl.search = ''
@@ -57,5 +55,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/app/:path*', '/login'],
+  matcher: ['/app/:path*', '/login/otp'],
 }
