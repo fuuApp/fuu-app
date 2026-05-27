@@ -1,4 +1,4 @@
-import LoginClient from './LoginClient'
+import OtpForm from './OtpForm'
 
 export const dynamic = 'force-dynamic'
 
@@ -8,7 +8,7 @@ type Props = {
 
 export default function LoginPage({ searchParams }: Props) {
   return (
-    <LoginClient
+    <OtpForm
       nextPath={searchParams.next ?? '/app'}
       authError={searchParams.error ?? ''}
     />
