@@ -46,7 +46,8 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  if (pathname === '/login' && session) {
+  if (pathname ===
+ && session) {
     const appUrl = req.nextUrl.clone()
     appUrl.pathname = '/app'
     appUrl.search = ''

@@ -21,7 +21,7 @@ export default function LandingPage() {
         <p style={{ fontSize: 14, color: '#888', marginBottom: 28 }}>
           AIのママ友が、いつでもそばにいます。
         </p>
-        <Link href="/login" style={{
+        <Link href="/signin" style={{
           display: 'inline-block',
           background: 'linear-gradient(135deg,#E91E63,#C2185B)',
           color: '#fff',
@@ -210,7 +210,7 @@ export default function LandingPage() {
         <p style={{ fontSize: 14, color: '#888', marginBottom: 28 }}>
           10日間は完全無料。クレジットカード不要。
         </p>
-        <Link href="/login" style={{
+        <Link href="/signin" style={{
           display: 'inline-block',
           background: 'linear-gradient(135deg,#E91E63,#C2185B)',
           color: '#fff',
