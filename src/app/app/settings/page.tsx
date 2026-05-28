@@ -14,26 +14,71 @@ function DeleteAccountModal({ onConfirm, onCancel, isDeleting }: {
   onConfirm: () => void; onCancel: () => void; isDeleting: boolean
 }) {
   const [confirmText, setConfirmText] = useState('')
+  const [step, setStep] = useState<1 | 2>(1)
   const REQUIRED = '退会する'
   const ready = confirmText === REQUIRED && !isDeleting
+
   return (
-    <div style={{ position:'fixed',inset:0,zIndex:100,background:'rgba(0,0,0,0.5)',display:'flex',alignItems:'flex-end',justifyContent:'center' }}>
-      <div style={{ width:'100%',maxWidth:480,background:'#fff',borderRadius:'20px 20px 0 0',padding:'28px 24px 40px',boxShadow:'0 -4px 20px rgba(0,0,0,0.15)' }}>
+    <div style={{ position:'fixed',inset:0,zIndex:100,background:'rgba(0,0,0,0.55)',display:'flex',alignItems:'flex-end',justifyContent:'center' }}>
+      <div style={{ width:'100%',maxWidth:480,background:'#fff',borderRadius:'20px 20px 0 0',padding:'28px 24px 44px',boxShadow:'0 -4px 20px rgba(0,0,0,0.15)',maxHeight:'90dvh',overflowY:'auto' }}>
         <div style={{ fontSize:32,textAlign:'center',marginBottom:12 }}>⚠️</div>
-        <div style={{ fontWeight:700,fontSize:17,color:'#333',textAlign:'center',marginBottom:8 }}>本当に退会しますか？</div>
-        <div style={{ fontSize:13,color:'#666',lineHeight:1.8,background:'#FFF8E1',border:'1px solid #FFD54F',borderRadius:12,padding:'12px 16px',marginBottom:20 }}>
-          退会するとすべての会話履歴・宝箱・アカウント情報が削除されます。この操作は取り消せません。<br /><br />
-          プレミアム会員の方は退会前にサブスクリプションをキャンセルしてください。
+        <div style={{ fontWeight:700,fontSize:17,color:'#333',textAlign:'center',marginBottom:16 }}>退会の前に必ずご確認ください</div>
+
+        {/* STEP 1: サブスクキャンセル案内 */}
+        <div style={{ background:'#FFF3E0',border:'1px solid #FFB74D',borderRadius:14,padding:'14px 16px',marginBottom:14 }}>
+          <div style={{ fontWeight:700,fontSize:13,color:'#E65100',marginBottom:8 }}>📌 STEP 1：サブスクリプションを先にキャンセル</div>
+          <div style={{ fontSize:12,color:'#555',lineHeight:1.8 }}>
+            月額プラン（スタンダード・プレミアム）をご利用中の場合、<strong>退会前に必ずサブスクリプションをキャンセル</strong>してください。<br /><br />
+            退会後もサブスクリプションは自動継続されます。キャンセルしないと引き落としが続きます。
+          </div>
+          <div style={{ marginTop:10,background:'#fff',borderRadius:10,padding:'10px 12px',border:'1px solid #FFD180' }}>
+            <div style={{ fontSize:11,color:'#F57F17',fontWeight:700,marginBottom:6 }}>▼ キャンセル手順（Stripe）</div>
+            <div style={{ fontSize:11,color:'#555',lineHeight:1.9 }}>
+              1. <a href="https://billing.stripe.com/p/login" target="_blank" rel="noreferrer" style={{ color:'#E91E63',fontWeight:700 }}>billing.stripe.com</a> にアクセス<br />
+              2. ご登録のメールアドレスでログイン<br />
+              3.「サブスクリプション」→「キャンセル」をタップ<br />
+              4. キャンセル完了のメールを確認<br />
+              5. キャンセル後にこの退会手続きへ進む
+            </div>
+          </div>
         </div>
-        <div style={{ marginBottom:16 }}>
-          <div style={{ fontSize:12,color:'#888',marginBottom:6 }}>確認のため「<strong style={{ color:'#E57373' }}>退会する</strong>」と入力してください</div>
-          <input value={confirmText} onChange={e=>setConfirmText(e.target.value)} placeholder="退会する" disabled={isDeleting}
-            style={{ width:'100%',border:'1.5px solid #FFCDD2',borderRadius:12,padding:'10px 14px',fontSize:14,outline:'none',background:isDeleting?'#fafafa':'#fff',fontFamily:'inherit',boxSizing:'border-box' }} />
+
+        {/* STEP 2: 削除されるデータ */}
+        <div style={{ background:'#FFF8E1',border:'1px solid #FFD54F',borderRadius:14,padding:'14px 16px',marginBottom:14 }}>
+          <div style={{ fontWeight:700,fontSize:13,color:'#F57F17',marginBottom:8 }}>📌 STEP 2：削除されるデータを確認</div>
+          <div style={{ fontSize:12,color:'#555',lineHeight:1.9 }}>
+            退会すると以下のデータが<strong>完全に削除</strong>され、復元できません：<br />
+            ・すべての会話履歴<br />
+            ・気持ちの箱（愚痴の変換記録）<br />
+            ・ニックネーム・設定情報<br />
+            ・アカウント情報<br /><br />
+            ※ サブスクリプション未キャンセルのまま退会した場合の返金はできかねます。
+          </div>
         </div>
+
+        {/* STEP 3: 確認入力 */}
+        <div style={{ background:'#FFEBEE',border:'1px solid #FFCDD2',borderRadius:14,padding:'14px 16px',marginBottom:16 }}>
+          <div style={{ fontWeight:700,fontSize:13,color:'#C62828',marginBottom:8 }}>📌 STEP 3：退会を実行</div>
+          <div style={{ fontSize:12,color:'#888',marginBottom:8 }}>
+            サブスクキャンセル完了後、「<strong style={{ color:'#E57373' }}>退会する</strong>」と入力して退会ボタンを押してください
+          </div>
+          <input
+            value={confirmText}
+            onChange={e => setConfirmText(e.target.value)}
+            placeholder="退会する"
+            disabled={isDeleting}
+            style={{ width:'100%',border:'1.5px solid #FFCDD2',borderRadius:12,padding:'10px 14px',fontSize:14,outline:'none',background:isDeleting?'#fafafa':'#fff',fontFamily:'inherit',boxSizing:'border-box' }}
+          />
+        </div>
+
         <div style={{ display:'flex',gap:10 }}>
-          <button onClick={onCancel} disabled={isDeleting} style={{ flex:1,background:'#f5f5f5',border:'none',borderRadius:14,padding:'13px 0',fontSize:14,color:'#666',cursor:'pointer',fontFamily:'inherit' }}>キャンセル</button>
-          <button onClick={onConfirm} disabled={!ready} style={{ flex:1,background:ready?'#E57373':'#eee',border:'none',borderRadius:14,padding:'13px 0',fontSize:14,fontWeight:700,color:ready?'#fff':'#bbb',cursor:ready?'pointer':'not-allowed',fontFamily:'inherit',transition:'background 0.2s' }}>
-            {isDeleting?'処理中...':'退会する'}
+          <button onClick={onCancel} disabled={isDeleting}
+            style={{ flex:1,background:'#f5f5f5',border:'none',borderRadius:14,padding:'13px 0',fontSize:14,color:'#666',cursor:'pointer',fontFamily:'inherit' }}>
+            キャンセル
+          </button>
+          <button onClick={onConfirm} disabled={!ready}
+            style={{ flex:1,background:ready?'#E57373':'#eee',border:'none',borderRadius:14,padding:'13px 0',fontSize:14,fontWeight:700,color:ready?'#fff':'#bbb',cursor:ready?'pointer':'not-allowed',fontFamily:'inherit',transition:'background 0.2s' }}>
+            {isDeleting ? '処理中...' : '退会する'}
           </button>
         </div>
       </div>
@@ -82,7 +127,8 @@ export default function SettingsPage() {
   }
   const handleSaveNotifications = async () => {
     setNotifSaving(true)
-    localStorage.setItem('fuu_morning_time', morningTime); localStorage.setItem('fuu_evening_time', eveningTime)
+    localStorage.setItem('fuu_morning_time', morningTime)
+    localStorage.setItem('fuu_evening_time', eveningTime)
     setNotifSaved(true); setTimeout(() => setNotifSaved(false), 2500); setNotifSaving(false)
   }
   const handleDeleteAccount = async () => {
@@ -156,11 +202,15 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* 通知設定 */}
+        {/* 通知設定（スタンダード・プレミアム共通） */}
         <div style={{ background:'#fff',borderRadius:16,overflow:'hidden',boxShadow:'0 1px 6px rgba(233,30,99,0.07)' }}>
           <div style={{ padding:'12px 16px',borderBottom:'1px solid #FCE4EC',fontSize:12,color:'#E91E63',fontWeight:700 }}>通知設定</div>
           <div style={{ padding:16 }}>
-            <p style={{ fontSize:12,color:'#aaa',marginBottom:16,lineHeight:1.7 }}>朝・夜のメッセージを受け取る時間を設定できます。<br />※ プッシュ通知はブラウザの通知許可が必要です</p>
+            <p style={{ fontSize:12,color:'#aaa',marginBottom:16,lineHeight:1.7 }}>
+              朝・夜のメッセージを受け取る時間を設定できます。<br />
+              ※ スタンダード・プレミアム共通機能です<br />
+              ※ プッシュ通知はブラウザの通知許可が必要です（ホーム画面追加推奨）
+            </p>
             <div style={{ marginBottom:14 }}>
               <div style={{ fontSize:13,fontWeight:600,color:'#555',marginBottom:6 }}>🌅 おはようメッセージ</div>
               <input type="time" value={morningTime} onChange={e=>setMorningTime(e.target.value)} style={{ border:'1.5px solid #F48FB1',borderRadius:10,padding:'8px 12px',fontSize:16,outline:'none',background:'#fdf4f7',fontFamily:'inherit',color:'#333',width:140 }} />
@@ -210,7 +260,10 @@ export default function SettingsPage() {
             }}
             style={{ width:'100%',padding:'14px 16px',background:'none',border:'none',fontSize:14,color:'#E57373',cursor:'pointer',textAlign:'left',fontFamily:'inherit',borderBottom:'1px solid #fdf4f7' }}
           >ログアウト</button>
-          <button onClick={()=>setShowDeleteModal(true)} style={{ width:'100%',padding:'14px 16px',background:'none',border:'none',fontSize:14,color:'#bbb',cursor:'pointer',textAlign:'left',fontFamily:'inherit' }}>退会する</button>
+          <button onClick={()=>setShowDeleteModal(true)}
+            style={{ width:'100%',padding:'14px 16px',background:'none',border:'none',fontSize:14,color:'#bbb',cursor:'pointer',textAlign:'left',fontFamily:'inherit' }}>
+            退会する
+          </button>
         </div>
 
         {deleteError && <div style={{ background:'#FFEBEE',border:'1px solid #FFCDD2',borderRadius:12,padding:'12px 16px',fontSize:13,color:'#C62828' }}>⚠️ {deleteError}</div>}

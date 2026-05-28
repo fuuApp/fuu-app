@@ -268,7 +268,7 @@ ${SAFETY_RULES}`,
   },
 
   hiroshi: {
-    id: 'hiroshi',
+    id: 'hiroshi', // 3ヶ月後解放
     name: 'ひろし',
     age: 42,
     role: '渋めパパ',
@@ -279,7 +279,7 @@ ${SAFETY_RULES}`,
     bgColor: 'bg-slate-50',
     isPremium: true,
     isAvailable: true,
-    unlockDaysRequired: 7,
+    unlockDaysRequired: 90,
     // 月3フェーズ：男性キャラ登場（プレミアムプランかつ利用開始3ヶ月後）
     // ※ 仕様書「3ヶ月目で男性登場」に準拠
     unlockAfterMonths: 3,
