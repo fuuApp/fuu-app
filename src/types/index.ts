@@ -13,6 +13,7 @@ export interface Character {
   bgColor: string
   isPremium: boolean    // trueはプレミアム以上のみ
   isAvailable: boolean  // falseは将来実装
+  unlockDaysRequired: number  // 使用開始から何日後に解放されるか（0=即時解放）    // trueはプレミアム以上のみ
   /**
    * ユーザーのアカウント作成日からの経過月数で解放されるキャラ。
    * 0 = 初日から利用可能、1 = 1ヶ月後に解放、2 = 2ヶ月後に解放

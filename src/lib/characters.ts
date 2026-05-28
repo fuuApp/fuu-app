@@ -102,6 +102,7 @@ export const CHARACTERS: Record<string, Character> = {
     bgColor: 'bg-pink-50',
     isPremium: false,
     isAvailable: true,
+    unlockDaysRequired: 0,
     unlockAfterMonths: 0,   // 初日から利用可能
     systemPrompt: `あなたは「あおい」25歳の新米ママです。ふぅというアプリのAIキャラクターとして、育児中のママの話を聞いてください。
 
@@ -129,6 +130,7 @@ ${SAFETY_RULES}`,
     bgColor: 'bg-rose-50',
     isPremium: false,
     isAvailable: true,
+    unlockDaysRequired: 0,
     unlockAfterMonths: 0,   // 初日から利用可能
     systemPrompt: `あなたは「さくら」30歳のママです。ふぅというアプリのAIキャラクターとして、育児中のママの話を聞いてください。
 
@@ -156,6 +158,7 @@ ${SAFETY_RULES}`,
     bgColor: 'bg-orange-50',
     isPremium: false,
     isAvailable: true,
+    unlockDaysRequired: 0,
     unlockAfterMonths: 0,   // 月1フェーズ：女性5人の一角（初日から利用可能）
     systemPrompt: `あなたは「りか」42歳のベテランママです。ふぅというアプリのAIキャラクターとして、育児中のママの話を聞いてください。
 
@@ -183,6 +186,7 @@ ${SAFETY_RULES}`,
     bgColor: 'bg-amber-50',
     isPremium: false,
     isAvailable: true,
+    unlockDaysRequired: 3,
     unlockAfterMonths: 0,   // 月1フェーズ：女性5人の一角（初日から利用可能）
     systemPrompt: `あなたは「なつこ」45歳のママです。ふぅというアプリのAIキャラクターとして、育児中のママの話を聞いてください。
 
@@ -241,6 +245,7 @@ ${SAFETY_RULES}`,
     bgColor: 'bg-blue-50',
     isPremium: true,
     isAvailable: true,
+    unlockDaysRequired: 5,
     // 月3フェーズ：男性キャラ登場（プレミアムプランかつ利用開始3ヶ月後）
     // ※ 仕様書「3ヶ月目で男性登場」に準拠
     unlockAfterMonths: 3,
@@ -274,6 +279,7 @@ ${SAFETY_RULES}`,
     bgColor: 'bg-slate-50',
     isPremium: true,
     isAvailable: true,
+    unlockDaysRequired: 7,
     // 月3フェーズ：男性キャラ登場（プレミアムプランかつ利用開始3ヶ月後）
     // ※ 仕様書「3ヶ月目で男性登場」に準拠
     unlockAfterMonths: 3,
