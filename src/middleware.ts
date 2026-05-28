@@ -13,14 +13,18 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next()
   }
 
-  let res = NextResponse.next({ request: { headers: req.headers } })
+  let res = NextResponse.next({
+    request: { headers: req.headers },
+  })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) { return req.cookies.get(name)?.value },
+        get(name: string) {
+          return req.cookies.get(name)?.value
+        },
         set(name: string, value: string, options: CookieOptions) {
           req.cookies.set({ name, value, ...options })
           res = NextResponse.next({ request: { headers: req.headers } })
@@ -35,8 +39,11 @@ export async function middleware(req: NextRequest) {
     }
   )
 
-  const { data: { session } } = await supabase.auth.getSession()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
 
+  // /app/* へのアクセス保護
   if (pathname.startsWith('/app')) {
     if (!session) {
       const loginUrl = req.nextUrl.clone()
@@ -46,8 +53,8 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  if (pathname ===
- && session) {
+  // ログイン済みユーザーが /signin にアクセスした場合
+  if (pathname === '/signin' && session) {
     const appUrl = req.nextUrl.clone()
     appUrl.pathname = '/app'
     appUrl.search = ''
@@ -58,5 +65,8 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/app/:path*', '/signin'],
+  matcher: [
+    '/app/:path*',
+    '/signin',
+  ],
 }
