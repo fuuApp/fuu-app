@@ -102,7 +102,7 @@ function PlansContent() {
       return
     }
     // チケット購入（Stripe one-time payment）
-    window.open('https://buy.stripe.com/ticket', '_blank')
+    window.open('https://buy.stripe.com/aFa3cpfa2ddLcQT6id3gk00', '_blank')
   }
 
   return (
