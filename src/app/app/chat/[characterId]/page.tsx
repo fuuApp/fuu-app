@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { getCharacter } from '@/lib/characters'
+import { useBgm } from '@/hooks/useBgm'
 import type { Message } from '@/types'
 
 const NICKNAME_KEY = 'fuu_nickname'
@@ -32,6 +33,9 @@ export default function ChatPage() {
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const nicknameInputRef = useRef<HTMLInputElement>(null)
+
+  // BGM 自動再生
+  useBgm()
 
   const quickReplies = ['今日しんどかった', 'ただ聞いてほしい', '子どものこと', '旦那のこと']
   const showGuchiFooterButton = nicknamePhase === 'done' && !guchiDone && !loadingSummary && !loading
@@ -311,7 +315,18 @@ export default function ChatPage() {
         {nickname && (
           <div style={{ marginLeft: 'auto', fontSize: 12, color: '#bbb' }}>{nickname}</div>
         )}
-        <div style={{ marginLeft: nickname ? 8 : 'auto', width: 8, height: 8, borderRadius: '50%', background: '#4CAF50' }} />
+        <button
+          onClick={() => router.push(`/app/voice/${characterId}`)}
+          title='音声通話'
+          style={{
+            marginLeft: nickname ? 8 : 'auto',
+            background: 'none', border: '1px solid #F48FB1',
+            borderRadius: '50%', width: 32, height: 32,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 16, cursor: 'pointer', flexShrink: 0,
+          }}
+        >🎙️</button>
+        <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#4CAF50' }} />
       </div>
 
       {/* メッセージ一覧 */}
