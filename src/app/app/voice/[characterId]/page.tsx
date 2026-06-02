@@ -42,7 +42,8 @@ export default function VoicePage() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({audio:true})
       streamRef.current = stream
-      const mr = new MediaRecorder(stream, {mimeType:'audio/webm'})
+      const mimeType = ['audio/webm;codecs=opus','audio/webm','audio/mp4',''].find(t => t === '' || MediaRecorder.isTypeSupported(t)) ?? ''
+      const mr = new MediaRecorder(stream, mimeType ? {mimeType} : {})
       chunksRef.current = []
       mr.ondataavailable = e => { if (e.data.size>0) chunksRef.current.push(e.data) }
       mr.start(); mediaRecorderRef.current = mr; setVoiceState('recording')
@@ -55,7 +56,9 @@ export default function VoicePage() {
     setVoiceState('processing')
     await new Promise<void>(resolve=>{ mr.onstop=()=>resolve(); mr.stop() })
     streamRef.current?.getTracks().forEach(t=>t.stop())
-    const blob = new Blob(chunksRef.current, {type:'audio/webm'})
+    const actualMime = mediaRecorderRef.current?.mimeType || 'audio/webm'
+    const ext = actualMime.includes('mp4') ? 'm4a' : 'webm'
+    const blob = new Blob(chunksRef.current, {type: actualMime})
     const durationSec = Math.ceil(blob.size/16000)
     try {
       const fd = new FormData(); fd.append('file',blob,'audio.webm')
