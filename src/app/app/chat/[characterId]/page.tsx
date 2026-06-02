@@ -34,8 +34,7 @@ export default function ChatPage() {
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const nicknameInputRef = useRef<HTMLInputElement>(null)
 
-  // BGM 自動再生
-  useBgm()
+  const { startBgm } = useBgm()
 
   const quickReplies = ['今日しんどかった', 'ただ聞いてほしい', '子どものこと', '旦那のこと']
   const showGuchiFooterButton = nicknamePhase === 'done' && !guchiDone && !loadingSummary && !loading
@@ -215,6 +214,9 @@ export default function ChatPage() {
     setShowQuickReplies(false)
     setLoading(true)
 
+    // ユーザー操作後にBGMを開始（初回のみ。ブラウザの自動再生ポリシー対応）
+    startBgm()
+
     const newUserMsg: Message = {
       id: Date.now().toString(), conversationId: 'local',
       role: 'user', content: userMessage,
@@ -256,6 +258,12 @@ export default function ChatPage() {
     }
   }
 
+  // JSTの今日の日付を YYYY-MM-DD で返す
+  const getTodayJST = (): string => {
+    const now = new Date(Date.now() + 9 * 60 * 60 * 1000) // UTC+9
+    return now.toISOString().split('T')[0]
+  }
+
   const handleGuchi = async () => {
     setLoadingSummary(true)
     const userMessages = messages.filter(m => m.role === 'user').map(m => m.content).join('\n')
@@ -270,11 +278,28 @@ export default function ChatPage() {
         }),
       })
       const data = await res.json()
-      setGuchiSummary(res.ok ? data.message : 'ゆっくり休んでね。今日もよく頑張ったよ。')
+      const summary = res.ok ? data.message : 'ゆっくり休んでね。今日もよく頑張ったよ。'
+      setGuchiSummary(summary)
       setGuchiDone(true)
+
+      // ── sessionStorage に保存（ジャーナルページのデモ表示用） ──
+      try {
+        const today = getTodayJST()
+        const key = `fuu_guchi_${today}`
+        sessionStorage.setItem(key, JSON.stringify({
+          date: today,
+          reframed: summary,
+        }))
+      } catch { /* ストレージ制限などは無視 */ }
+
     } catch {
-      setGuchiSummary('今日もたくさん話してくれてありがとう。ゆっくり休んでね。')
+      const fallback = '今日もたくさん話してくれてありがとう。ゆっくり休んでね。'
+      setGuchiSummary(fallback)
       setGuchiDone(true)
+      try {
+        const today = getTodayJST()
+        sessionStorage.setItem(`fuu_guchi_${today}`, JSON.stringify({ date: today, reframed: fallback }))
+      } catch { /* ignore */ }
     } finally {
       setLoadingSummary(false)
     }
@@ -315,18 +340,7 @@ export default function ChatPage() {
         {nickname && (
           <div style={{ marginLeft: 'auto', fontSize: 12, color: '#bbb' }}>{nickname}</div>
         )}
-        <button
-          onClick={() => router.push(`/app/voice/${characterId}`)}
-          title='音声通話'
-          style={{
-            marginLeft: nickname ? 8 : 'auto',
-            background: 'none', border: '1px solid #F48FB1',
-            borderRadius: '50%', width: 32, height: 32,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 16, cursor: 'pointer', flexShrink: 0,
-          }}
-        >🎙️</button>
-        <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#4CAF50' }} />
+        <div style={{ marginLeft: nickname ? 8 : 'auto', width: 8, height: 8, borderRadius: '50%', background: '#4CAF50' }} />
       </div>
 
       {/* メッセージ一覧 */}
@@ -384,18 +398,41 @@ export default function ChatPage() {
         )}
 
         {/* 愚痴お片付け結果 */}
-        {guchiDone && guchiSummary && (
+        {guchiDone && guchiSummary && (() => {
+          // AIの出力を感情ラベル行と締めの一言に分割してパース
+          const lines = guchiSummary.split('\n').map(l => l.trim()).filter(Boolean)
+          const labelLines = lines.filter(l => l.startsWith('💭'))
+          const closingLines = lines.filter(l => !l.startsWith('💭'))
+          const labels = labelLines.map(l => l.replace(/^💭\s*/, ''))
+          const closing = closingLines.join(' ')
+          return (
           <div style={{
             margin: '16px 0', background: 'linear-gradient(135deg,#FFF0F5,#FCE4EC)',
             borderRadius: 20, padding: '18px 20px',
             border: '1.5px solid #F48FB1', boxShadow: '0 2px 12px rgba(233,30,99,0.1)',
           }}>
-            <div style={{ fontSize: 13, color: '#E91E63', fontWeight: 700, marginBottom: 10 }}>
+            <div style={{ fontSize: 13, color: '#E91E63', fontWeight: 700, marginBottom: 12 }}>
               🧹 今日の気持ち、お片付けできたよ
             </div>
-            <div style={{ fontSize: 14, color: '#333', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
-              {guchiSummary}
+            {/* 感情ラベル：タグ形式（クリック不可） */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
+              {labels.map((label, i) => (
+                <span key={i} style={{
+                  background: '#fff', border: '1.5px solid #F48FB1',
+                  borderRadius: 20, padding: '6px 14px',
+                  fontSize: 13, color: '#C2185B',
+                  display: 'inline-block', userSelect: 'none',
+                }}>
+                  {label}
+                </span>
+              ))}
             </div>
+            {/* 締めの一言 */}
+            {closing && (
+              <div style={{ fontSize: 13, color: '#555', lineHeight: 1.7, borderTop: '1px solid #F8BBD9', paddingTop: 12 }}>
+                {closing}
+              </div>
+            )}
             <button onClick={() => {
               setGuchiDone(false); setGuchiSummary('')
               const again: Record<string, string> = {
@@ -417,7 +454,8 @@ export default function ChatPage() {
               もう一度話す
             </button>
           </div>
-        )}
+          )
+        })()}
 
         <div ref={bottomRef} />
       </div>
