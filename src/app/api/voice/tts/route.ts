@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     const res = await fetch('https://api.openai.com/v1/audio/speech', {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'tts-1', input: text.slice(0, 4096), voice, response_format: 'mp3' }),
+      body: JSON.stringify({ model: 'tts-1-hd', input: text.slice(0, 4096), voice, response_format: 'mp3' }),
     })
     if (!res.ok) {
       const err = await res.text()
