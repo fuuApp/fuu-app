@@ -9,8 +9,11 @@
  * 3. テキストを /api/chat に送信 → AIレスポンス取得
  * 4. TTS API に送信 → 音声再生
  *
+ * モバイルautoplayポリシー対策:
+ *   pointerDown（ユーザー操作）のタイミングでAudioContextをunlockし、
+ *   TTS音声はWeb Audio APIで再生することでiOS/Android両対応。
+ *
  * 残り時間は /api/voice-usage で取得・表示
- * 本番環境ではOpenAI Realtime APIへの移行を推奨
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react'
@@ -26,7 +29,6 @@ const avatarEmoji: Record<string, string> = {
   aoi: '👧', sakura: '🌸', rika: '💪', natsuko: '🍵', kenji: '👨', hiroshi: '🧔',
 }
 
-// OpenAI TTS 利用可能ボイス一覧
 const VOICE_OPTIONS = [
   { id: 'nova',    label: 'Nova',    desc: '明るく自然な女性' },
   { id: 'shimmer', label: 'Shimmer', desc: '柔らかく温かい女性' },
@@ -54,8 +56,12 @@ export default function VoicePage() {
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
-  const audioRef = useRef<HTMLAudioElement | null>(null)
   const streamRef = useRef<MediaStream | null>(null)
+  // AudioContext: モバイルautoplay対策
+  const audioCtxRef = useRef<AudioContext | null>(null)
+  const sourceNodeRef = useRef<AudioBufferSourceNode | null>(null)
+  // アンマウント後の非同期処理を防ぐ
+  const isMountedRef = useRef(true)
 
   // 保存済みvoice設定を読み込む
   useEffect(() => {
@@ -68,17 +74,54 @@ export default function VoicePage() {
     fetch('/api/voice-usage')
       .then(r => r.json())
       .then(d => {
+        if (!isMountedRef.current) return
         setRemainingMin(Math.floor((d.remainingSeconds ?? 1800) / 60))
         if (!d.canUse) setVoiceState('limit_reached')
       })
-      .catch(() => setRemainingMin(30))
+      .catch(() => { if (isMountedRef.current) setRemainingMin(30) })
   }, [])
 
-  // クリーンアップ
+  // クリーンアップ: アンマウント時に全て停止
   useEffect(() => {
     return () => {
+      isMountedRef.current = false
       streamRef.current?.getTracks().forEach(t => t.stop())
-      audioRef.current?.pause()
+      sourceNodeRef.current?.stop()
+      audioCtxRef.current?.close()
+    }
+  }, [])
+
+  /**
+   * AudioContextをunlockしてTTS音声を再生
+   * モバイルではユーザー操作（pointerDown）でContextを作成しておき、
+   * 非同期で取得したArrayBufferをdecodeして再生する。
+   */
+  const playAudioBuffer = useCallback(async (arrayBuffer: ArrayBuffer) => {
+    try {
+      // AudioContextがなければ作成（既にpointerDownで作成済みのはず）
+      if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
+        audioCtxRef.current = new AudioContext()
+      }
+      // suspendされていたら再開
+      if (audioCtxRef.current.state === 'suspended') {
+        await audioCtxRef.current.resume()
+      }
+      const decoded = await audioCtxRef.current.decodeAudioData(arrayBuffer)
+      if (!isMountedRef.current) return
+
+      const source = audioCtxRef.current.createBufferSource()
+      source.buffer = decoded
+      source.connect(audioCtxRef.current.destination)
+      sourceNodeRef.current = source
+
+      source.onended = () => {
+        if (!isMountedRef.current) return
+        setVoiceState(prev => prev === 'limit_reached' ? 'limit_reached' : 'idle')
+      }
+      source.start()
+    } catch (err) {
+      console.error('Audio play error:', err)
+      if (isMountedRef.current) setVoiceState('idle')
     }
   }, [])
 
@@ -91,11 +134,20 @@ export default function VoicePage() {
   const startRecording = useCallback(async () => {
     if (voiceState === 'limit_reached') return
     setErrorMsg('')
+
+    // ★ユーザー操作のタイミングでAudioContextを作成・resume（モバイルautoplayアンロック）
+    try {
+      if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
+        audioCtxRef.current = new AudioContext()
+      }
+      await audioCtxRef.current.resume()
+    } catch { /* 無視 */ }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      if (!isMountedRef.current) { stream.getTracks().forEach(t => t.stop()); return }
       streamRef.current = stream
 
-      // iOS Safari は audio/webm 非対応 → 対応フォーマットを自動検出
       const mimeType = [
         'audio/webm;codecs=opus',
         'audio/webm',
@@ -129,17 +181,14 @@ export default function VoicePage() {
     const actualMime = mediaRecorderRef.current?.mimeType || 'audio/webm'
     const ext = actualMime.includes('mp4') ? 'm4a' : actualMime.includes('ogg') ? 'ogg' : 'webm'
     const blob = new Blob(chunksRef.current, { type: actualMime })
-    const durationSec = Math.ceil(blob.size / 16000)  // 概算秒数
+    const durationSec = Math.ceil(blob.size / 16000)
 
     try {
-      // STT: サーバープロキシ経由（APIキーをクライアントに露出しない）
       const formData = new FormData()
       formData.append('file', blob, `audio.${ext}`)
 
-      const sttRes = await fetch('/api/voice/stt', {
-        method: 'POST',
-        body: formData,
-      })
+      const sttRes = await fetch('/api/voice/stt', { method: 'POST', body: formData })
+      if (!isMountedRef.current) return
 
       let userText = ''
       if (sttRes.ok) {
@@ -157,7 +206,6 @@ export default function VoicePage() {
       const newMessages = [...messages, { role: 'user' as const, content: userText }]
       setMessages(newMessages)
 
-      // Chat API
       const chatRes = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -166,28 +214,30 @@ export default function VoicePage() {
           message: userText,
           nickname: nickname || undefined,
           conversationHistory: newMessages,
-          voice: true,  // 音声向け短い返答をリクエスト
+          voice: true,
         }),
       })
+      if (!isMountedRef.current) return
+
       const chatData = await chatRes.json()
       const aiResponse = chatData.message ?? 'ごめん、うまく聞き取れなかった。'
       setAiText(aiResponse)
       setMessages(prev => [...prev, { role: 'assistant', content: aiResponse }])
 
       // 使用秒数を記録
-      await fetch('/api/voice-usage', {
+      fetch('/api/voice-usage', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ seconds: durationSec }),
       }).then(r => r.json()).then(d => {
+        if (!isMountedRef.current) return
         if (d.remainingSeconds !== undefined) {
-          const newRemain = Math.floor(d.remainingSeconds / 60)
-          setRemainingMin(newRemain)
+          setRemainingMin(Math.floor(d.remainingSeconds / 60))
           if (!d.canUse) setVoiceState('limit_reached')
         }
       }).catch(() => {})
 
-      // TTS: サーバープロキシ経由
+      // TTS取得 → Web Audio APIで再生
       setVoiceState('speaking')
       const ttsRes = await fetch('/api/voice/tts', {
         method: 'POST',
@@ -198,26 +248,23 @@ export default function VoicePage() {
           voiceOverride: selectedVoice ?? undefined,
         }),
       })
+      if (!isMountedRef.current) return
 
       if (ttsRes.ok) {
-        const audioBlob = await ttsRes.blob()
-        const url = URL.createObjectURL(audioBlob)
-        const audio = new Audio(url)
-        audioRef.current = audio
-        audio.onended = () => {
-          URL.revokeObjectURL(url)
-          setVoiceState(voiceState === 'limit_reached' ? 'limit_reached' : 'idle')
-        }
-        audio.play().catch(() => setVoiceState('idle'))
+        const arrayBuffer = await ttsRes.arrayBuffer()
+        if (!isMountedRef.current) return
+        await playAudioBuffer(arrayBuffer)
       } else {
         setVoiceState('idle')
       }
     } catch (err) {
       console.error(err)
-      setErrorMsg('エラーが発生しました。もう一度お試しください。')
-      setVoiceState('idle')
+      if (isMountedRef.current) {
+        setErrorMsg('エラーが発生しました。もう一度お試しください。')
+        setVoiceState('idle')
+      }
     }
-  }, [voiceState, messages, characterId, nickname, selectedVoice])
+  }, [voiceState, messages, characterId, nickname, selectedVoice, playAudioBuffer])
 
   if (!character) {
     return (
@@ -255,7 +302,7 @@ export default function VoicePage() {
       }}>
         <button
           onClick={() => {
-            audioRef.current?.pause()
+            sourceNodeRef.current?.stop()
             router.push(`/app/chat/${characterId}`)
           }}
           style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#E91E63', padding: 4 }}
@@ -283,7 +330,6 @@ export default function VoicePage() {
               </div>
             </div>
           )}
-          {/* 声のタイプ設定ボタン */}
           <button
             onClick={() => setShowVoiceSheet(true)}
             style={{
@@ -300,8 +346,6 @@ export default function VoicePage() {
 
       {/* メインエリア */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32, gap: 24 }}>
-
-        {/* アバター波紋 */}
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {isActive && (
             <>
@@ -330,12 +374,10 @@ export default function VoicePage() {
           </div>
         </div>
 
-        {/* ステータスラベル */}
         <div style={{ fontSize: 15, color: '#555', fontWeight: 500, textAlign: 'center', minHeight: 24 }}>
           {stateLabel[voiceState]}
         </div>
 
-        {/* 最新の会話テキスト */}
         {(transcript || aiText) && (
           <div style={{ width: '100%', maxWidth: 360, display: 'flex', flexDirection: 'column', gap: 10 }}>
             {transcript && (
@@ -360,7 +402,6 @@ export default function VoicePage() {
           </div>
         )}
 
-        {/* エラー */}
         {errorMsg && (
           <div style={{
             background: '#FFF3F3', border: '1px solid #FFCDD2', borderRadius: 12,
@@ -370,7 +411,6 @@ export default function VoicePage() {
           </div>
         )}
 
-        {/* 上限注意 */}
         {voiceState === 'limit_reached' && (
           <div style={{
             background: '#FFF8E1', border: '1px solid #FFD54F', borderRadius: 12,
@@ -416,10 +456,9 @@ export default function VoicePage() {
           {voiceState === 'recording' ? '指を離すと送信します' : ''}
         </p>
 
-        {/* テキストに切り替え */}
         <button
           onClick={() => {
-            audioRef.current?.pause()
+            sourceNodeRef.current?.stop()
             router.push(`/app/chat/${characterId}`)
           }}
           style={{
@@ -454,12 +493,9 @@ export default function VoicePage() {
             }} />
             <div style={{ padding: '0 20px', marginBottom: 16 }}>
               <div style={{ fontWeight: 700, fontSize: 16, color: '#333' }}>声のタイプを選ぶ</div>
-              <div style={{ fontSize: 12, color: '#aaa', marginTop: 4 }}>
-                選んだ声はこのデバイスに保存されます
-              </div>
+              <div style={{ fontSize: 12, color: '#aaa', marginTop: 4 }}>選んだ声はこのデバイスに保存されます</div>
             </div>
 
-            {/* デフォルト選択肢 */}
             <button
               onClick={() => {
                 setSelectedVoice(null)
@@ -483,12 +519,9 @@ export default function VoicePage() {
                 <div style={{ fontWeight: 600, fontSize: 14, color: '#333' }}>デフォルト（キャラクター設定）</div>
                 <div style={{ fontSize: 12, color: '#aaa' }}>キャラクターに合った声を自動選択</div>
               </div>
-              {selectedVoice === null && (
-                <span style={{ marginLeft: 'auto', color: '#E91E63', fontSize: 18 }}>✓</span>
-              )}
+              {selectedVoice === null && <span style={{ marginLeft: 'auto', color: '#E91E63', fontSize: 18 }}>✓</span>}
             </button>
 
-            {/* 各ボイス */}
             {VOICE_OPTIONS.map(v => (
               <button
                 key={v.id}
@@ -512,9 +545,7 @@ export default function VoicePage() {
                   <div style={{ fontWeight: 600, fontSize: 14, color: '#333' }}>{v.label}</div>
                   <div style={{ fontSize: 12, color: '#aaa' }}>{v.desc}</div>
                 </div>
-                {selectedVoice === v.id && (
-                  <span style={{ marginLeft: 'auto', color: '#E91E63', fontSize: 18 }}>✓</span>
-                )}
+                {selectedVoice === v.id && <span style={{ marginLeft: 'auto', color: '#E91E63', fontSize: 18 }}>✓</span>}
               </button>
             ))}
           </div>
