@@ -35,7 +35,7 @@ function getResponseGuide(messageLength: number): { instruction: string; maxToke
 export async function POST(req: NextRequest) {
   try {
     const body: ChatRequest = await req.json()
-    const { characterId, message, nickname, conversationHistory } = body
+    const { characterId, message, conversationHistory } = body
 
     if (!message?.trim()) {
       return NextResponse.json({ error: 'メッセージが空です' }, { status: 400 })
@@ -49,11 +49,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '無効なキャラクターです' }, { status: 400 })
     }
 
+    const { nickname } = body
     const { instruction, maxTokens } = getResponseGuide(message.length)
-    const nicknameInstruction = nickname
-      ? `\n\n【ユーザーの呼び方】このユーザーのニックネームは「${nickname}」です。会話の中で自然に名前を使って呼んでください。ただし毎回呼びかける必要はなく、あくまで自然な頻度で。`
-      : `\n\n【ユーザーの呼び方】ユーザーはニックネームを設定していません。呼びかける場合は省略するか、「あなた」を使ってください。`
-    const dynamicSystemPrompt = `${character.systemPrompt}${nicknameInstruction}\n\n${instruction}`
+
+    // ニックネーム指示を動的に追加
+    const nameInstruction = nickname
+      ? `【ユーザーへの呼びかけ】相手のニックネームは「${nickname}」です。会話の中で自然に名前を使って呼んでください。`
+      : `【ユーザーへの呼びかけ】相手のニックネームは未設定です。「あなた」と呼ぶか、呼びかけを省いてください。`
+
+    const dynamicSystemPrompt = `${character.systemPrompt}\n\n${nameInstruction}\n\n${instruction}`
 
     const history = (conversationHistory ?? []).slice(-20).map(m => ({
       role: m.role as 'user' | 'assistant',
@@ -61,7 +65,7 @@ export async function POST(req: NextRequest) {
     }))
 
     const response = await anthropic.messages.create({
-      model: 'claude-haiku-4-5-20251001',
+      model: 'claude-haiku-4-5-20251001', // 品質重視の場合: 'claude-sonnet-4-5' に変更可（コスト約4倍）
       max_tokens: maxTokens,
       system: dynamicSystemPrompt,
       messages: [
