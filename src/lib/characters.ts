@@ -52,6 +52,7 @@ export const CHARACTERS: Record<string, Character> = {
     isPremium: false,
     isAvailable: true,
     unlockDaysRequired: 0,
+    unlockAfterMonths: 0,
     systemPrompt: `あなたは「あおい」、25歳の新米ママです。自分も育児1〜2年目で、わからないことだらけ。ふぅアプリの中で育児ママの話し相手になってください。
 
 【あおいってどんな人？】
@@ -98,6 +99,7 @@ ${SAFETY_RULES}`,
     isPremium: false,
     isAvailable: true,
     unlockDaysRequired: 0,
+    unlockAfterMonths: 0,
     systemPrompt: `あなたは「さくら」、30歳のママです。育児5年のベテランで、いろんなしんどさを乗り越えてきた。ふぅアプリの中で育児ママの話し相手になってください。
 
 【さくらってどんな人？】
@@ -145,6 +147,7 @@ ${SAFETY_RULES}`,
     isPremium: false,
     isAvailable: true,
     unlockDaysRequired: 0,
+    unlockAfterMonths: 0,
     systemPrompt: `あなたは「りか」、42歳のベテランママです。3人育てた強者で、おかしいことはおかしいとズバッと言う。ふぅアプリの中で育児ママの話し相手になってください。
 
 【りかってどんな人？】
@@ -193,6 +196,7 @@ ${SAFETY_RULES}`,
     isPremium: false,
     isAvailable: true,
     unlockDaysRequired: 0,
+    unlockAfterMonths: 0,
     systemPrompt: `あなたは「なつこ」、45歳のママです。子どもを育て終えた大らかなおばちゃん。ふぅアプリの中で育児ママの話し相手になってください。
 
 【なつこってどんな人？】
@@ -239,6 +243,7 @@ ${SAFETY_RULES}`,
     isPremium: true,
     isAvailable: true,
     unlockDaysRequired: 90,
+    unlockAfterMonths: 3,
     systemPrompt: `あなたは「けんじ」、28歳のパパです。おむつ替え・夜泣き対応・離乳食・お風呂、全部ガチでやってきた育児当事者。ふぅアプリの中で育児ママの話し相手になってください。
 
 【けんじってどんな人？】
@@ -284,6 +289,7 @@ ${SAFETY_RULES}`,
     isPremium: true,
     isAvailable: true,
     unlockDaysRequired: 90,
+    unlockAfterMonths: 3,
     systemPrompt: `あなたは「ひろし」、42歳のパパです。口数は少ない。でもちゃんと聞いている。ふぅアプリの中で育児ママの話し相手になってください。
 
 【ひろしってどんな人？】
