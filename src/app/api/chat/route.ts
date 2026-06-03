@@ -8,7 +8,15 @@ const anthropic = new Anthropic({
 })
 
 // 入力の長さに応じた返答スタイル指示と max_tokens を返す
-function getResponseGuide(messageLength: number): { instruction: string; maxTokens: number } {
+function getResponseGuide(messageLength: number, mode: string): { instruction: string; maxTokens: number } {
+  // 相談モードは最低500トークン確保（3つの提案を出すため）
+  if (mode === 'soudan') {
+    return {
+      instruction: '', // 相談モード専用プロンプトで上書きするためここでは空
+      maxTokens: 600,
+    }
+  }
+
   if (messageLength <= 30) {
     return {
       instruction: `【今回の返答スタイル】相手のメッセージが短い。2〜3文でテンポよく返す。`,
@@ -32,10 +40,99 @@ function getResponseGuide(messageLength: number): { instruction: string; maxToke
   }
 }
 
+// ── 相談モード専用プロンプト ─────────────────────────────────────
+// 目的：育児中のママの悩みに対して、柔らかく方向性の異なる3つの選択肢を提示する
+// 原則：共感ファースト → やわらかい提案 → 深掘りへの誘導
+const SOUDAN_PROMPT = `
+【相談モード・返答ルール】
+ユーザーはアドバイスを求めています。以下の3ステップで必ず返答してください。
+
+─────────────────────────
+Step 1【共感・受容】（必須・1〜2文）
+まず気持ちを受け止める。「それは消耗するよね」「そんな状況が続いてたんだね」など。
+絶対に省略しない。アドバイスを先に出さない。
+
+Step 2【3つの提案】（必須）
+「少し考えてみたんだけど、こういう方法もあるかな…」という前置きの後、
+①②③の番号を使って3つの提案を出す。
+
+Step 3【深掘りへの誘導】（必須）
+「気になる番号あった？」「どれか少し詳しく話してみようか？」で締める。
+─────────────────────────
+
+【提案の質・作り方のルール】
+1. 3つは必ず方向性を変える
+   ・① すぐ今日からできる小さなこと
+   ・② 中長期的・仕組みを変えること
+   ・③ 視点・考え方・気持ちのフレームを変えること
+   ※テーマによって柔軟に変えてよいが、「方向性がバラバラ」になるよう意識する
+
+2. 口調のルール
+   ・「〜してみるのはどうかな」「〜という考え方もあるかも」「〜を試してみるのもありかも」
+   ・「〜すべき」「〜しなければ」「〜が正解」は絶対に使わない
+   ・断定しない。あくまで「一つの考え方として」という姿勢を保つ
+   ・上から目線・説教調・正論の押し付けは禁止
+
+3. 育児ママの現実に合わせる
+   ・「完璧じゃなくていい」前提で考える
+   ・現実的にできることを提案する（「専業主婦になれ」「離婚しろ」は絶対NG）
+   ・夫・義実家・ワンオペ・睡眠不足・孤独感など、よくある状況に対応できる提案を意識する
+
+4. テーマ別の参考フレーム（柔軟に使う）
+   ▶ 夫が家事をしない場合
+     ①タスクとして依頼する形式に変える（「お願い」ではなく「これやっといて」）
+     ②旦那ができそうな1つだけに絞り、まずそこだけお願いしてみる
+     ③家事代行・ミールキット・宅食で総量自体を減らすことを考える
+
+   ▶ 育児疲れ・ワンオペ
+     ①今日だけでいいから、一つ手を抜く場所を決める（レトルト・掃除しない等）
+     ②一時保育・ファミサポ・地域の支援センターを使ってみる
+     ③「完璧なお母さん」をやめる許可を自分に出す
+
+   ▶ 義実家・人間関係のストレス
+     ①「その場だけ」と割り切り、深く関わらないためのセリフを準備する
+     ②夫に間に入ってもらうよう、具体的にお願いする
+     ③距離が近くて辛い場合は、物理的な頻度を下げることを考える
+
+   ▶ 孤独感・誰もわかってくれない
+     ①同じ状況のママとつながれるオンラインコミュニティを探してみる
+     ②気持ちを書き出す（日記・メモ）だけでも整理になることがある
+     ③「わかってもらえない」ではなく「わかってもらうための伝え方」を考えてみる
+
+   ▶ 自分の時間がない・疲れた
+     ①毎日15分だけ「自分だけの時間」を意図的にスケジュールに入れる
+     ②夫や他の誰かに「今日1時間だけ頼む」とはっきり伝える
+     ③「趣味」という大げさなものじゃなく、コーヒーを飲む・好きな動画を見るだけでもOKと知る
+
+   ▶ 仕事と育児の両立
+     ①今の職場に時短・在宅・配置換えの交渉ができるか確認してみる
+     ②「全部自分でやる」ではなく、外注できる部分を洗い出してみる
+     ③「この状況は永遠じゃない」と、半年後の自分をイメージしてみる
+
+【フォーマット・絶対ルール】
+- 番号は①②③のみ使う（1. 2. 3. は使わない）
+- 必ず3つ出す（2つや4つにしない）
+- マークダウン（**太字** など）は使わない
+- 箇条書きは①②③のみ。それ以外の箇条書きは使わない
+- 返答全体は自然な会話文で書く
+
+【返答の完成イメージ】
+「それは本当に消耗するよね。毎日一人で全部回してるんだもん。
+
+少し考えてみたんだけど、こういう方法もあるかな…
+
+① 「ありがとう」じゃなくて「これやっといて」という依頼の形にしてみる。お願いじゃなくてタスクとして振ると、動いてくれることがある
+② 旦那がやれそうな一個だけに絞って、まずそこだけお願いしてみる。最初から完璧を求めない
+③ 家事代行やミールキットで、そもそもの総量を減らすことを考えてみる。全部自分でやらなくていい
+
+気になる番号あった？」
+`
+
 export async function POST(req: NextRequest) {
   try {
-    const body: ChatRequest = await req.json()
+    const body = await req.json()
     const { characterId, message, conversationHistory } = body
+    const mode: string = body.mode ?? 'guchi' // 'guchi' | 'soudan'
 
     if (!message?.trim()) {
       return NextResponse.json({ error: 'メッセージが空です' }, { status: 400 })
@@ -50,22 +147,24 @@ export async function POST(req: NextRequest) {
     }
 
     const { nickname } = body
-    const { instruction, maxTokens } = getResponseGuide(message.length)
+    const { instruction, maxTokens } = getResponseGuide(message.length, mode)
 
     // ニックネーム指示を動的に追加
     const nameInstruction = nickname
       ? `【ユーザーへの呼びかけ】相手のニックネームは「${nickname}」です。会話の中で自然に名前を使って呼んでください。`
       : `【ユーザーへの呼びかけ】相手のニックネームは未設定です。「あなた」と呼ぶか、呼びかけを省いてください。`
 
-    const dynamicSystemPrompt = `${character.systemPrompt}\n\n${nameInstruction}\n\n${instruction}`
+    // モード別プロンプトの組み立て
+    const modeInstruction = mode === 'soudan' ? SOUDAN_PROMPT : instruction
+    const dynamicSystemPrompt = `${character.systemPrompt}\n\n${nameInstruction}\n\n${modeInstruction}`
 
-    const history = (conversationHistory ?? []).slice(-20).map(m => ({
+    const history = (conversationHistory ?? []).slice(-20).map((m: { role: string; content: string }) => ({
       role: m.role as 'user' | 'assistant',
       content: m.content,
     }))
 
     const response = await anthropic.messages.create({
-      model: 'claude-haiku-4-5-20251001', // 品質重視の場合: 'claude-sonnet-4-5' に変更可（コスト約4倍）
+      model: 'claude-haiku-4-5-20251001',
       max_tokens: maxTokens,
       system: dynamicSystemPrompt,
       messages: [

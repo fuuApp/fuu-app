@@ -30,6 +30,10 @@ export default function ChatPage() {
   const [nicknamePhase, setNicknamePhase] = useState<NicknamePhase>('done')
   const [nicknameInput, setNicknameInput] = useState('')
 
+  // チャットモード
+  const [chatMode, setChatMode] = useState<'guchi' | 'soudan'>('guchi')
+  const [showSoudanReplies, setShowSoudanReplies] = useState(false)
+
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const nicknameInputRef = useRef<HTMLInputElement>(null)
@@ -276,6 +280,7 @@ export default function ChatPage() {
           characterId,
           message: userMessage,
           nickname: nickname || undefined,
+          mode: chatMode,
           conversationHistory: updatedMessages.map(m => ({
             role: m.role, content: m.content,
           })),
@@ -283,6 +288,15 @@ export default function ChatPage() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'エラーが発生しました')
+
+      // 相談モードで①②③が含まれていたら深掘りボタンを表示
+      const hasSoudanOptions = data.message.includes('①') && data.message.includes('②') && data.message.includes('③')
+      if (chatMode === 'soudan' && hasSoudanOptions) {
+        setShowSoudanReplies(true)
+      } else {
+        setShowSoudanReplies(false)
+      }
+
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(), conversationId: 'local',
         role: 'assistant', content: data.message,
@@ -588,10 +602,38 @@ export default function ChatPage() {
         </div>
       )}
 
-      {/* クイック返信 */}
-      {nicknamePhase === 'done' && showQuickReplies && !loading && (
+      {/* モード切り替えトグル */}
+      {nicknamePhase === 'done' && (
         <div style={{
-          padding: '8px 12px 4px',
+          padding: '8px 12px 4px', display: 'flex', gap: 8, background: '#fdf4f7',
+        }}>
+          <button
+            onClick={() => { setChatMode('guchi'); setShowSoudanReplies(false) }}
+            style={{
+              flex: 1, padding: '7px 0', borderRadius: 20, fontSize: 12, fontWeight: 700,
+              border: chatMode === 'guchi' ? '1.5px solid #E91E63' : '1.5px solid #eee',
+              background: chatMode === 'guchi' ? '#FCE4EC' : '#fff',
+              color: chatMode === 'guchi' ? '#E91E63' : '#bbb',
+              cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s',
+            }}
+          >🫂 愚痴聞きモード</button>
+          <button
+            onClick={() => { setChatMode('soudan'); setShowSoudanReplies(false) }}
+            style={{
+              flex: 1, padding: '7px 0', borderRadius: 20, fontSize: 12, fontWeight: 700,
+              border: chatMode === 'soudan' ? '1.5px solid #7B1FA2' : '1.5px solid #eee',
+              background: chatMode === 'soudan' ? '#F3E5F5' : '#fff',
+              color: chatMode === 'soudan' ? '#7B1FA2' : '#bbb',
+              cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s',
+            }}
+          >💡 相談モード</button>
+        </div>
+      )}
+
+      {/* クイック返信（愚痴聞きモード） */}
+      {nicknamePhase === 'done' && showQuickReplies && !loading && chatMode === 'guchi' && (
+        <div style={{
+          padding: '4px 12px 4px',
           display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center',
           background: '#fdf4f7',
         }}>
@@ -605,6 +647,34 @@ export default function ChatPage() {
               onMouseLeave={e => { e.currentTarget.style.background = '#fff' }}
             >{reply}</button>
           ))}
+        </div>
+      )}
+
+      {/* 相談モード：深掘りクイック返信（①②③が出た後に表示） */}
+      {nicknamePhase === 'done' && showSoudanReplies && !loading && chatMode === 'soudan' && (
+        <div style={{
+          padding: '4px 12px 4px',
+          display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center',
+          background: '#fdf4f7',
+        }}>
+          {['①を詳しく', '②を詳しく', '③を詳しく'].map(reply => (
+            <button key={reply}
+              onClick={() => { handleSend(reply); setShowSoudanReplies(false) }}
+              style={{
+                background: '#F3E5F5', border: '1.5px solid #CE93D8', borderRadius: 20,
+                padding: '7px 14px', fontSize: 13, color: '#7B1FA2',
+                cursor: 'pointer', fontFamily: 'inherit',
+              }}
+            >{reply}</button>
+          ))}
+          <button
+            onClick={() => { setChatMode('guchi'); setShowSoudanReplies(false) }}
+            style={{
+              background: '#fff', border: '1.5px solid #ddd', borderRadius: 20,
+              padding: '7px 14px', fontSize: 12, color: '#aaa',
+              cursor: 'pointer', fontFamily: 'inherit',
+            }}
+          >やっぱり聞いてほしいだけ</button>
         </div>
       )}
 
@@ -635,7 +705,6 @@ export default function ChatPage() {
               ref={inputRef}
               value={input}
               onChange={e => {
-                // 録音中にユーザーが直接編集した場合は録音停止
                 if (isListening) {
                   recognitionRef.current?.stop()
                   setIsListening(false)
@@ -643,12 +712,20 @@ export default function ChatPage() {
                 setInput(e.target.value)
               }}
               onKeyDown={handleKeyDown}
-              placeholder={isListening ? '話してね…' : `${character.name}に話しかける…`}
+              placeholder={
+                isListening ? '話してね…'
+                : chatMode === 'soudan' ? `${character.name}に相談する…`
+                : `${character.name}に話しかける…`
+              }
               rows={1}
               style={{
-                flex: 1, border: `1.5px solid ${isListening ? '#C2185B' : '#F48FB1'}`, borderRadius: 20,
-                padding: '10px 16px', fontSize: 14, outline: 'none',
-                background: isListening ? '#FFF0F5' : '#fdf4f7',
+                flex: 1,
+                border: `1.5px solid ${isListening ? '#C2185B' : chatMode === 'soudan' ? '#CE93D8' : '#F48FB1'}`,
+                borderRadius: 20,
+                padding: '10px 16px',
+                fontSize: 16, // ← iOSズーム防止（16px以上必須）
+                outline: 'none',
+                background: isListening ? '#FFF0F5' : chatMode === 'soudan' ? '#FAF5FF' : '#fdf4f7',
                 resize: 'none', lineHeight: 1.5,
                 maxHeight: 100, overflowY: 'auto', fontFamily: 'inherit',
                 transition: 'border-color 0.2s, background 0.2s',
