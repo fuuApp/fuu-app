@@ -50,7 +50,7 @@ export default function ChatPage() {
   const showGuchiFooterButton = nicknamePhase === 'done' && !guchiDone && !loadingSummary && !loading
 
   // キャラクターアバター（/public/characters/ に画像を配置すること）
-  const avatarHasImage = character.avatar && character.avatar !== ''
+  const avatarHasImage = character?.avatar && character.avatar !== ''
   const avatarStyle: React.CSSProperties = {
     width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover',
   }
