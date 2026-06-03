@@ -21,7 +21,7 @@ export default function LandingPage() {
         {/* アプリアイコン */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
           <Image
-            src="/icons/icon_b.png"
+            src="/icons/icon_c.png"
             alt="fuu ふぅ アプリアイコン"
             width={100}
             height={100}
@@ -68,7 +68,7 @@ export default function LandingPage() {
           </p>
           <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 12, borderTop: '1px solid #FCE4EC', paddingTop: 16 }}>
             <Image
-              src="/icons/icon_b.png"
+              src="/icons/icon_c.png"
               alt="ふぅ アイコン"
               width={48}
               height={48}
@@ -354,7 +354,7 @@ export default function LandingPage() {
         {/* アイコン再掲 */}
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
           <Image
-            src="/icons/icon_b.png"
+            src="/icons/icon_c.png"
             alt="fuu ふぅ"
             width={72}
             height={72}
