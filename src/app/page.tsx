@@ -273,11 +273,16 @@ export default function LandingPage() {
             <span style={{ fontSize: 14, fontWeight: 700, color: '#6A1B9A' }}>🎁 無料トライアル</span>
             <span style={{ fontSize: 18, fontWeight: 700, color: '#6A1B9A' }}>¥0<span style={{ fontSize: 12, color: '#888', fontWeight: 400 }}>（10日間）</span></span>
           </div>
-          <ul style={{ fontSize: 12, color: '#777', paddingLeft: 16, lineHeight: 1.9, margin: 0 }}>
-            <li>あおい・さくらと70通まで無料</li>
-            <li>BGM試聴</li>
-            <li>クレジットカード不要・自動課金なし</li>
-          </ul>
+          {[
+            'あおい・さくらと70通まで無料',
+            'BGM試聴',
+            'クレジットカード不要・自動課金なし',
+          ].map((t, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 6, fontSize: 12, color: '#777' }}>
+              <span style={{ color: '#9C27B0', flexShrink: 0, marginTop: 1 }}>✦</span>
+              <span>{t}</span>
+            </div>
+          ))}
         </div>
         {/* スタンダード */}
         <div style={{ border: '2px solid #E91E63', borderRadius: 16, padding: 20, marginBottom: 14 }}>
@@ -286,14 +291,19 @@ export default function LandingPage() {
             <span style={{ fontSize: 24, fontWeight: 700, color: '#E91E63' }}>¥300<span style={{ fontSize: 13, color: '#888' }}>/月</span></span>
           </div>
           <p style={{ fontSize: 11, color: '#aaa', margin: '0 0 10px' }}>月200通（1日約6通）</p>
-          <ul style={{ fontSize: 13, color: '#555', paddingLeft: 18, lineHeight: 2, margin: 0 }}>
-            <li>あおい・さくら・りか・なつこ（4名）と話せる</li>
-            <li>ニックネームで呼んでもらえる</li>
-            <li>気持ちの箱（感情整理）・BGMフル利用</li>
-            <li>朝・夜プッシュ通知（時間設定可）</li>
-            <li>メッセージ保存（30日）</li>
-            <li>使い放題チケット ¥300/日（追加購入可）</li>
-          </ul>
+          {[
+            'あおい・さくら・りか・なつこ（4名）と話せる',
+            'ニックネームで呼んでもらえる',
+            '気持ちの箱（感情整理）・BGMフル利用',
+            '朝・夜プッシュ通知（時間設定可）',
+            'メッセージ保存（30日）',
+            '使い放題チケット ¥300/日（追加購入可）',
+          ].map((t, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 8, fontSize: 13, color: '#444' }}>
+              <span style={{ color: '#E91E63', flexShrink: 0, marginTop: 2, fontSize: 12 }}>✓</span>
+              <span>{t}</span>
+            </div>
+          ))}
         </div>
         {/* プレミアム */}
         <div style={{ background: 'linear-gradient(135deg,#FCE4EC,#fff)', border: '2px solid #C2185B', borderRadius: 16, padding: 20, marginBottom: 14, position: 'relative' }}>
@@ -305,13 +315,18 @@ export default function LandingPage() {
             <span style={{ fontSize: 24, fontWeight: 700, color: '#880E4F' }}>¥980<span style={{ fontSize: 13, color: '#888' }}>/月</span></span>
           </div>
           <p style={{ fontSize: 11, color: '#C2185B', margin: '0 0 10px', fontWeight: 600 }}>月900通（1日約30通）— 1通単価がスタンダードより27%お得</p>
-          <ul style={{ fontSize: 13, color: '#555', paddingLeft: 18, lineHeight: 2, margin: 0 }}>
-            <li>スタンダードの全機能</li>
-            <li>🎤 音声テキスト入力（話すだけで文字起こし）</li>
-            <li>パパキャラ けんじ・ひろし＋随時追加</li>
-            <li>メッセージ保存（無制限）</li>
-            <li>使い放題チケット ¥300/日（追加購入可）</li>
-          </ul>
+          {[
+            { text: 'スタンダードの全機能', prefix: '✓' },
+            { text: '🎤 音声テキスト入力（話すだけで文字起こし）', prefix: '✓' },
+            { text: 'パパキャラ けんじ・ひろし＋随時追加', prefix: '✓' },
+            { text: 'メッセージ保存（無制限）', prefix: '✓' },
+            { text: '使い放題チケット ¥300/日（追加購入可）', prefix: '✓' },
+          ].map((item, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 8, fontSize: 13, color: '#444' }}>
+              <span style={{ color: '#C2185B', flexShrink: 0, marginTop: 2, fontSize: 12 }}>{item.prefix}</span>
+              <span>{item.text}</span>
+            </div>
+          ))}
         </div>
         {/* チケット */}
         <div style={{ background: '#FFFDE7', border: '1px solid #FFC107', borderRadius: 12, padding: '14px 16px' }}>
