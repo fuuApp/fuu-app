@@ -628,7 +628,7 @@ export default function ChatPage() {
               color: chatMode === 'guchi' ? '#E91E63' : '#bbb',
               cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s',
             }}
-          >🫂 愚痴聞きモード</button>
+          >💬 愚痴聞きモード</button>
           <button
             onClick={() => { setChatMode('soudan'); setShowSoudanReplies(false) }}
             style={{
