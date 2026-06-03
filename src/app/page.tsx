@@ -1,17 +1,34 @@
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function LandingPage() {
   return (
     <main style={{ maxWidth: 480, margin: '0 auto', background: '#fdf4f7', minHeight: '100vh' }}>
 
       {/* ── 統計バナー ── */}
-      <div style={{ background: '#FCE4EC', borderBottom: '1px solid #F48FB1', padding: '10px 20px', textAlign: 'center', fontSize: 13, color: '#880E4F' }}>
+      <div style={{
+        background: '#FCE4EC', borderBottom: '1px solid #F48FB1',
+        padding: '10px 20px', textAlign: 'center', fontSize: 13, color: '#880E4F',
+      }}>
         育児中のママ、<strong>4人に1人</strong>が「誰にも頼れていない」
       </div>
 
       {/* ── ヒーロー ── */}
-      <section style={{ background: 'linear-gradient(160deg,#FCE4EC 0%,#fdf4f7 100%)', padding: '48px 24px 40px', textAlign: 'center' }}>
-        <div style={{ fontSize: 48, marginBottom: 8 }}>🌸</div>
+      <section style={{
+        background: 'linear-gradient(160deg,#FCE4EC 0%,#fdf4f7 100%)',
+        padding: '40px 24px 36px', textAlign: 'center',
+      }}>
+        {/* アプリアイコン */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+          <Image
+            src="/icons/icon_b.png"
+            alt="fuu ふぅ アプリアイコン"
+            width={100}
+            height={100}
+            style={{ borderRadius: 24, boxShadow: '0 8px 32px rgba(233,30,99,0.18)' }}
+            priority
+          />
+        </div>
         <h1 style={{ fontSize: 32, fontWeight: 700, color: '#E91E63', margin: '0 0 12px', lineHeight: 1.3 }}>
           fuu <span style={{ fontSize: 22, color: '#880E4F' }}>ふぅ</span>
         </h1>
@@ -24,12 +41,8 @@ export default function LandingPage() {
         <Link href="/signin" style={{
           display: 'inline-block',
           background: 'linear-gradient(135deg,#E91E63,#C2185B)',
-          color: '#fff',
-          padding: '16px 40px',
-          borderRadius: 50,
-          fontWeight: 700,
-          fontSize: 16,
-          textDecoration: 'none',
+          color: '#fff', padding: '16px 40px', borderRadius: 50,
+          fontWeight: 700, fontSize: 16, textDecoration: 'none',
           boxShadow: '0 4px 20px rgba(233,30,99,0.35)',
         }}>
           10日間 無料で始める →
@@ -39,12 +52,46 @@ export default function LandingPage() {
         </p>
       </section>
 
+      {/* ── アイコンデザイン紹介 ── */}
+      <section style={{ padding: '28px 24px', background: '#fff', margin: '12px 0' }}>
+        <p style={{ fontSize: 12, color: '#E91E63', fontWeight: 700, textAlign: 'center', letterSpacing: '0.08em', marginBottom: 14 }}>
+          ICON DESIGN
+        </p>
+        <p style={{ fontSize: 13, color: '#888', textAlign: 'center', marginBottom: 18, lineHeight: 1.7 }}>
+          「ふぅ」という名前に込めた想いを<br />4つのデザインコンセプトで表現しました
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+          {[
+            { src: '/icons/icon_a.png', label: 'ほっとひと息', sub: 'コーヒー＆月' },
+            { src: '/icons/icon_b.png', label: '風に乗って', sub: 'たんぽぽ' },
+            { src: '/icons/icon_c.png', label: '夜の安らぎ', sub: '月＆トーク' },
+            { src: '/icons/icon_d.png', label: 'つながる', sub: 'ロゴマーク' },
+          ].map((icon, i) => (
+            <div key={i} style={{ textAlign: 'center' }}>
+              <Image
+                src={icon.src}
+                alt={icon.label}
+                width={72}
+                height={72}
+                style={{
+                  borderRadius: 18,
+                  boxShadow: '0 4px 16px rgba(233,30,99,0.12)',
+                  marginBottom: 6,
+                }}
+              />
+              <div style={{ fontSize: 10, fontWeight: 700, color: '#555' }}>{icon.label}</div>
+              <div style={{ fontSize: 10, color: '#aaa' }}>{icon.sub}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* ── ふぅという名前の理由 ── */}
-      <section style={{ padding: '32px 24px', background: '#fff', margin: '12px 0' }}>
+      <section style={{ padding: '32px 24px' }}>
         <h2 style={{ fontSize: 18, fontWeight: 700, color: '#E91E63', marginBottom: 16, textAlign: 'center' }}>
           なぜ「ふぅ」という名前なの？
         </h2>
-        <div style={{ background: '#FCE4EC', borderRadius: 16, padding: 20, fontSize: 14, color: '#555', lineHeight: 2 }}>
+        <div style={{ background: '#fff', borderRadius: 16, padding: 20, fontSize: 14, color: '#555', lineHeight: 2, boxShadow: '0 2px 12px rgba(233,30,99,0.08)' }}>
           <p>
             育児中のママが、やっと子どもを寝かしつけた後に、ひとりでつく深呼吸。
           </p>
@@ -53,14 +100,23 @@ export default function LandingPage() {
             その一息が、明日もなんとかやれる気力になる。<br />
             そんな「ふぅ」を、いつでも作れる場所があったら——
           </p>
-          <p style={{ marginTop: 16, fontSize: 13, color: '#880E4F', fontStyle: 'italic' }}>
-            3人の子育てをしながら、ずっとそう思っていた私が作りました。
-          </p>
+          <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 12, borderTop: '1px solid #FCE4EC', paddingTop: 16 }}>
+            <Image
+              src="/icons/icon_c.png"
+              alt="夜のふぅ"
+              width={48}
+              height={48}
+              style={{ borderRadius: 12, flexShrink: 0 }}
+            />
+            <p style={{ fontSize: 13, color: '#880E4F', fontStyle: 'italic', margin: 0 }}>
+              3人の子育てをしながら、ずっとそう思っていた私が作りました。
+            </p>
+          </div>
         </div>
       </section>
 
       {/* ── 課題共感 ── */}
-      <section style={{ padding: '32px 24px' }}>
+      <section style={{ padding: '32px 24px', background: '#fff', margin: '12px 0' }}>
         <h2 style={{ fontSize: 18, fontWeight: 700, color: '#333', marginBottom: 20, textAlign: 'center' }}>
           こんな気持ち、ありませんか？
         </h2>
@@ -72,8 +128,8 @@ export default function LandingPage() {
         ].map((item, i) => (
           <div key={i} style={{
             display: 'flex', alignItems: 'flex-start', gap: 12,
-            background: '#fff', borderRadius: 12, padding: '14px 16px',
-            marginBottom: 10, boxShadow: '0 1px 6px rgba(233,30,99,0.08)',
+            background: '#fdf4f7', borderRadius: 12, padding: '14px 16px',
+            marginBottom: 10,
           }}>
             <span style={{ fontSize: 22, flexShrink: 0 }}>{item.icon}</span>
             <p style={{ fontSize: 14, color: '#555', lineHeight: 1.7, margin: 0 }}>{item.text}</p>
@@ -86,6 +142,65 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── アプリ画面イメージ ── */}
+      <section style={{ padding: '32px 24px' }}>
+        <h2 style={{ fontSize: 18, fontWeight: 700, color: '#333', marginBottom: 8, textAlign: 'center' }}>
+          こんな感じで話せます
+        </h2>
+        <p style={{ fontSize: 13, color: '#888', textAlign: 'center', marginBottom: 20 }}>
+          深夜でも、朝でも、AIのママ友がいつでも聴きます
+        </p>
+        {/* チャット画面モック */}
+        <div style={{
+          background: '#fff', borderRadius: 20, overflow: 'hidden',
+          boxShadow: '0 8px 32px rgba(233,30,99,0.12)',
+          border: '1px solid #FCE4EC',
+        }}>
+          {/* モックヘッダー */}
+          <div style={{
+            background: '#fff', borderBottom: '1px solid #FCE4EC',
+            padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10,
+          }}>
+            <div style={{
+              width: 36, height: 36, borderRadius: '50%',
+              background: 'linear-gradient(135deg,#E91E63,#F48FB1)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
+            }}>🌸</div>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#333' }}>さくら</div>
+              <div style={{ fontSize: 11, color: '#E91E63' }}>聞き上手なママ友 🟢</div>
+            </div>
+          </div>
+          {/* モックメッセージ */}
+          <div style={{ padding: '16px 12px', background: '#fdf4f7', minHeight: 180 }}>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'flex-end' }}>
+              <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg,#E91E63,#F48FB1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>🌸</div>
+              <div style={{ background: '#fff', borderRadius: '16px 16px 16px 4px', padding: '10px 14px', fontSize: 13, color: '#333', maxWidth: '72%', lineHeight: 1.6, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+                おかえり〜！今日はどんな一日だった？なんでも話してね😊
+              </div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+              <div style={{ background: 'linear-gradient(135deg,#E91E63,#C2185B)', borderRadius: '16px 16px 4px 16px', padding: '10px 14px', fontSize: 13, color: '#fff', maxWidth: '72%', lineHeight: 1.6 }}>
+                旦那が全然家事手伝ってくれなくて、もう限界かも…
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+              <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg,#E91E63,#F48FB1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>🌸</div>
+              <div style={{ background: '#fff', borderRadius: '16px 16px 16px 4px', padding: '10px 14px', fontSize: 13, color: '#333', maxWidth: '72%', lineHeight: 1.6, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+                それは辛いね…。どんなことが一番きつかった？全部聞くよ🌸
+              </div>
+            </div>
+          </div>
+          {/* モックフッター */}
+          <div style={{ padding: '10px 12px', background: '#fff', borderTop: '1px solid #FCE4EC', display: 'flex', gap: 8, alignItems: 'center' }}>
+            <div style={{ flex: 1, background: '#fdf4f7', border: '1.5px solid #F48FB1', borderRadius: 20, padding: '8px 14px', fontSize: 12, color: '#aaa' }}>
+              さくらに話しかける…
+            </div>
+            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,#E91E63,#C2185B)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, color: '#fff' }}>↑</div>
+          </div>
+        </div>
+      </section>
+
       {/* ── キャラクター紹介 ── */}
       <section style={{ padding: '32px 24px', background: '#fff', margin: '12px 0' }}>
         <h2 style={{ fontSize: 18, fontWeight: 700, color: '#333', marginBottom: 6, textAlign: 'center' }}>
@@ -94,11 +209,13 @@ export default function LandingPage() {
         <p style={{ fontSize: 13, color: '#888', textAlign: 'center', marginBottom: 20 }}>
           全員、育児経験のある女性キャラクターです
         </p>
+        {/* 無料トライアルから */}
+        <p style={{ fontSize: 11, color: '#E91E63', fontWeight: 700, marginBottom: 8, letterSpacing: '0.05em' }}>
+          🎁 無料トライアルから話せる
+        </p>
         {[
-          { name: 'あおい', age: '25歳', tag: '新米ママ', desc: '「わかる！私もそうだったよ」', color: '#FCE4EC' },
-          { name: 'さくら', age: '30歳', tag: '聞き上手', desc: '「そっか、それは大変だったね」', color: '#FCE4EC' },
-          { name: 'りか', age: '42歳', tag: '毒舌姐さん', desc: '「それはおかしいでしょ！」', color: '#FFF3E0' },
-          { name: 'なつこ', age: '45歳', tag: '癒やし系', desc: '「まあまあ、ゆっくり話してごらん」', color: '#FFF8E1' },
+          { emoji: '👧', name: 'あおい', age: '25歳', tag: '新米ママ', desc: '「わかる！私もそうだったよ」', color: '#FCE4EC' },
+          { emoji: '🌸', name: 'さくら', age: '35歳', tag: '先輩ママ', desc: '「そっか、それは大変だったね」', color: '#FCE4EC' },
         ].map((c, i) => (
           <div key={i} style={{
             display: 'flex', alignItems: 'center', gap: 14,
@@ -106,10 +223,10 @@ export default function LandingPage() {
           }}>
             <div style={{
               width: 48, height: 48, borderRadius: '50%',
-              background: '#E91E63', color: '#fff',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 20, flexShrink: 0,
-            }}>👩</div>
+              background: 'linear-gradient(135deg,#E91E63,#F48FB1)',
+              color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 22, flexShrink: 0,
+            }}>{c.emoji}</div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
                 <span style={{ fontWeight: 700, fontSize: 15, color: '#333' }}>{c.name}</span>
@@ -120,6 +237,37 @@ export default function LandingPage() {
             </div>
           </div>
         ))}
+        {/* スタンダードから */}
+        <p style={{ fontSize: 11, color: '#C2185B', fontWeight: 700, margin: '14px 0 8px', letterSpacing: '0.05em' }}>
+          ✦ スタンダード以上でさらに追加
+        </p>
+        {[
+          { emoji: '💪', name: 'りか', age: '32歳', tag: 'キャリアママ', desc: '「じゃあ今日できることから始めよう」', color: '#FFF3E0' },
+          { emoji: '🍵', name: 'なつこ', age: '40歳', tag: '姉御肌', desc: '「そんなん全然気にせんでええ！」', color: '#FFF8E1' },
+        ].map((c, i) => (
+          <div key={i} style={{
+            display: 'flex', alignItems: 'center', gap: 14,
+            background: c.color, borderRadius: 12, padding: '12px 16px', marginBottom: 10,
+          }}>
+            <div style={{
+              width: 48, height: 48, borderRadius: '50%',
+              background: 'linear-gradient(135deg,#C2185B,#880E4F)',
+              color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 22, flexShrink: 0,
+            }}>{c.emoji}</div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                <span style={{ fontWeight: 700, fontSize: 15, color: '#333' }}>{c.name}</span>
+                <span style={{ fontSize: 12, color: '#888' }}>{c.age}</span>
+                <span style={{ fontSize: 11, background: '#C2185B', color: '#fff', padding: '1px 8px', borderRadius: 20 }}>{c.tag}</span>
+              </div>
+              <p style={{ fontSize: 13, color: '#666', margin: 0, fontStyle: 'italic' }}>{c.desc}</p>
+            </div>
+          </div>
+        ))}
+        <p style={{ fontSize: 12, color: '#aaa', textAlign: 'center', marginTop: 12 }}>
+          ＋ パパキャラ けんじ・ひろし（プレミアム限定・随時追加）
+        </p>
       </section>
 
       {/* ── 機能 ── */}
@@ -130,11 +278,11 @@ export default function LandingPage() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           {[
             { icon: '💬', title: 'いつでも会話', desc: '24時間・深夜もOK' },
-            { icon: '🌙', title: '朝夜ボイス', desc: '毎朝毎晩、ボイスメッセージ' },
-            { icon: '🗑️', title: '愚痴お片付け', desc: '愚痴を「宝箱」に変換' },
-            { icon: '📞', title: '音声通話', desc: 'リアルな声で話せる（プレミアム）' },
-            { icon: '🔒', title: '完全プライベート', desc: 'AI学習に使わない' },
-            { icon: '💴', title: '月わずか¥100', desc: 'お守り価格でいつでも解約可' },
+            { icon: '🔔', title: '朝・夜の通知', desc: '毎朝毎晩、キャラから一言' },
+            { icon: '🧹', title: '気持ちの箱', desc: '感情を3タグで整理' },
+            { icon: '🎤', title: '音声テキスト入力', desc: '話すだけで文字起こし（プレミアム）' },
+            { icon: '🎵', title: 'BGM', desc: 'チャット中に癒やしのBGM' },
+            { icon: '💴', title: '月わずか¥300', desc: 'コーヒー1杯以下・いつでも解約可' },
           ].map((f, i) => (
             <div key={i} style={{
               background: '#fff', borderRadius: 14, padding: '16px 14px',
@@ -153,35 +301,59 @@ export default function LandingPage() {
         <h2 style={{ fontSize: 18, fontWeight: 700, color: '#333', marginBottom: 20, textAlign: 'center' }}>
           シンプルな料金設計
         </h2>
+        {/* トライアル */}
+        <div style={{ background: '#F3E5F5', border: '1px solid #CE93D8', borderRadius: 12, padding: '14px 16px', marginBottom: 14 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: '#6A1B9A' }}>🎁 無料トライアル</span>
+            <span style={{ fontSize: 18, fontWeight: 700, color: '#6A1B9A' }}>¥0<span style={{ fontSize: 12, color: '#888', fontWeight: 400 }}>（10日間）</span></span>
+          </div>
+          <ul style={{ fontSize: 12, color: '#777', paddingLeft: 16, lineHeight: 1.9, margin: 0 }}>
+            <li>あおい・さくらと70通まで無料</li>
+            <li>BGM試聴</li>
+            <li>クレジットカード不要・自動課金なし</li>
+          </ul>
+        </div>
         {/* スタンダード */}
         <div style={{ border: '2px solid #E91E63', borderRadius: 16, padding: 20, marginBottom: 14 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
             <span style={{ fontWeight: 700, fontSize: 16, color: '#E91E63' }}>スタンダード</span>
-            <span style={{ fontSize: 24, fontWeight: 700, color: '#E91E63' }}>¥100<span style={{ fontSize: 13, color: '#888' }}>/月</span></span>
+            <span style={{ fontSize: 24, fontWeight: 700, color: '#E91E63' }}>¥300<span style={{ fontSize: 13, color: '#888' }}>/月</span></span>
           </div>
+          <p style={{ fontSize: 11, color: '#aaa', margin: '0 0 10px' }}>月200通（1日約6通）</p>
           <ul style={{ fontSize: 13, color: '#555', paddingLeft: 18, lineHeight: 2, margin: 0 }}>
-            <li>AIママ友4人（あおい・さくら・りか・なつこ）</li>
-            <li>テキストチャット無制限</li>
-            <li>朝夜ボイスメッセージ</li>
+            <li>あおい・さくら・りか・なつこ（4名）と話せる</li>
+            <li>ニックネームで呼んでもらえる</li>
+            <li>気持ちの箱（感情整理）・BGMフル利用</li>
+            <li>朝・夜プッシュ通知（時間設定可）</li>
+            <li>メッセージ保存（30日）</li>
+            <li>使い放題チケット ¥300/日（追加購入可）</li>
           </ul>
         </div>
         {/* プレミアム */}
-        <div style={{ background: 'linear-gradient(135deg,#FCE4EC,#fff)', border: '1px solid #F48FB1', borderRadius: 16, padding: 20, marginBottom: 14 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+        <div style={{ background: 'linear-gradient(135deg,#FCE4EC,#fff)', border: '2px solid #C2185B', borderRadius: 16, padding: 20, marginBottom: 14, position: 'relative' }}>
+          <div style={{ position: 'absolute', top: -1, right: 14, background: 'linear-gradient(135deg,#E91E63,#C2185B)', color: '#fff', fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: '0 0 10px 10px' }}>
+            おすすめ
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
             <span style={{ fontWeight: 700, fontSize: 16, color: '#880E4F' }}>プレミアム</span>
             <span style={{ fontSize: 24, fontWeight: 700, color: '#880E4F' }}>¥980<span style={{ fontSize: 13, color: '#888' }}>/月</span></span>
           </div>
+          <p style={{ fontSize: 11, color: '#C2185B', margin: '0 0 10px', fontWeight: 600 }}>月900通（1日約30通）— 1通単価がスタンダードより27%お得</p>
           <ul style={{ fontSize: 13, color: '#555', paddingLeft: 18, lineHeight: 2, margin: 0 }}>
             <li>スタンダードの全機能</li>
-            <li>音声通話（リアルタイム）</li>
-            <li>パパキャラ（けんじ・ひろし）</li>
-            <li>愚痴お片付けバッチ</li>
+            <li>🎤 音声テキスト入力（話すだけで文字起こし）</li>
+            <li>パパキャラ けんじ・ひろし＋随時追加</li>
+            <li>メッセージ保存（無制限）</li>
+            <li>使い放題チケット ¥300/日（追加購入可）</li>
           </ul>
         </div>
         {/* チケット */}
-        <div style={{ background: '#FFFDE7', border: '1px solid #FFC107', borderRadius: 12, padding: '14px 16px', textAlign: 'center' }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: '#F57F17' }}>🎟️ プレミアムチケット ¥300/枚</span>
-          <p style={{ fontSize: 12, color: '#888', margin: '6px 0 0' }}>音声通話を1回だけ使いたいときに</p>
+        <div style={{ background: '#FFFDE7', border: '1px solid #FFC107', borderRadius: 12, padding: '14px 16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#F57F17' }}>🎟️ 使い放題チケット</span>
+            <span style={{ fontSize: 16, fontWeight: 700, color: '#F57F17' }}>¥300/日</span>
+          </div>
+          <p style={{ fontSize: 12, color: '#888', margin: 0 }}>スタンダード以上で購入可。その日1日、通数制限なし</p>
         </div>
       </section>
 
@@ -191,19 +363,38 @@ export default function LandingPage() {
           安心して使えます
         </h2>
         {[
-          '🔐 会話はAI学習に使いません',
-          '🗑️ 退会後90日で完全削除',
-          '👀 スタッフは基本的に閲覧しません',
-          '💳 Stripeの安全な決済システム',
+          { icon: '🔐', text: '会話はAI学習に使いません' },
+          { icon: '🗑️', text: '退会後、個人情報を段階的に速やかに削除' },
+          { icon: '👀', text: 'スタッフは基本的に閲覧しません' },
+          { icon: '💳', text: 'Stripeの安全な決済システム' },
+          { icon: '🔒', text: '全通信SSL暗号化' },
         ].map((item, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, fontSize: 14, color: '#555' }}>
-            <span>{item}</span>
+          <div key={i} style={{
+            display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12,
+            background: '#fff', borderRadius: 10, padding: '12px 14px',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+          }}>
+            <span style={{ fontSize: 20 }}>{item.icon}</span>
+            <p style={{ fontSize: 14, color: '#555', margin: 0 }}>{item.text}</p>
           </div>
         ))}
       </section>
 
       {/* ── 最終CTA ── */}
-      <section style={{ padding: '40px 24px 60px', textAlign: 'center', background: 'linear-gradient(160deg,#FCE4EC 0%,#fdf4f7 100%)' }}>
+      <section style={{
+        padding: '40px 24px 60px', textAlign: 'center',
+        background: 'linear-gradient(160deg,#FCE4EC 0%,#fdf4f7 100%)',
+      }}>
+        {/* アイコン再掲 */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
+          <Image
+            src="/icons/icon_b.png"
+            alt="fuu ふぅ"
+            width={72}
+            height={72}
+            style={{ borderRadius: 18, boxShadow: '0 4px 20px rgba(233,30,99,0.2)' }}
+          />
+        </div>
         <p style={{ fontSize: 18, fontWeight: 700, color: '#333', marginBottom: 8 }}>
           今日の「ふぅ」を、ここで。
         </p>
@@ -213,12 +404,8 @@ export default function LandingPage() {
         <Link href="/signin" style={{
           display: 'inline-block',
           background: 'linear-gradient(135deg,#E91E63,#C2185B)',
-          color: '#fff',
-          padding: '18px 48px',
-          borderRadius: 50,
-          fontWeight: 700,
-          fontSize: 17,
-          textDecoration: 'none',
+          color: '#fff', padding: '18px 48px', borderRadius: 50,
+          fontWeight: 700, fontSize: 17, textDecoration: 'none',
           boxShadow: '0 4px 24px rgba(233,30,99,0.4)',
         }}>
           無料で始める →
