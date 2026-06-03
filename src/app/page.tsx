@@ -133,7 +133,7 @@ export default function LandingPage() {
               width: 36, height: 36, borderRadius: '50%',
               background: 'linear-gradient(135deg,#E91E63,#F48FB1)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
-            }}>🌸</div>
+            overflow: 'hidden' }}><img src="/characters/sakura.png" alt="さくら" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></div>
             <div>
               <div style={{ fontSize: 14, fontWeight: 700, color: '#333' }}>さくら</div>
               <div style={{ fontSize: 11, color: '#E91E63' }}>聞き上手なママ友 🟢</div>
@@ -142,7 +142,7 @@ export default function LandingPage() {
           {/* モックメッセージ */}
           <div style={{ padding: '16px 12px', background: '#fdf4f7', minHeight: 180 }}>
             <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'flex-end' }}>
-              <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg,#E91E63,#F48FB1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>🌸</div>
+              <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, overflow: 'hidden' }}><img src="/characters/sakura.png" alt="さくら" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></div>
               <div style={{ background: '#fff', borderRadius: '16px 16px 16px 4px', padding: '10px 14px', fontSize: 13, color: '#333', maxWidth: '72%', lineHeight: 1.6, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
                 おかえり〜！今日はどんな一日だった？なんでも話してね😊
               </div>
@@ -153,7 +153,7 @@ export default function LandingPage() {
               </div>
             </div>
             <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
-              <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'linear-gradient(135deg,#E91E63,#F48FB1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>🌸</div>
+              <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0, overflow: 'hidden' }}><img src="/characters/sakura.png" alt="さくら" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></div>
               <div style={{ background: '#fff', borderRadius: '16px 16px 16px 4px', padding: '10px 14px', fontSize: 13, color: '#333', maxWidth: '72%', lineHeight: 1.6, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
                 それは辛いね…。どんなことが一番きつかった？全部聞くよ🌸
               </div>
