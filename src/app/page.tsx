@@ -180,60 +180,88 @@ export default function LandingPage() {
           🎁 無料トライアルから話せる
         </p>
         {[
-          { emoji: '👧', name: 'あおい', age: '25歳', tag: '新米ママ', desc: '「わかる！私もそうだったよ」', color: '#FCE4EC' },
-          { emoji: '🌸', name: 'さくら', age: '35歳', tag: '先輩ママ', desc: '「そっか、それは大変だったね」', color: '#FCE4EC' },
+          { img: '/characters/aoi.png',    name: 'あおい', age: '25歳', tag: '新米ママ',  desc: '「わかる！私もそうだったよ」',      color: '#FCE4EC', tagColor: '#E91E63' },
+          { img: '/characters/sakura.png', name: 'さくら', age: '35歳', tag: '先輩ママ',  desc: '「そっか、それは大変だったね」',    color: '#FCE4EC', tagColor: '#E91E63' },
         ].map((c, i) => (
           <div key={i} style={{
             display: 'flex', alignItems: 'center', gap: 14,
             background: c.color, borderRadius: 12, padding: '12px 16px', marginBottom: 10,
           }}>
             <div style={{
-              width: 48, height: 48, borderRadius: '50%',
+              width: 52, height: 52, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
               background: 'linear-gradient(135deg,#E91E63,#F48FB1)',
-              color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 22, flexShrink: 0,
-            }}>{c.emoji}</div>
+            }}>
+              <img src={c.img} alt={c.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+            </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
                 <span style={{ fontWeight: 700, fontSize: 15, color: '#333' }}>{c.name}</span>
                 <span style={{ fontSize: 12, color: '#888' }}>{c.age}</span>
-                <span style={{ fontSize: 11, background: '#E91E63', color: '#fff', padding: '1px 8px', borderRadius: 20 }}>{c.tag}</span>
+                <span style={{ fontSize: 11, background: c.tagColor, color: '#fff', padding: '1px 8px', borderRadius: 20 }}>{c.tag}</span>
               </div>
               <p style={{ fontSize: 13, color: '#666', margin: 0, fontStyle: 'italic' }}>{c.desc}</p>
             </div>
           </div>
         ))}
+
         {/* スタンダードから */}
         <p style={{ fontSize: 11, color: '#C2185B', fontWeight: 700, margin: '14px 0 8px', letterSpacing: '0.05em' }}>
           ✦ スタンダード以上でさらに追加
         </p>
         {[
-          { emoji: '💪', name: 'りか', age: '32歳', tag: 'キャリアママ', desc: '「じゃあ今日できることから始めよう」', color: '#FFF3E0' },
-          { emoji: '🍵', name: 'なつこ', age: '40歳', tag: '姉御肌', desc: '「そんなん全然気にせんでええ！」', color: '#FFF8E1' },
+          { img: '/characters/rika.png',    name: 'りか',   age: '32歳', tag: 'キャリアママ', desc: '「じゃあ今日できることから始めよう」', color: '#FFF3E0', tagColor: '#C2185B' },
+          { img: '/characters/natsuko.png', name: 'なつこ', age: '40歳', tag: '姉御肌',      desc: '「そんなん全然気にせんでええ！」',   color: '#FFF8E1', tagColor: '#C2185B' },
         ].map((c, i) => (
           <div key={i} style={{
             display: 'flex', alignItems: 'center', gap: 14,
             background: c.color, borderRadius: 12, padding: '12px 16px', marginBottom: 10,
           }}>
             <div style={{
-              width: 48, height: 48, borderRadius: '50%',
+              width: 52, height: 52, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
               background: 'linear-gradient(135deg,#C2185B,#880E4F)',
-              color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 22, flexShrink: 0,
-            }}>{c.emoji}</div>
+            }}>
+              <img src={c.img} alt={c.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+            </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
                 <span style={{ fontWeight: 700, fontSize: 15, color: '#333' }}>{c.name}</span>
                 <span style={{ fontSize: 12, color: '#888' }}>{c.age}</span>
-                <span style={{ fontSize: 11, background: '#C2185B', color: '#fff', padding: '1px 8px', borderRadius: 20 }}>{c.tag}</span>
+                <span style={{ fontSize: 11, background: c.tagColor, color: '#fff', padding: '1px 8px', borderRadius: 20 }}>{c.tag}</span>
               </div>
               <p style={{ fontSize: 13, color: '#666', margin: 0, fontStyle: 'italic' }}>{c.desc}</p>
             </div>
           </div>
         ))}
-        <p style={{ fontSize: 12, color: '#aaa', textAlign: 'center', marginTop: 12 }}>
-          ＋ パパキャラ けんじ・ひろし（プレミアム限定・随時追加）
+
+        {/* プレミアム */}
+        <p style={{ fontSize: 11, color: '#880E4F', fontWeight: 700, margin: '14px 0 8px', letterSpacing: '0.05em' }}>
+          ★ プレミアム限定キャラ
         </p>
+        <div style={{ display: 'flex', gap: 12 }}>
+          {[
+            { img: '/characters/kenji.png',   name: 'けんじ', age: '34歳', tag: 'イクメンパパ' },
+            { img: '/characters/hiroshi.png', name: 'ひろし', age: '45歳', tag: '渋めパパ' },
+          ].map((c, i) => (
+            <div key={i} style={{
+              flex: 1, display: 'flex', alignItems: 'center', gap: 10,
+              background: '#F8EEF5', borderRadius: 12, padding: '10px 12px',
+            }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
+                background: 'linear-gradient(135deg,#880E4F,#4A0030)',
+              }}>
+                <img src={c.img} alt={c.name} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }}
+                  onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+              </div>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 13, color: '#880E4F' }}>{c.name}</div>
+                <div style={{ fontSize: 11, color: '#aaa' }}>{c.age}・{c.tag}</div>
+              </div>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* ── 機能 ── */}
