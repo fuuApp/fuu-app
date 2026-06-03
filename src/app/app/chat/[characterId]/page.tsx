@@ -657,16 +657,31 @@ export default function ChatPage() {
           display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center',
           background: '#fdf4f7',
         }}>
-          {['①を詳しく', '②を詳しく', '③を詳しく'].map(reply => (
-            <button key={reply}
-              onClick={() => { handleSend(reply); setShowSoudanReplies(false) }}
+          {/* ①②③ 深掘りボタン */}
+          {[
+            { label: '①を詳しく', msg: '①について詳しく教えて' },
+            { label: '②を詳しく', msg: '②について詳しく教えて' },
+            { label: '③を詳しく', msg: '③について詳しく教えて' },
+          ].map(item => (
+            <button key={item.label}
+              onClick={() => { handleSend(item.msg); setShowSoudanReplies(false) }}
               style={{
                 background: '#F3E5F5', border: '1.5px solid #CE93D8', borderRadius: 20,
                 padding: '7px 14px', fontSize: 13, color: '#7B1FA2',
                 cursor: 'pointer', fontFamily: 'inherit',
               }}
-            >{reply}</button>
+            >{item.label}</button>
           ))}
+          {/* ④ 別の提案ボタン */}
+          <button
+            onClick={() => { handleSend('①②③以外で、違う視点の提案を3つ出してもらえる？'); setShowSoudanReplies(false) }}
+            style={{
+              background: '#FFF8E1', border: '1.5px solid #FFD54F', borderRadius: 20,
+              padding: '7px 14px', fontSize: 13, color: '#F57F17',
+              cursor: 'pointer', fontFamily: 'inherit',
+            }}
+          >④ 他の提案ももらう</button>
+          {/* 愚痴聞きモードに戻る */}
           <button
             onClick={() => { setChatMode('guchi'); setShowSoudanReplies(false) }}
             style={{
