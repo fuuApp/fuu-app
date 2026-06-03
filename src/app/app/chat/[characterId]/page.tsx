@@ -49,7 +49,12 @@ export default function ChatPage() {
   const quickReplies = ['今日しんどかった', 'ただ聞いてほしい', '子どものこと', '旦那のこと']
   const showGuchiFooterButton = nicknamePhase === 'done' && !guchiDone && !loadingSummary && !loading
 
-  const avatarEmoji: Record<string, string> = {
+  // キャラクターアバター（/public/characters/ に画像を配置すること）
+  const avatarHasImage = character.avatar && character.avatar !== ''
+  const avatarStyle: React.CSSProperties = {
+    width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover',
+  }
+  const avatarFallback: Record<string, string> = {
     aoi: '👧', sakura: '🌸', rika: '💪', natsuko: '🍵', kenji: '👨', hiroshi: '🧔',
   }
 
@@ -403,11 +408,14 @@ export default function ChatPage() {
         <button onClick={() => router.push('/app')}
           style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#E91E63', padding: 4 }}>‹</button>
         <div style={{
-          width: 40, height: 40, borderRadius: '50%',
+          width: 40, height: 40, borderRadius: '50%', overflow: 'hidden',
           background: 'linear-gradient(135deg,#E91E63,#F48FB1)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20,
+          flexShrink: 0,
         }}>
-          {avatarEmoji[characterId] ?? '👩'}
+          {avatarHasImage
+            ? <img src={character.avatar} alt={character.name} style={avatarStyle} onError={e => { (e.currentTarget as HTMLImageElement).style.display='none' }} />
+            : avatarFallback[characterId] ?? '👩'}
         </div>
         <div>
           <div style={{ fontWeight: 700, fontSize: 15, color: '#333' }}>{character.name}</div>
@@ -430,11 +438,13 @@ export default function ChatPage() {
             }}>
               {msg.role === 'assistant' && (
                 <div style={{
-                  width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
+                  width: 32, height: 32, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
                   background: 'linear-gradient(135deg,#E91E63,#F48FB1)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16,
                 }}>
-                  {avatarEmoji[characterId] ?? '👩'}
+                  {avatarHasImage
+                    ? <img src={character.avatar} alt={character.name} style={avatarStyle} onError={e => { (e.currentTarget as HTMLImageElement).style.display='none' }} />
+                    : avatarFallback[characterId] ?? '👩'}
                 </div>
               )}
               <div style={{
@@ -455,11 +465,13 @@ export default function ChatPage() {
         {(loading || loadingSummary) && (
           <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, marginBottom: 12 }}>
             <div style={{
-              width: 32, height: 32, borderRadius: '50%',
+              width: 32, height: 32, borderRadius: '50%', overflow: 'hidden',
               background: 'linear-gradient(135deg,#E91E63,#F48FB1)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16,
             }}>
-              {avatarEmoji[characterId] ?? '👩'}
+              {avatarHasImage
+                ? <img src={character.avatar} alt={character.name} style={avatarStyle} onError={e => { (e.currentTarget as HTMLImageElement).style.display='none' }} />
+                : avatarFallback[characterId] ?? '👩'}
             </div>
             <div style={{ background: '#fff', borderRadius: '18px 18px 18px 4px', padding: '14px 18px', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}>
               <div style={{ display: 'flex', gap: 4 }}>
