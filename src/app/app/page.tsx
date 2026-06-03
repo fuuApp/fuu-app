@@ -81,7 +81,7 @@ export default function CharacterSelectPage() {
         background: '#fff', borderBottom: '1px solid #FCE4EC',
         padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 10,
       }}>
-        <span style={{ fontSize: 22 }}>🌸</span>
+        <img src="/icons/icon_c.png" alt="fuu" style={{ width: 28, height: 28, objectFit: 'contain' }} />
         <span style={{ fontWeight: 700, fontSize: 17, color: '#E91E63' }}>fuu ふぅ</span>
         <span style={{ marginLeft: 'auto', fontSize: 12, color: '#aaa' }}>話したいコを選んでね</span>
         <Link href="/app/settings" style={{
