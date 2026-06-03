@@ -52,40 +52,6 @@ export default function LandingPage() {
         </p>
       </section>
 
-      {/* ── アイコンデザイン紹介 ── */}
-      <section style={{ padding: '28px 24px', background: '#fff', margin: '12px 0' }}>
-        <p style={{ fontSize: 12, color: '#E91E63', fontWeight: 700, textAlign: 'center', letterSpacing: '0.08em', marginBottom: 14 }}>
-          ICON DESIGN
-        </p>
-        <p style={{ fontSize: 13, color: '#888', textAlign: 'center', marginBottom: 18, lineHeight: 1.7 }}>
-          「ふぅ」という名前に込めた想いを<br />4つのデザインコンセプトで表現しました
-        </p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
-          {[
-            { src: '/icons/icon_a.png', label: 'ほっとひと息', sub: 'コーヒー＆月' },
-            { src: '/icons/icon_b.png', label: '風に乗って', sub: 'たんぽぽ' },
-            { src: '/icons/icon_c.png', label: '夜の安らぎ', sub: '月＆トーク' },
-            { src: '/icons/icon_d.png', label: 'つながる', sub: 'ロゴマーク' },
-          ].map((icon, i) => (
-            <div key={i} style={{ textAlign: 'center' }}>
-              <Image
-                src={icon.src}
-                alt={icon.label}
-                width={72}
-                height={72}
-                style={{
-                  borderRadius: 18,
-                  boxShadow: '0 4px 16px rgba(233,30,99,0.12)',
-                  marginBottom: 6,
-                }}
-              />
-              <div style={{ fontSize: 10, fontWeight: 700, color: '#555' }}>{icon.label}</div>
-              <div style={{ fontSize: 10, color: '#aaa' }}>{icon.sub}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
       {/* ── ふぅという名前の理由 ── */}
       <section style={{ padding: '32px 24px' }}>
         <h2 style={{ fontSize: 18, fontWeight: 700, color: '#E91E63', marginBottom: 16, textAlign: 'center' }}>
@@ -102,8 +68,8 @@ export default function LandingPage() {
           </p>
           <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 12, borderTop: '1px solid #FCE4EC', paddingTop: 16 }}>
             <Image
-              src="/icons/icon_c.png"
-              alt="夜のふぅ"
+              src="/icons/icon_b.png"
+              alt="ふぅ アイコン"
               width={48}
               height={48}
               style={{ borderRadius: 12, flexShrink: 0 }}
