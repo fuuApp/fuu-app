@@ -252,10 +252,10 @@ export default function LandingPage() {
             }}>
               <div style={{
                 width: 44, height: 44, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
-                background: 'linear-gradient(135deg,#880E4F,#4A0030)',
+                background: '#ccc', position: 'relative',
               }}>
-                <img src={c.img} alt={c.name} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }}
-                  onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+                <img src={c.img} alt={c.name} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.25, filter: 'grayscale(100%)' }} />
+                <span style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', fontSize: 20, lineHeight: 1 }}>🔒</span>
               </div>
               <div>
                 <div style={{ fontWeight: 700, fontSize: 13, color: '#880E4F' }}>{c.name}</div>
