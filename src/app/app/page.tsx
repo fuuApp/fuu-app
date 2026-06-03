@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { getAllCharacters } from '@/lib/characters'
 import type { Character } from '@/types'
@@ -22,6 +22,27 @@ function charEmoji(id: string): string {
     aoi: '👧', sakura: '🌸', rika: '💪', natsuko: '🍵', kenji: '👨', hiroshi: '🧔',
   }
   return map[id] ?? '👤'
+}
+
+function CharAvatar({ c, size = 56 }: { c: Character; size?: number }) {
+  const avatarStyle: React.CSSProperties = {
+    width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover',
+  }
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
+      background: c.isPremium
+        ? 'linear-gradient(135deg,#C2185B,#880E4F)'
+        : 'linear-gradient(135deg,#E91E63,#F48FB1)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize: size * 0.46, color: '#fff',
+    }}>
+      {c.avatar
+        ? <img src={c.avatar} alt={c.name} style={avatarStyle}
+            onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+        : charEmoji(c.id)}
+    </div>
+  )
 }
 
 export default function CharacterSelectPage() {
@@ -100,8 +121,16 @@ export default function CharacterSelectPage() {
                 <div style={{
                   width: 56, height: 56, borderRadius: '50%', flexShrink: 0,
                   background: '#ddd', display: 'flex', alignItems: 'center',
-                  justifyContent: 'center', fontSize: 26,
-                }}>🔒</div>
+                  justifyContent: 'center', fontSize: 26, overflow: 'hidden', position: 'relative',
+                }}>
+                  {c.avatar && (
+                    <img src={c.avatar} alt={c.name}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.35 }}
+                      onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+                    />
+                  )}
+                  <span style={{ position: 'absolute', fontSize: 22 }}>🔒</span>
+                </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                     <span style={{ fontWeight: 700, fontSize: 16, color: '#bbb' }}>{c.name}</span>
@@ -136,16 +165,7 @@ export default function CharacterSelectPage() {
                 onMouseEnter={e => (e.currentTarget.style.borderColor = '#F48FB1')}
                 onMouseLeave={e => (e.currentTarget.style.borderColor = 'transparent')}
               >
-                <div style={{
-                  width: 56, height: 56, borderRadius: '50%', flexShrink: 0,
-                  background: c.isPremium
-                    ? 'linear-gradient(135deg,#C2185B,#880E4F)'
-                    : 'linear-gradient(135deg,#E91E63,#F48FB1)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 26, color: '#fff',
-                }}>
-                  {charEmoji(c.id)}
-                </div>
+                <CharAvatar c={c} size={56} />
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
                     <span style={{ fontWeight: 700, fontSize: 16, color: '#333' }}>{c.name}</span>
@@ -175,7 +195,7 @@ export default function CharacterSelectPage() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             {[
-              { href: '/app/journal', icon: '✨', label: '気持ちの箱を見る', sub: '過去の気持ち記録', color: '#FFF0F5', border: '#F8BBD9' },
+              { href: '/app/journal', icon: '✨', label: '宝箱を見る', sub: '過去の気持ち記録', color: '#FFF0F5', border: '#F8BBD9' },
               { href: '/app/bgm', icon: '🎵', label: 'BGM', sub: '癒やしの音楽', color: '#F3E5F5', border: '#CE93D8' },
               { href: '/app/plans', icon: '🌸', label: 'プランを見る', sub: 'アップグレード', color: '#FCE4EC', border: '#F48FB1' },
               { href: '/app/settings', icon: '⚙️', label: '設定', sub: '呼び名・BGMなど', color: '#F5F5F5', border: '#E0E0E0' },
