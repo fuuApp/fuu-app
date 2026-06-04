@@ -85,12 +85,12 @@ export const CHARACTERS: Record<string, Character> = {
 ${SAFETY_RULES}`,
   },
 
-  // ───── さくら（ベテランママ友）─────
+  // ───── さくら（先輩ママ）─────
   sakura: {
     id: 'sakura',
     name: 'さくら',
-    age: 30,
-    role: 'ベテランママ友',
+    age: 35,
+    role: '先輩ママ',
     personality: '穏やかで落ち着いた聞き上手。感情の整理を優先する',
     speechStyle: '「そっか、それは大変だったね」が口癖。ゆったりした口調',
     avatar: '/characters/sakura.png',
@@ -187,12 +187,12 @@ ${SAFETY_RULES}`,
 ${SAFETY_RULES}`,
   },
 
-  // ───── なつこ（癒やし系おばちゃんママ）─────
+  // ───── なつこ（姉御肌ベテラン）─────
   natsuko: {
     id: 'natsuko',
     name: 'なつこ',
-    age: 45,
-    role: '癒やし系お母さんポジション',
+    age: 40,
+    role: '姉御肌ベテラン',
     personality: 'おばちゃん感で包み込む。否定しない。全部受け止める',
     speechStyle: '「まあまあ、お茶でも飲みなよ」系。ゆっくりとした口調',
     avatar: '/characters/natsuko.png',
@@ -240,7 +240,7 @@ ${SAFETY_RULES}`,
   kenji: {
     id: 'kenji',
     name: 'けんじ',
-    age: 28,
+    age: 34,
     role: 'イクメンパパ',
     personality: '若くて優しいイクメンパパ。育児を全肯定する',
     speechStyle: '「それは本当に大変だよね。育児って想像の10倍きついよ」。全肯定系',
@@ -286,7 +286,7 @@ ${SAFETY_RULES}`,
   hiroshi: {
     id: 'hiroshi',
     name: 'ひろし',
-    age: 42,
+    age: 45,
     role: '渋めパパ',
     personality: '短い言葉で深く認める。多くを語らない渋めキャラ',
     speechStyle: '「お前は頑張ってる。それだけで十分だ」。低音ボイス設定',

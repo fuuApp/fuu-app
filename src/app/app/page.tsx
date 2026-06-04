@@ -47,22 +47,32 @@ function CharAvatar({ c, size = 56 }: { c: Character; size?: number }) {
 
 export default function CharacterSelectPage() {
   const [usageDays, setUsageDays] = useState(0)
+  const [plan, setPlan] = useState<string>('free')
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setUsageDays(getUsageDays())
+    setPlan(localStorage.getItem('fuu_plan') ?? 'free')
     setMounted(true)
   }, [])
 
   const allCharacters = getAllCharacters().filter(c => c.isAvailable)
 
-  const isLocked = (c: Character): boolean => usageDays < c.unlockDaysRequired
+  // 解放条件：サブスクプランで判定
+  // あおい・さくら：無料トライアルから（常に解放）
+  // りか・なつこ：スタンダード以上
+  // けんじ・ひろし：プレミアムのみ
+  const isLocked = (c: Character): boolean => {
+    if (!c.isPremium && c.unlockDaysRequired === 0) return false // あおい・さくら
+    if (c.isPremium) return plan !== 'premium'  // けんじ・ひろし
+    // りか・なつこ（isPremium:false かつ unlockDaysRequired:0 だが将来的にstandard制限）
+    return plan === 'free' && usageDays < 10    // トライアル10日以内はりか・なつこもロック
+  }
 
   const unlockLabel = (c: Character): string => {
-    const days = c.unlockDaysRequired - usageDays
-    if (days <= 0) return ''
-    if (days <= 30) return `あと${days}日で解放`
-    return `あと約${Math.ceil(days / 30)}ヶ月で解放`
+    if (c.isPremium) return 'プレミアムで解放'
+    if (isLocked(c)) return 'スタンダードで解放'
+    return ''
   }
 
   if (!mounted) return (
