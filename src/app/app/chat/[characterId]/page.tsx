@@ -31,7 +31,7 @@ export default function ChatPage() {
   const [nicknameInput, setNicknameInput] = useState('')
 
   // チャットモード
-  const [chatMode, setChatMode] = useState<'guchi' | 'soudan'>('guchi')
+  const [chatMode, setChatMode] = useState<'guchi' | 'soudan' | 'hybrid'>('guchi')
   const [showSoudanReplies, setShowSoudanReplies] = useState(false)
 
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -294,9 +294,14 @@ export default function ChatPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'エラーが発生しました')
 
-      // 相談モードで①②③が含まれていたら深掘りボタンを表示
+      // 愚痴→相談の自動検知でハイブリッドモードに切り替え
+      if (data.autoHybrid) {
+        setChatMode('soudan')
+      }
+
+      // 相談 or ハイブリッドで①②③が含まれていたら深掘りボタンを表示
       const hasSoudanOptions = data.message.includes('①') && data.message.includes('②') && data.message.includes('③')
-      if (chatMode === 'soudan' && hasSoudanOptions) {
+      if ((chatMode === 'soudan' || data.autoHybrid) && hasSoudanOptions) {
         setShowSoudanReplies(true)
       } else {
         setShowSoudanReplies(false)

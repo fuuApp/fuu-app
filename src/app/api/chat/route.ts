@@ -148,11 +148,50 @@ Step 3【深掘りへの誘導】（必須）
 気になる番号あった？」
 `
 
+// 解決志向キーワード検出（愚痴モード中に相談への移行を検知）
+function detectSolutionIntent(message: string): boolean {
+  const keywords = [
+    'どうすれば', 'どうしたら', 'どうすりゃ', 'どうしよう', 'どうすべき',
+    '回避策', '解決策', '対策', 'アドバイス', '提案して', '教えて',
+    '改善', 'どうしたらいい', 'どうすればいい', 'なんとかなる',
+    'なんかいい方法', 'いい方法', 'どう対応', 'どう乗り越え',
+    'どうすると', 'どうしたもんか', 'どうしよっか', 'ないかな',
+    '方法ない', 'どうしたい', '解決したい', 'どうにかなる',
+  ]
+  return keywords.some(kw => message.includes(kw))
+}
+
+// ハイブリッドモード（愚痴+相談）専用プロンプト
+const HYBRID_PROMPT = `
+【自動ハイブリッドモード：共感→提案】
+ユーザーは愚痴を話しながら、自然に解決策を求めています。
+以下の流れで返答してください。
+
+Step 1【共感・受容】（必須・1〜2文）
+まず気持ちを受け止める。「それは消耗するよね」「そんな状況が続いてたんだね」など。
+絶対に省略しない。アドバイスを先に出さない。
+
+Step 2【自然な橋渡し】（1文）
+「せっかくだから少し考えてみようか」「いくつか方法思いついたんだけど」など、
+自然に提案へ移行する一言を入れる。
+
+Step 3【提案】（①②③の3つ）
+方向性の異なる3つの提案を出す。
+・① すぐ今日からできる小さなこと
+・② 仕組みや環境を変えること
+・③ 視点・気持ちのフレームを変えること
+
+Step 4【締め】
+「気になる番号あった？」「どれか詳しく話してみる？」で締める。
+
+【重要】キャラクターの口調を絶対に維持。ですます調禁止。
+`
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const { characterId, message, conversationHistory } = body
-    const mode: string = body.mode ?? 'guchi' // 'guchi' | 'soudan'
+    const mode: string = body.mode ?? 'guchi' // 'guchi' | 'soudan' | 'hybrid'
 
     if (!message?.trim()) {
       return NextResponse.json({ error: 'メッセージが空です' }, { status: 400 })
@@ -174,8 +213,15 @@ export async function POST(req: NextRequest) {
       ? `【ユーザーへの呼びかけ】相手のニックネームは「${nickname}」です。会話の中で自然に名前を使って呼んでください。`
       : `【ユーザーへの呼びかけ】相手のニックネームは未設定です。「あなた」と呼ぶか、呼びかけを省いてください。`
 
+    // 愚痴モード中に解決志向を検知 → 自動ハイブリッド切り替え
+    const autoHybrid = mode === 'guchi' && detectSolutionIntent(message)
+    const effectiveMode = autoHybrid ? 'hybrid' : mode
+
     // モード別プロンプトの組み立て
-    const modeInstruction = mode === 'soudan' ? SOUDAN_PROMPT : instruction
+    const modeInstruction =
+      effectiveMode === 'soudan' ? SOUDAN_PROMPT :
+      effectiveMode === 'hybrid' ? HYBRID_PROMPT :
+      instruction
     const dynamicSystemPrompt = `${character.systemPrompt}\n\n${nameInstruction}\n\n${modeInstruction}`
 
     const history = (conversationHistory ?? []).slice(-20).map((m: { role: string; content: string }) => ({
@@ -197,7 +243,7 @@ export async function POST(req: NextRequest) {
       ? response.content[0].text
       : 'ごめんね、うまく返事できなかった。もう一度話してくれる？'
 
-    return NextResponse.json({ message: aiMessage, characterId })
+    return NextResponse.json({ message: aiMessage, characterId, autoHybrid: autoHybrid ?? false })
   } catch (error) {
     console.error('Chat API error:', error)
     return NextResponse.json(
