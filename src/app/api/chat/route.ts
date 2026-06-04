@@ -9,12 +9,16 @@ const anthropic = new Anthropic({
 
 // 入力の長さに応じた返答スタイル指示と max_tokens を返す
 function getResponseGuide(messageLength: number, mode: string): { instruction: string; maxTokens: number } {
-  // 相談・ハイブリッドモードは十分なトークンを確保（共感+3提案+締めで長くなるため）
+  // 相談：初回提案は短く（タイトルのみ）、深掘りは詳しく
+  if (mode === 'soudan_brief' || mode === 'hybrid_brief') {
+    return { instruction: '', maxTokens: 300 }
+  }
+  if (mode === 'soudan_deepdive' || mode === 'hybrid_deepdive') {
+    return { instruction: '', maxTokens: 500 }
+  }
+  // 後方互換（直接soudan/hybridが来た場合）
   if (mode === 'soudan' || mode === 'hybrid') {
-    return {
-      instruction: '',
-      maxTokens: 1000,
-    }
+    return { instruction: '', maxTokens: 300 }
   }
 
   if (messageLength <= 30) {
@@ -201,30 +205,66 @@ function detectSolutionIntent(message: string): boolean {
   return solutionQuestionPatterns.some(pattern => pattern.test(message))
 }
 
-// ハイブリッドモード（愚痴+相談）専用プロンプト
-const HYBRID_PROMPT = `
-【自動ハイブリッドモード：共感→提案】
-ユーザーは愚痴を話しながら、自然に解決策を求めています。
-以下の流れで返答してください。
+// ─── ユーザーが番号を選んだか検知 ───
+function isDeepDiveRequest(message: string): boolean {
+  return /^[①②③１２３123]$/.test(message.trim()) ||
+    /^[①②③１２３123][番つ目]/.test(message.trim()) ||
+    /[①②③]を?詳しく/.test(message) ||
+    /[①②③]で/.test(message) ||
+    /[①②③]がいい/.test(message) ||
+    /[①②③]に?して/.test(message)
+}
 
-Step 1【共感・受容】（必須・1〜2文）
-まず気持ちを受け止める。「それは消耗するよね」「そんな状況が続いてたんだね」など。
-絶対に省略しない。アドバイスを先に出さない。
+// ─── 相談モード：初回（タイトルのみ・簡潔版）───
+const SOUDAN_BRIEF_PROMPT = `
+【相談モード・簡潔提案】
+ユーザーはアドバイスを求めています。以下の順で短く返してください。
 
-Step 2【自然な橋渡し】（1文）
-「せっかくだから少し考えてみようか」「いくつか方法思いついたんだけど」など、
-自然に提案へ移行する一言を入れる。
+Step 1【共感】1〜2文のみ。絶対に省略しない。
+Step 2【提案タイトル】①②③を各1行で。詳細は書かない。
+  例：「① 〇〇してみる」「② 〇〇を変える」「③ 〇〇という考え方」
+Step 3【選択を促す】「気になった番号があったら教えて！詳しく話せるよ」で締める。
 
-Step 3【提案】（①②③の3つ）
-方向性の異なる3つの提案を出す。
-・① すぐ今日からできる小さなこと
-・② 仕組みや環境を変えること
-・③ 視点・気持ちのフレームを変えること
+【ルール】
+- 提案の説明は番号＋15文字以内のタイトルのみ。理由・詳細は書かない
+- 全体200文字以内を目安に
+- キャラクターの口調を維持。ですます調禁止
+`
 
-Step 4【締め】
-「気になる番号あった？」「どれか詳しく話してみる？」で締める。
+// ─── 相談モード：深掘り（選ばれた番号だけ詳しく）───
+const SOUDAN_DEEPDIVE_PROMPT = `
+【相談モード・深掘り】
+ユーザーが提案の番号を選びました。直前の会話で出した①②③のうち、
+選ばれた番号の提案だけを詳しく説明してください。
 
-【重要】キャラクターの口調を絶対に維持。ですます調禁止。
+Step 1【選択への共感】「いいね、それ試してみよう」など1文
+Step 2【詳しい説明】選ばれた提案を具体的に3〜5文で説明
+  - 具体的にどうやるか
+  - なぜこの方法が効くか
+  - 注意点や調整方法（あれば）
+Step 3【次の一歩】「まずは〇〇からやってみて」で締める
+
+【ルール】
+- 選ばれていない番号には触れない
+- キャラクターの口調を維持。ですます調禁止
+- 全体300文字以内を目安に
+`
+
+// ─── ハイブリッドモード：初回（共感＋簡潔提案）───
+const HYBRID_BRIEF_PROMPT = `
+【ハイブリッドモード：共感→簡潔提案】
+ユーザーは愚痴を話しながら解決策を求めています。
+
+Step 1【共感】1〜2文。気持ちをまず受け止める。省略禁止。
+Step 2【橋渡し】「せっかくだから少し考えてみようか」など1文
+Step 3【提案タイトル】①②③を各1行のみ。詳細は書かない。
+  例：「① 〇〇してみる」「② 〇〇を変える」「③ 〇〇という考え方」
+Step 4【選択を促す】「気になった番号あったら教えて！」で締める。
+
+【ルール】
+- 提案は番号＋15文字以内のタイトルのみ。理由は書かない
+- 全体200文字以内を目安に
+- キャラクターの口調を維持。ですます調禁止
 `
 
 export async function POST(req: NextRequest) {
@@ -255,12 +295,25 @@ export async function POST(req: NextRequest) {
 
     // 愚痴モード中に解決志向を検知 → 自動ハイブリッド切り替え
     const autoHybrid = mode === 'guchi' && detectSolutionIntent(message)
-    const effectiveMode = autoHybrid ? 'hybrid' : mode
+
+    // 深掘りリクエスト（①②③を選んだ）か判定
+    const deepDive = (mode === 'soudan' || mode === 'hybrid') && isDeepDiveRequest(message)
+
+    // effectiveMode を決定
+    const effectiveMode =
+      autoHybrid ? (deepDive ? 'hybrid_deepdive' : 'hybrid_brief') :
+      mode === 'soudan' ? (deepDive ? 'soudan_deepdive' : 'soudan_brief') :
+      mode === 'hybrid' ? (deepDive ? 'hybrid_deepdive' : 'hybrid_brief') :
+      mode // guchi はそのまま
 
     // モード別プロンプトの組み立て
     const modeInstruction =
-      effectiveMode === 'soudan' ? SOUDAN_PROMPT :
-      effectiveMode === 'hybrid' ? HYBRID_PROMPT :
+      effectiveMode === 'soudan_brief'    ? SOUDAN_BRIEF_PROMPT :
+      effectiveMode === 'soudan_deepdive' ? SOUDAN_DEEPDIVE_PROMPT :
+      effectiveMode === 'hybrid_brief'    ? HYBRID_BRIEF_PROMPT :
+      effectiveMode === 'hybrid_deepdive' ? SOUDAN_DEEPDIVE_PROMPT :
+      effectiveMode === 'soudan'          ? SOUDAN_BRIEF_PROMPT : // 後方互換
+      effectiveMode === 'hybrid'          ? HYBRID_BRIEF_PROMPT : // 後方互換
       instruction
     const dynamicSystemPrompt = `${character.systemPrompt}\n\n${nameInstruction}\n\n${modeInstruction}`
 
@@ -283,7 +336,12 @@ export async function POST(req: NextRequest) {
       ? response.content[0].text
       : 'ごめんね、うまく返事できなかった。もう一度話してくれる？'
 
-    return NextResponse.json({ message: aiMessage, characterId, autoHybrid: autoHybrid ?? false })
+    return NextResponse.json({
+      message: aiMessage,
+      characterId,
+      autoHybrid: autoHybrid ?? false,
+      deepDive: deepDive ?? false,
+    })
   } catch (error) {
     console.error('Chat API error:', error)
     return NextResponse.json(
