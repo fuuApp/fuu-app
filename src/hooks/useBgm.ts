@@ -90,5 +90,20 @@ export function useBgm() {
     }
   }, [stopBgm])
 
+  // バックグラウンド（非表示）時に停止、復帰時に再開
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.hidden) {
+        audioRef.current?.pause()
+      } else {
+        if (playingRef.current && audioRef.current) {
+          audioRef.current.play().catch(() => {})
+        }
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
+  }, [])
+
   return { startBgm, stopBgm, toggleBgm }
 }

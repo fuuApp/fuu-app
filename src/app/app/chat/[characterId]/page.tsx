@@ -46,7 +46,7 @@ export default function ChatPage() {
 
   const { startBgm } = useBgm()
 
-  const quickReplies = ['今日しんどかった', 'ただ聞いてほしい', '子どものこと', '旦那のこと']
+  const quickReplies = ['今日しんどかった', 'ただ聞いてほしい', '子どものこと', '旦那のこと', 'ママ友のこと', '困っていること']
   const showGuchiFooterButton = nicknamePhase === 'done' && !guchiDone && !loadingSummary && !loading
 
   // キャラクターアバター（/public/characters/ に画像を配置すること）
