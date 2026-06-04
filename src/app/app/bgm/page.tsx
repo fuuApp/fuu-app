@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   getActiveTracks, getTrackByIdIncludeInactive,
@@ -13,6 +13,7 @@ const MOOD_LABELS = {
   chill:     { label:'チル',    emoji:'🌿', color:'#00695C', bg:'#E0F2F1' },
   happy:     { label:'元気',    emoji:'☀️', color:'#E65100', bg:'#FBE9E7' },
   emotional: { label:'泣きたい',emoji:'🌧️', color:'#1565C0', bg:'#E3F2FD' },
+  angry:     { label:'発散',    emoji:'🔥', color:'#B71C1C', bg:'#FFEBEE' },
 } as const
 
 export default function BgmPage() {
@@ -21,6 +22,8 @@ export default function BgmPage() {
   const [bgmEnabled, setBgmEnabled] = useState(true)
   const [activeFilter, setActiveFilter] = useState<'all'|'favorite'|BgmTrack['mood']>('all')
   const [toast, setToast] = useState('')
+  const [playingId, setPlayingId] = useState<string | null>(null)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
 
   useEffect(() => {
     setFavoriteIds(getFavoriteIds())
@@ -29,6 +32,26 @@ export default function BgmPage() {
   }, [])
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(()=>setToast(''), 2000) }
+
+  const handlePreview = (track: BgmTrack) => {
+    if (playingId === track.id) {
+      audioRef.current?.pause()
+      audioRef.current = null
+      setPlayingId(null)
+      return
+    }
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current = null
+    }
+    const audio = new Audio(`/bgm/${track.file}`)
+    audio.volume = 0.4
+    audio.play().catch(() => {})
+    audio.onended = () => setPlayingId(null)
+    audioRef.current = audio
+    setPlayingId(track.id)
+  }
+
   const handleToggleFavorite = (id: string) => {
     const added = toggleFavorite(id)
     setFavoriteIds(getFavoriteIds())
@@ -58,7 +81,7 @@ export default function BgmPage() {
         {toast && <div style={{ background:'#E8F5E9',border:'1px solid #A5D6A7',borderRadius:12,padding:'10px 16px',fontSize:13,color:'#2E7D32',textAlign:'center',marginBottom:12 }}>{toast}</div>}
 
         <div style={{ display:'flex',gap:8,marginBottom:16,overflowX:'auto',paddingBottom:4 }}>
-          {([{key:'all',label:'すべて',emoji:'🎵'},{key:'favorite',label:`お気に入り(${favoriteIds.length})`,emoji:'❤️'},{key:'chill',label:'チル',emoji:'🌿'},{key:'happy',label:'元気',emoji:'☀️'},{key:'emotional',label:'泣きたい',emoji:'🌧️'}] as const).map(f=>(
+          {([{key:'all',label:'すべて',emoji:'🎵'},{key:'favorite',label:`お気に入り(${favoriteIds.length})`,emoji:'❤️'},{key:'chill',label:'チル',emoji:'🌿'},{key:'happy',label:'元気',emoji:'☀️'},{key:'emotional',label:'泣きたい',emoji:'🌧️'},{key:'angry',label:'発散',emoji:'🔥'}] as const).map(f=>(
             <button key={f.key} onClick={()=>setActiveFilter(f.key)} style={{ flexShrink:0,padding:'6px 14px',borderRadius:20,fontSize:12,fontWeight:600,border:'none',cursor:'pointer',fontFamily:'inherit',background:activeFilter===f.key?'#E91E63':'#fff',color:activeFilter===f.key?'#fff':'#888',boxShadow:'0 1px 4px rgba(0,0,0,0.08)' }}>
               {f.emoji} {f.label}
             </button>
@@ -79,10 +102,13 @@ export default function BgmPage() {
           const ms = MOOD_LABELS[track.mood]
           return (
             <div key={track.id} style={{ background:'#fff',borderRadius:18,padding:'14px 16px',marginBottom:10,display:'flex',alignItems:'center',gap:14,boxShadow:'0 2px 8px rgba(233,30,99,0.07)',opacity:!track.isActive?0.7:1 }}>
-              <div style={{ width:48,height:48,borderRadius:14,flexShrink:0,background:ms.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:22 }}>{track.emoji}</div>
+              <button onClick={()=>handlePreview(track)} style={{ width:48,height:48,borderRadius:14,flexShrink:0,background:ms.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:22,border:'none',cursor:'pointer',position:'relative' }}>
+                {playingId===track.id ? '⏸' : track.emoji}
+              </button>
               <div style={{ flex:1,minWidth:0 }}>
                 <div style={{ display:'flex',alignItems:'center',gap:6,marginBottom:2 }}>
                   <span style={{ fontWeight:700,fontSize:14,color:'#333' }}>{track.title}</span>
+                  {playingId===track.id && <span style={{ fontSize:10,color:'#E91E63',background:'#FCE4EC',borderRadius:8,padding:'1px 6px',fontWeight:700 }}>再生中</span>}
                   {!track.isActive && <span style={{ fontSize:10,color:'#aaa',background:'#f0f0f0',borderRadius:8,padding:'1px 6px' }}>保存済み</span>}
                 </div>
                 <div style={{ fontSize:11,color:ms.color,marginBottom:2,fontWeight:600 }}>{ms.emoji} {ms.label}</div>
