@@ -64,17 +64,21 @@ function PlansContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
+  const [loadingTicket, setLoadingTicket] = useState(false)
   const [currentPlan, setCurrentPlan] = useState<string>('trial') // trial / standard / premium
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   // 決済完了・キャンセルの通知処理
   useEffect(() => {
     const success = searchParams.get('success')
+    const ticketSuccess = searchParams.get('ticket_success')
     const canceled = searchParams.get('canceled')
 
     if (success === 'true') {
       setToastMessage({ type: 'success', text: '🎉 ご登録ありがとうございます！プランが有効になりました。' })
-      // URLからパラメータを消す
+      router.replace('/app/plans')
+    } else if (ticketSuccess === 'true') {
+      setToastMessage({ type: 'success', text: '🎫 チケットを購入しました！今日1日使い放題です。' })
       router.replace('/app/plans')
     } else if (canceled === 'true') {
       setToastMessage({ type: 'error', text: '決済をキャンセルしました。いつでも再開できます。' })
@@ -91,6 +95,25 @@ function PlansContent() {
   }, [toastMessage])
 
   // サブスクリプション開始ハンドラ
+  // チケット購入ハンドラ
+  const handleTicket = async () => {
+    setLoadingTicket(true)
+    try {
+      const res = await fetch('/api/subscription/ticket', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'チケット購入の準備に失敗しました')
+      if (data.url) window.location.href = data.url
+    } catch (err: any) {
+      setToastMessage({ type: 'error', text: err.message ?? 'エラーが発生しました' })
+    } finally {
+      setLoadingTicket(false)
+    }
+  }
+
   const handleSubscribe = async (planId: string) => {
     if (!isSupabaseConfigured) {
       // デモモード：Stripe未設定を案内
@@ -295,6 +318,45 @@ function PlansContent() {
             </div>
           )
         })}
+
+        {/* ─── チケット購入カード ─── */}
+        {(currentPlan === 'standard' || currentPlan === 'premium') && (
+          <div style={{
+            background: 'linear-gradient(135deg,#FFF8E1,#FFF3E0)',
+            border: '2px solid #FFB300',
+            borderRadius: 20, padding: '20px 20px', marginTop: 8,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+              <span style={{ fontSize: 28 }}>🎫</span>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 16, color: '#E65100' }}>使い放題チケット</div>
+                <div style={{ fontSize: 12, color: '#F57F17', fontWeight: 600 }}>¥300 / 1日限り</div>
+              </div>
+              <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
+                <div style={{ fontSize: 22, fontWeight: 800, color: '#E65100' }}>¥300</div>
+                <div style={{ fontSize: 10, color: '#aaa' }}>税込</div>
+              </div>
+            </div>
+            <div style={{ fontSize: 12, color: '#795548', lineHeight: 1.8, marginBottom: 14 }}>
+              購入当日の24:00まで通数制限なし。<br />
+              話したい日に、好きなだけ話せる1日券。
+            </div>
+            <button
+              onClick={handleTicket}
+              disabled={loadingTicket}
+              style={{
+                width: '100%', padding: '13px',
+                background: loadingTicket ? '#FFE082' : 'linear-gradient(135deg,#FFB300,#FF6F00)',
+                color: '#fff', border: 'none', borderRadius: 50,
+                fontSize: 15, fontWeight: 700,
+                cursor: loadingTicket ? 'not-allowed' : 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
+              {loadingTicket ? '準備中...' : '今日のチケットを買う →'}
+            </button>
+          </div>
+        )}
 
         {/* 注意書き */}
         <div style={{ fontSize: 11, color: '#bbb', textAlign: 'center', lineHeight: 1.9, marginTop: 4 }}>

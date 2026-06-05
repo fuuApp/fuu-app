@@ -25,7 +25,7 @@ export default function TokushoPage() {
               ['サービス名', 'fuu ふぅ（育児ママのためのAI共感アプリ）'],
               ['URL', 'https://fuu-app.vercel.app'],
               ['販売価格', 'スタンダードプラン：¥300/月\nプレミアムプラン：¥980/月\nチケット：¥300/日'],
-              ['支払い方法', 'クレジットカード（Visa・Mastercard・American Express）\nApple Pay・Google Pay'],
+              ['支払い方法', 'クレジットカード（Visa・Mastercard・American Express・JCB）\nApple Pay・Google Pay'],
               ['支払い時期', '月額プラン：登録月より毎月自動更新\nチケット：購入時に即時決済'],
               ['サービス提供時期', '決済完了後、即時提供'],
               ['解約・キャンセル方法', 'アプリ内の設定ページ→「プラン・解約」から手続き可能\n解約後は当月末まで利用可能。日割り返金なし\nチケットは購入後24時間以内・未使用の場合のみ返金対応'],
