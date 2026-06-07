@@ -2,28 +2,27 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 const isSupabaseConfigured =
   typeof process !== 'undefined' &&
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
   process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://your-project.supabase.co'
 
-type Props = {
-  nextPath: string
-  authError: string
-}
-
-export default function LoginClient({ nextPath, authError }: Props) {
+// props を削除し useSearchParams で直接読む（Capacitor静的ビルド対応）
+export default function LoginClient() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const nextPath = searchParams.get('next') ?? '/app'
+  const authErrorParam = searchParams.get('error') ?? ''
 
   const [email, setEmail]   = useState('')
   const [otp, setOtp]       = useState('')
   const [step, setStep]     = useState<'email' | 'otp'>('email')
   const [loading, setLoading] = useState(false)
   const [error, setError]   = useState(
-    authError === 'auth_failed'   ? '認証に失敗しました。もう一度お試しください。'
-    : authError === 'missing_code' ? 'リンクが無効です。再度ログインしてください。'
+    authErrorParam === 'auth_failed'   ? '認証に失敗しました。もう一度お試しください。'
+    : authErrorParam === 'missing_code' ? 'リンクが無効です。再度ログインしてください。'
     : ''
   )
 
@@ -96,7 +95,7 @@ export default function LoginClient({ nextPath, authError }: Props) {
   return (
     <main style={{ maxWidth: 480, margin: '0 auto', minHeight: '100dvh', background: '#fdf4f7', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '24px' }}>
       <div style={{ textAlign: 'center', marginBottom: 32 }}>
-        <div style={{ fontSize: 48, marginBottom: 8 }}>🌸</div>
+        <img src="/icons/icon_c.png" alt="fuu" style={{ width: 96, height: 96, borderRadius: 22, marginBottom: 8, display: 'block', marginLeft: 'auto', marginRight: 'auto' }} />
         <h1 style={{ fontSize: 26, fontWeight: 700, color: '#E91E63', margin: 0 }}>fuu ふぅ</h1>
         <p style={{ fontSize: 14, color: '#888', marginTop: 6 }}>AIのママ友が、いつでもそばに</p>
       </div>

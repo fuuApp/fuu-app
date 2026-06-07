@@ -18,7 +18,8 @@ export async function POST(req: NextRequest) {
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
-      payment_method_types: ['card'],
+      // payment_method_types を省略することで Stripe が自動的に最適な支払い方法を選択
+      // → JCB・Apple Pay・Google Pay が Stripe ダッシュボードの設定に基づいて有効化される
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${baseUrl}/app/plans?ticket_success=true`,
       cancel_url:  `${baseUrl}/app/plans?canceled=true`,

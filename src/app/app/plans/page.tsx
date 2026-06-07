@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
+import { isIOS, openStripeCheckout } from '@/lib/platform'
 
 // ─── プラン定義 ─────────────────────────────────────────────────
 // 無料トライアル：10日間・70通・あおい・さくらのみ
@@ -106,7 +107,7 @@ function PlansContent() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'チケット購入の準備に失敗しました')
-      if (data.url) window.location.href = data.url
+      if (data.url) openStripeCheckout(data.url)
     } catch (err: any) {
       setToastMessage({ type: 'error', text: err.message ?? 'エラーが発生しました' })
     } finally {
@@ -139,7 +140,9 @@ function PlansContent() {
       }
 
       if (data.url) {
-        window.location.href = data.url // Stripe Checkout へリダイレクト
+        // iOS ネイティブ: Safari で開く（Apple ガイドライン対応）
+        // Android / Web: 同タブ遷移（通常の Stripe Checkout）
+        openStripeCheckout(data.url)
       }
     } catch (err: any) {
       setToastMessage({ type: 'error', text: err.message ?? 'エラーが発生しました' })
@@ -178,6 +181,34 @@ function PlansContent() {
             lineHeight: 1.6,
           }}>
             {toastMessage.text}
+          </div>
+        )}
+
+        {/* iOS アプリ向け：購入は Safari に誘導するバナー */}
+        {isIOS() && (
+          <div style={{
+            background: '#E3F2FD', border: '1px solid #90CAF9',
+            borderRadius: 14, padding: '14px 16px', lineHeight: 1.7,
+          }}>
+            <div style={{ fontWeight: 700, fontSize: 13, color: '#1565C0', marginBottom: 4 }}>
+              📱 iPhoneをお使いの方へ
+            </div>
+            <div style={{ fontSize: 12, color: '#1565C0' }}>
+              プランの登録・変更は Safari（ブラウザ）から行えます。<br />
+              下のボタンをタップするとブラウザが開きます。
+            </div>
+            <button
+              onClick={() => window.open('https://fuu-app.vercel.app/app/plans', '_blank')}
+              style={{
+                marginTop: 10, width: '100%', padding: '11px',
+                background: '#1565C0', color: '#fff',
+                border: 'none', borderRadius: 50,
+                fontSize: 13, fontWeight: 700,
+                cursor: 'pointer', fontFamily: 'inherit',
+              }}
+            >
+              Safari でプランを登録する →
+            </button>
           </div>
         )}
 

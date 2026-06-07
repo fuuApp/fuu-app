@@ -2,28 +2,27 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 const isSupabaseConfigured =
   typeof process !== 'undefined' &&
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
   process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://your-project.supabase.co'
 
-type Props = {
-  nextPath: string
-  authError: string
-}
-
-export default function LoginClient({ nextPath, authError }: Props) {
+// props を削除し useSearchParams で直接読む（Capacitor静的ビルド対応）
+export default function LoginClient() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const nextPath = searchParams.get('next') ?? '/app'
+  const authErrorParam = searchParams.get('error') ?? ''
 
   const [email, setEmail]   = useState('')
   const [otp, setOtp]       = useState('')
   const [step, setStep]     = useState<'email' | 'otp'>('email')
   const [loading, setLoading] = useState(false)
   const [error, setError]   = useState(
-    authError === 'auth_failed'   ? '認証に失敗しました。もう一度お試しください。'
-    : authError === 'missing_code' ? 'リンクが無効です。再度ログインしてください。'
+    authErrorParam === 'auth_failed'   ? '認証に失敗しました。もう一度お試しください。'
+    : authErrorParam === 'missing_code' ? 'リンクが無効です。再度ログインしてください。'
     : ''
   )
 

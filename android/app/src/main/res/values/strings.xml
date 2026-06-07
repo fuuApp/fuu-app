@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">fuu ふぅ</string>
+    <string name="title_activity_main">fuu ふぅ</string>
+    <string name="package_name">com.ogdstudio.fuu</string>
+    <string name="custom_url_scheme">com.ogdstudio.fuu</string>
+</resources>

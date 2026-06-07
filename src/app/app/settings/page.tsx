@@ -134,7 +134,19 @@ export default function SettingsPage() {
   const handleDeleteAccount = async () => {
     setIsDeleting(true); setDeleteError('')
     try {
-      const res = await fetch('/api/account/delete', { method: 'POST' })
+      // JWTトークンをAuthorizationヘッダーで送信（セキュリティ強化）
+      const { createClient } = await import('@/lib/supabase')
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        setDeleteError('セッションが切れています。再ログインしてください。')
+        setIsDeleting(false)
+        return
+      }
+      const res = await fetch('/api/account/delete', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${session.access_token}` },
+      })
       if (!res.ok) { const d = await res.json(); setDeleteError(d.error ?? '退会に失敗しました'); setIsDeleting(false); return }
       localStorage.clear(); sessionStorage.clear(); router.replace('/')
     } catch { setDeleteError('通信エラーが発生しました。しばらくしてからお試しください。'); setIsDeleting(false) }

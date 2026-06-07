@@ -1,16 +1,11 @@
+import { Suspense } from 'react'
 import LoginClient from './LoginClient'
 
-export const dynamic = 'force-dynamic'
-
-type Props = {
-  searchParams: { next?: string; error?: string }
-}
-
-export default function Page({ searchParams }: Props) {
+// Capacitorビルド対応：force-dynamic を削除し静的エクスポート可能に
+export default function Page() {
   return (
-    <LoginClient
-      nextPath={searchParams.next ?? '/app'}
-      authError={searchParams.error ?? ''}
-    />
+    <Suspense fallback={<div style={{ background: '#fdf4f7', minHeight: '100dvh' }} />}>
+      <LoginClient />
+    </Suspense>
   )
 }
