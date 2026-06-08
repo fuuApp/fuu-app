@@ -70,13 +70,10 @@ export default function PrivacyPage() {
         </Section>
 
         <Section title="第5条（データの保管・削除）">
-          <Item n="1">退会後のデータは以下のスケジュールで自動削除されます。</Item>
-          <div style={{ margin: '4px 0 10px 20px', fontSize: 12, color: '#555', lineHeight: 2 }}>
-            <div>・退会後3日以内：会話履歴・ジャーナルを削除</div>
-            <div>・退会後30日以内：プロフィール・設定情報・チケット履歴・サブスク履歴を削除</div>
-          </div>
-          <Item n="2">データはAES-256暗号化により保護されます。</Item>
-          <Item n="3">会話内容はAIモデルの学習・改善には一切使用しません。</Item>
+          <Item n="1">会話内容はサーバーに保存されません。セッション終了とともに破棄されます。</Item>
+          <Item n="2">退会後、アカウント情報・決済履歴は30日以内に自動削除されます。</Item>
+          <Item n="3">データはAES-256暗号化により保護されます。</Item>
+          <Item n="4">会話内容はAIモデルの学習・改善には一切使用しません。</Item>
         </Section>
 
         <Section title="第6条（Cookie・ローカルストレージ）">
