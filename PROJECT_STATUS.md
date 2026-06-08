@@ -1,45 +1,61 @@
 # fuu ふぅ プロジェクト状態メモ
-## 最終更新：2026-06-07
+## 最終更新：2026-06-08（午後）
 
 ## 仕様書
-- 最新：fuu_master_spec_v13.docx（プロジェクトルート）
-- 本番URL：https://fuu-app.vercel.app（デプロイ済）
+- 最新：**fuu_master_spec_v14.docx**（プロジェクトルート）← v14に更新済
+- 本番URL：https://fuu-app.vercel.app（デプロイ済・稼働中）
 
 ## 技術スタック
 - Next.js 14 + TypeScript + Tailwind
 - Supabase（認証・DB）: https://xlzkewwcbihzddnchtdk.supabase.co
-- Stripe（決済）：未設定
-- Anthropic Claude Haiku（AI チャット）
+- Stripe（決済）：本番設定済
+- Anthropic Claude Haiku（claude-haiku-4-5-20251001）
 - Capacitor v6（iOS/Android ラッパー）
+- capacitor.config.ts → server.url = 'https://fuu-app.vercel.app'（Vercel経由でAPI利用）
 
-## 環境
-- .env.local：Supabase URL/Keys・Anthropic Key 設定済
-- Vercel 環境変数：ANTHROPIC_API_KEY 未設定（要設定）
+## Vercel 環境変数（全て設定済）
+- STRIPE_SECRET_KEY ✅
+- STRIPE_PRICE_STANDARD ✅（¥300）
+- STRIPE_PRICE_PREMIUM ✅（¥980）
+- STRIPE_WEBHOOK_SECRET ✅
+- ENCRYPTION_KEY ✅（2026/6/8設定完了）
+- ANTHROPIC_API_KEY ✅
+- OPENAI_API_KEY ✅
+- NEXT_PUBLIC_SUPABASE_URL ✅
+- NEXT_PUBLIC_SUPABASE_ANON_KEY ✅
+- SUPABASE_SERVICE_ROLE_KEY ✅
+
+## Supabase 設定
+- pg_cron 有効化済（2026/6/8）
+- setup_auto_delete_cron.sql 実行済（3ジョブ稼働中）
+  - fuu-delete-conversation-content（毎日AM3時：会話履歴削除）
+  - fuu-delete-profile-data（毎日AM4時：プロフィール削除）
+  - fuu-delete-transaction-history（毎日AM5時：取引履歴削除）
 
 ## Android ビルド状態
 - Android Studio：セットアップ完了
 - Gradle：8.9-bin（Java 21対応）
-- SDK：API 34（compileSdkVersion）、API 37のエミュレータ使用中
+- SDK：API 34（compileSdkVersion）
+- AVD：Pixel 8（API 34）作成済み
 - Zscaler 対応：
   - JDK cacerts に Zscaler Root CA インポート済
   - network_security_config.xml でユーザー証明書を信頼するよう設定済
-  - エミュレータに zscaler.pem インストール済
-- ビルド・実行：動作確認済（ログイン・OTP・チャット画面表示）
+  - エミュレータに Zscaler CA証明書インストール済
+- ビルド・実行：動作確認済（ログイン・OTP・チャット・BGM）
+- BGM：✅ 修正済（MainActivity.java で setMediaPlaybackRequiresUserGesture(false)）
 
-## 現在の問題
-- チャット API（/api/chat）がローカル静的ビルドでは動かない
-  → Capacitor の server.url を Vercel に向けるか、Vercel 側の API を使う必要あり
-- BGM：未確認（API 問題と同根の可能性）
+## エミュレーター検証状況
+### 確認できた
+- アプリ起動・ログイン画面表示（三日月アイコン）
+- OTP認証（メール送信・ログイン）
+- キャラ選択・チャット機能
+- BGM再生（初回メッセージ送信後）
 
-## 残タスク（v13仕様書より）
-- [ ] Vercel 環境変数に ANTHROPIC_API_KEY 設定
-- [ ] ENCRYPTION_KEY 生成・設定（node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"）
-- [ ] statement_descriptor 設定（Stripe Dashboard）
-- [ ] pg_cron 有効化（Supabase）
-- [ ] 特商法ページ実名更新
-- [ ] fuu.support@gmail.com 取得
-- [ ] Stripe 本番設定
-- [ ] iOS ビルド（Xcode + Apple Developer 連携済）
+### 確認できない（エミュレーター制限）
+- 日本語入力（ASCII入力のみ）
+- 愚痴→相談モード自動切替（日本語入力不可のため。コード自体は正常、Web版で動作確認済み）
+- 300円チケット決済（実機・本番環境でのテストが必要）
+- STT・プッシュ通知・Apple Pay / Google Pay
 
 ## iOS ビルド状態
 - Xcode インストール済
@@ -47,12 +63,45 @@
 - ビルドは未実施
 
 ## アイコン
-- ログイン画面：/public/icons/icon_c.png（三日月・センター）に変更済
+- ログイン画面：/public/icons/icon_c.png（三日月・センター配置）変更済
 - アプリアイコン：ios/android 用は assets.xcassets/AppIcon にデフォルトのまま
 
+## 2026-06-08 午後の修正内容
+- [x] STTプレミアム判定をlocalStorage→Supabase profilesに修正（ChatClient.tsx）
+- [x] プランページのcurrentPlanをSupabase profilesから取得するよう修正（plans/page.tsx）
+- [x] 知人テスト用プロモコード：STANDARD_TEST / PREMIUM_TEST 作成済み（Stripe）
+- [x] 割引チケット：stripe/route.ts に allow_promotion_codes: true 追加済み
+- [x] プライバシーポリシー修正（削除スケジュール実態反映・OpenAI追記・会話非保存を明記）
+- [x] 利用規約修正（プレミアム機能定義・退会フロー・会話非保存・削除期間を実態に合わせ修正）
+- [x] メッセージ保存表記を全ファイルから削除（page.tsx / plans/page.tsx）
+  - 実態：会話はステートレス（DBに保存されていない・セッション終了で破棄）
+- [x] テスト招待PDF（fuu_test_invite.pdf）作成・上下左右センター配置
+
+## 実装状況メモ
+### 会話データの扱い
+- チャット履歴はサーバー非保存（ステートレス）。conversationHistoryはクライアントメモリのみ
+- messages / guchi_journals / conversations テーブルは存在するが書き込みコードなし
+- 退会後3日cronは実質空テーブルへの削除（害なし）
+
+### プラン判定
+- ChatClient.tsx：Supabase profiles.plan を参照（STT表示制御）
+- plans/page.tsx：Supabase profiles.plan を参照（プラン表示）
+- app/page.tsx（キャラ選択）：localStorage('fuu_trial_started_at') で使用日数表示
+
+## 残タスク（優先順）
+- [ ] 🔴 スタンダード¥300本番決済テスト（ブラウザで可能）
+- [ ] 🔴 300円チケット決済テスト
+- [x] 🔴 fuu.support@gmail.com 取得 ✅ 完了（2026/6/8）
+- [ ] 🔴 Stripe statement_descriptor 設定（Dashboard → Settings）
+- [ ] 🔴 特商法ページ実名更新（[氏名]プレースホルダーを実名に）
+- [ ] 🔴 バーチャルオフィス契約（Karigo推奨）
+- [ ] 🟡 iOS ビルド・動作確認
+- [ ] 🟡 電気通信事業届出（総務省オンライン）
+- [ ] 🟡 開業届・青色申告申請書
+
 ## ファイル構成メモ
-- Next.js ソース：プロジェクトルート（src/）
+- Next.js ソース：src/
 - Android：android/
 - iOS：ios/
 - ビルド出力：out/
-- 過去の出力物：outputs/
+- Supabase SQL：supabase/schema.sql、supabase/setup_auto_delete_cron.sql
