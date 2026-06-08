@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { getCharacter } from '@/lib/characters'
 import { useBgm } from '@/hooks/useBgm'
+import { createClient } from '@/lib/supabase'
 import type { Message } from '@/types'
 
 const NICKNAME_KEY = 'fuu_nickname'
@@ -171,9 +172,23 @@ export default function ChatPage() {
 
     recognitionRef.current = rec
 
-    // プラン確認（Supabase連携前はlocalStorageで管理）
-    const plan = localStorage.getItem('fuu_plan')
-    setIsPremium(plan === 'premium')
+    // プラン確認：Supabase profiles から取得（localStorageは削除）
+    ;(async () => {
+      try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('plan')
+            .eq('id', user.id)
+            .single()
+          setIsPremium(profile?.plan === 'premium')
+        }
+      } catch {
+        // 取得失敗時はSTT非表示のまま
+      }
+    })()
   }, [])
 
   useEffect(() => {
