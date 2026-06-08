@@ -326,7 +326,6 @@ export default function LandingPage() {
             'ニックネームで呼んでもらえる',
             '気持ちの箱（感情整理）・BGMフル利用',
             '朝・夜プッシュ通知（時間設定可）',
-            'メッセージ保存（30日）',
             '使い放題チケット ¥300/日（追加購入可）',
           ].map((t, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 8, fontSize: 13, color: '#444' }}>
@@ -349,7 +348,6 @@ export default function LandingPage() {
             { text: 'スタンダードの全機能', prefix: '✓' },
             { text: '🎤 音声テキスト入力（話すだけで文字起こし）', prefix: '✓' },
             { text: 'パパキャラ けんじ・ひろし＋随時追加', prefix: '✓' },
-            { text: 'メッセージ保存（無制限）', prefix: '✓' },
             { text: '使い放題チケット ¥300/日（追加購入可）', prefix: '✓' },
           ].map((item, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 8, fontSize: 13, color: '#444' }}>
