@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import { isIOS, openStripeCheckout } from '@/lib/platform'
+import { createClient } from '@/lib/supabase'
 
 // ─── プラン定義 ─────────────────────────────────────────────────
 // 無料トライアル：10日間・70通・あおい・さくらのみ
@@ -23,13 +24,11 @@ const PLANS = [
       '気持ちの箱（感情整理）',
       'BGMフル利用',
       '朝・夜プッシュ通知',
-      'メッセージ保存（30日）',
       '使い放題チケット ¥300/日（追加購入可）',
     ],
     notIncluded: [
       'プレミアム専用キャラ（けんじ・ひろし・随時追加）',
       '音声テキスト入力',
-      'メッセージ保存（無制限）',
     ],
   },
   {
@@ -47,7 +46,6 @@ const PLANS = [
       'BGMフル利用',
       '朝・夜プッシュ通知',
       '🎤 音声テキスト入力（話すだけで文字起こし）',
-      'メッセージ保存（無制限）',
       '使い放題チケット ¥300/日（追加購入可）',
     ],
     notIncluded: [],
@@ -68,6 +66,24 @@ function PlansContent() {
   const [loadingTicket, setLoadingTicket] = useState(false)
   const [currentPlan, setCurrentPlan] = useState<string>('trial') // trial / standard / premium
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
+  // Supabaseから現在のプランを取得
+  useEffect(() => {
+    ;(async () => {
+      try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('plan')
+            .eq('id', user.id)
+            .single()
+          if (profile?.plan) setCurrentPlan(profile.plan)
+        }
+      } catch { /* 取得失敗時はtrialのまま */ }
+    })()
+  }, [])
 
   // 決済完了・キャンセルの通知処理
   useEffect(() => {
