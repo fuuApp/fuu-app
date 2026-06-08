@@ -56,6 +56,7 @@ export default function PrivacyPage() {
               {[
                 ['Supabase Inc.', '認証・データベース管理'],
                 ['Anthropic, PBC', 'AIチャット（Claude Haiku）'],
+                ['OpenAI, Inc.', 'AIチャット補助処理'],
                 ['Stripe Inc.', '決済処理'],
                 ['Vercel Inc.', 'Webホスティング'],
               ].map(([name, use], i) => (
@@ -69,8 +70,12 @@ export default function PrivacyPage() {
         </Section>
 
         <Section title="第5条（データの保管・削除）">
-          <Item n="1">チャット履歴はスタンダードプランで30日間、プレミアムプランで無期限保存します。</Item>
-          <Item n="2">退会後90日以内に個人情報及び会話履歴を完全削除します。</Item>
+          <Item n="1">チャット履歴はアカウント有効期間中保存します。退会後は自動削除されます（下記参照）。</Item>
+          <Item n="2">退会後のデータは以下のスケジュールで自動削除されます。</Item>
+          <div style={{ margin: '4px 0 10px 20px', fontSize: 12, color: '#555', lineHeight: 2 }}>
+            <div>・退会後3日以内：会話履歴・ジャーナルを削除</div>
+            <div>・退会後30日以内：プロフィール・設定情報・チケット履歴・サブスク履歴を削除</div>
+          </div>
           <Item n="3">データはAES-256暗号化により保護されます。</Item>
           <Item n="4">会話内容はAIモデルの学習・改善には一切使用しません。</Item>
         </Section>

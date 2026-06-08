@@ -18,7 +18,8 @@ export default function TermsPage() {
           <Item n="1">「本サービス」とは、OGDStudioが提供するAI共感アプリ「fuu ふぅ」（Webアプリ及び関連サービス）を指します。</Item>
           <Item n="2">「ユーザー」とは、本サービスに登録した個人を指します。</Item>
           <Item n="3">「AIキャラクター」とは、本サービス上のペルソナ（AIが生成する架空の人物）を指します。実在の人物ではありません。</Item>
-          <Item n="4">「プレミアム機能」とは、月額¥980のプレミアムプラン及び¥300チケットで利用可能な有料機能を指します。</Item>
+          <Item n="4">「プレミアム機能」とは、月額¥980のプレミアムプランのみで利用可能な機能（音声テキスト入力・プレミアム専用キャラ等）を指します。</Item>
+          <Item n="5">「チケット」とは、スタンダードプラン以上のユーザーが購入できる¥300/日の使い放題オプションを指します。</Item>
         </Section>
 
         <Section title="第2条（登録・トライアル）">
@@ -36,10 +37,10 @@ export default function TermsPage() {
           <Item n="5">支払いはStripe Inc.の決済システムを通じて処理されます。</Item>
         </Section>
 
-        <Section title="第4条（解約・返金）">
-          <Item n="1">解約は公式サイトの設定ページからいつでも可能です。</Item>
-          <Item n="2">解約後は当月末まで有効です。日割り返金は行いません。</Item>
-          <Item n="3">チケットの返金は購入後24時間以内かつ未使用の場合のみ対応します。</Item>
+        <Section title="第4条（解約・退会・返金）">
+          <Item n="1">サブスクリプションの解約は <a href="https://billing.stripe.com/p/login" target="_blank" rel="noreferrer" style={{ color: '#E91E63' }}>billing.stripe.com</a> からいつでも可能です。解約後は当月末まで引き続きご利用いただけます。日割り返金は行いません。</Item>
+          <Item n="2">アカウント退会（設定ページ）を行った場合、サービスは即日終了します。退会前にサブスクリプションの解約手続きを完了してください。退会後の残存期間に対する返金は行いません。</Item>
+          <Item n="3">チケットの返金はfuu.support@gmail.comへのお問い合わせにより、購入後24時間以内かつ未使用の場合のみ対応します。</Item>
         </Section>
 
         <Section title="第5条（AIキャラクターについて）">
@@ -52,7 +53,7 @@ export default function TermsPage() {
         <Section title="第6条（個人情報）">
           <Item n="1">個人情報の取り扱いは別途プライバシーポリシーに定めます。</Item>
           <Item n="2">会話内容はAIモデルの学習には使用しません。</Item>
-          <Item n="3">退会後90日以内に個人情報及び会話履歴を完全削除します。</Item>
+          <Item n="3">退会後のデータは自動削除されます（会話履歴：退会後3日以内、プロフィール・取引履歴：退会後30日以内）。詳細はプライバシーポリシーをご確認ください。</Item>
         </Section>
 
         <Section title="第7条（禁止事項）">
