@@ -25,6 +25,7 @@ export async function POST(req: NextRequest) {
       mode: 'subscription',
       // payment_method_types を省略することで Stripe が自動的に最適な支払い方法を選択
       // → JCB・Apple Pay・Google Pay・Link が Stripe ダッシュボードの設定に基づいて有効化される
+      allow_promotion_codes: true, // プロモーションコード（割引クーポン）入力欄を表示
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${baseUrl}/app/plans?success=true`,
       cancel_url:  `${baseUrl}/app/plans?canceled=true`,
