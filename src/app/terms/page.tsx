@@ -80,9 +80,9 @@ export default function TermsPage() {
           <Item n="2">本サービスに関する紛争は、東京地方裁判所を第一審の専属的合意管轄裁判所とします。</Item>
         </Section>
 
-        <div style={{ marginTop: 32, padding: '16px', background: '#fff', borderRadius: 12, fontSize: 12, color: '#888', textAlign: 'center' }}>
-          OGDStudio（個人事業主：[氏名]）<br />
-          お問い合わせ：fuu.support@gmail.com
+        <div style={{ marginTop: 32, padding: '16px', background: '#fff', borderRadius: 12, textAlign: 'center' }}>
+          <div style={{ fontSize: 12, color: '#888' }}>お問い合わせ：fuu.support@gmail.com</div>
+          <div style={{ fontSize: 10, color: '#ccc', marginTop: 6 }}>OGDStudio（個人事業主：[氏名]）</div>
         </div>
       </div>
     </main>
