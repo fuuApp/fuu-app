@@ -18,7 +18,7 @@ export default function TokushoPage() {
           <tbody>
             {[
               ['販売事業者', 'OGDStudio'],
-              ['運営責任者', '[氏名]（※開業届提出後に更新）'],
+              ['運営責任者', '[氏名]'],
               ['所在地', '[バーチャルオフィス住所]（※契約後に更新）'],
               ['電話番号', '[電話番号]（※開業届提出後に更新）\nお問い合わせはメールにて承ります'],
               ['メールアドレス', 'fuu.support@gmail.com'],
@@ -44,7 +44,10 @@ export default function TokushoPage() {
                 }}>
                   {label}
                 </td>
-                <td style={{ padding: '12px 0', verticalAlign: 'top', whiteSpace: 'pre-line' }}>
+                <td style={{
+                  padding: '12px 0', verticalAlign: 'top', whiteSpace: 'pre-line',
+                  ...(label === '運営責任者' ? { fontSize: 10, color: '#bbb' } : {}),
+                }}>
                   {value}
                 </td>
               </tr>

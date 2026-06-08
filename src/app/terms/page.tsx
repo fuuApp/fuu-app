@@ -10,8 +10,7 @@ export default function TermsPage() {
 
       <div style={{ padding: '24px 20px', fontSize: 13, color: '#333', lineHeight: 1.9 }}>
         <p style={{ fontSize: 12, color: '#888', marginBottom: 20 }}>
-          fuu ふぅ 利用規約<br />
-          制定日：2026年6月　事業者：OGDStudio（個人事業主：[氏名]）
+          制定日：2026年6月
         </p>
 
         <Section title="第1条（定義）">
