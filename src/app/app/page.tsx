@@ -205,7 +205,7 @@ export default function CharacterSelectPage() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             {[
-              { href: '/app/journal', icon: '✨', label: '宝箱を見る', sub: '過去の気持ち記録', color: '#FFF0F5', border: '#F8BBD9' },
+              { href: '/app/journal', icon: '✨', label: '気持ちの箱を見る', sub: '過去の気持ち記録', color: '#FFF0F5', border: '#F8BBD9' },
               { href: '/app/bgm', icon: '🎵', label: 'BGM', sub: '癒やしの音楽', color: '#F3E5F5', border: '#CE93D8' },
               { href: '/app/plans', icon: '🌸', label: 'プランを見る', sub: 'アップグレード', color: '#FCE4EC', border: '#F48FB1' },
               { href: '/app/settings', icon: '⚙️', label: '設定', sub: '呼び名・BGMなど', color: '#F5F5F5', border: '#E0E0E0' },

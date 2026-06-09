@@ -43,7 +43,7 @@ export default function JournalPage() {
     <div style={{ maxWidth:480,margin:'0 auto',background:'#fdf4f7',minHeight:'100dvh' }}>
       <div style={{ background:'#fff',borderBottom:'1px solid #FCE4EC',padding:'14px 16px',display:'flex',alignItems:'center',gap:12,position:'sticky',top:0,zIndex:10 }}>
         <button onClick={()=>router.push('/app')} style={{ background:'none',border:'none',fontSize:20,cursor:'pointer',color:'#E91E63',padding:4 }}>‹</button>
-        <div><div style={{ fontWeight:700,fontSize:16,color:'#333' }}>🧹 愚痴の気持ちの箱</div><div style={{ fontSize:11,color:'#aaa' }}>気持ちを変換した記録</div></div>
+        <div><div style={{ fontWeight:700,fontSize:16,color:'#333' }}>✨ 気持ちの箱</div><div style={{ fontSize:11,color:'#aaa' }}>気持ちを変換した記録</div></div>
       </div>
       <div style={{ padding:16 }}>
         <div style={{ background:'linear-gradient(135deg,#FFF0F5,#FCE4EC)',borderRadius:16,padding:'16px 18px',marginBottom:20,border:'1px solid #F8BBD9' }}>

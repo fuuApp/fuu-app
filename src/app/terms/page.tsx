@@ -29,8 +29,8 @@ export default function TermsPage() {
         </Section>
 
         <Section title="第3条（料金・支払い）">
-          <Item n="1">スタンダードプラン：¥300/月。毎月自動更新。月200通まで。</Item>
-          <Item n="2">プレミアムプラン：¥980/月。毎月自動更新。月900通まで。</Item>
+          <Item n="1">スタンダードプラン：¥300/月。毎月自動更新。月200会話まで。</Item>
+          <Item n="2">プレミアムプラン：¥980/月。毎月自動更新。月900会話まで。</Item>
           <Item n="3">チケット：¥300/日。有効期限は購入翌日24:00まで。</Item>
           <Item n="4">支払い方法：クレジットカード・Apple Pay・Google Pay。</Item>
           <Item n="5">支払いはStripe Inc.の決済システムを通じて処理されます。</Item>

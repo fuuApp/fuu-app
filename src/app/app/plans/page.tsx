@@ -17,7 +17,7 @@ const PLANS = [
     price: 300,
     color: 'linear-gradient(135deg,#E91E63,#F48FB1)',
     badge: null,
-    subtitle: '月200通まで',
+    subtitle: '月200会話まで',
     features: [
       'あおい・さくら・りか・なつこ（4名）と話せる',
       'ニックネームで呼んでもらえる',
@@ -37,7 +37,7 @@ const PLANS = [
     price: 980,
     color: 'linear-gradient(135deg,#C2185B,#880E4F)',
     badge: 'おすすめ',
-    subtitle: '月900通まで',
+    subtitle: '月900会話まで',
     features: [
       '全キャラ＋プレミアム専用キャラと話せる',
       'プレミアム専用キャラ（けんじ・ひろし・随時追加）',
@@ -408,7 +408,7 @@ function PlansContent() {
         {/* 注意書き */}
         <div style={{ fontSize: 11, color: '#bbb', textAlign: 'center', lineHeight: 1.9, marginTop: 4 }}>
           <p style={{ margin: 0 }}>
-            ・お支払いはクレジットカードのみ（Stripe決済）<br />
+            ・お支払いはクレジットカード・Apple Pay・Google Pay（Stripe決済）<br />
             ・月初に自動更新、いつでもキャンセル可能<br />
             ・解約後もその月末まで利用できます
           </p>

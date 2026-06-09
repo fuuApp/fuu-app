@@ -50,7 +50,6 @@ export default function LandingPage() {
           10日間 無料で始める →
         </Link>
         <p style={{ fontSize: 12, color: '#aaa', marginTop: 10 }}>
-          クレジットカード不要・いつでも解約OK
         </p>
       </section>
 
@@ -77,7 +76,7 @@ export default function LandingPage() {
               style={{ borderRadius: 12, flexShrink: 0 }}
             />
             <p style={{ fontSize: 13, color: '#880E4F', fontStyle: 'italic', margin: 0 }}>
-              3人の子育てをしながら、ずっとそう思っていた私が作りました。
+              3人の子育てをしながら、<br />ずっとそう思っていた私が作りました。
             </p>
           </div>
         </div>
@@ -91,7 +90,7 @@ export default function LandingPage() {
         {[
           { icon: '😔', text: '旦那には「また？」って顔をされそうで言えない' },
           { icon: '😶', text: 'ママ友には弱音を見せたくない' },
-          { icon: '🌙', text: '夜中の2時に、誰かに話したくなる' },
+          { icon: '🌙', text: '夜中に誰かに話したくなる' },
           { icon: '💭', text: '「これって相談していいのかな」と思って結局1人で抱える' },
         ].map((item, i) => (
           <div key={i} style={{
@@ -304,7 +303,7 @@ export default function LandingPage() {
             <span style={{ fontSize: 18, fontWeight: 700, color: '#6A1B9A' }}>¥0<span style={{ fontSize: 12, color: '#888', fontWeight: 400 }}>（10日間）</span></span>
           </div>
           {[
-            'あおい・さくらと70通まで無料',
+            'あおい・さくらと70会話まで無料',
             'BGM試聴',
             'クレジットカード不要・自動課金なし',
           ].map((t, i) => (
@@ -320,7 +319,7 @@ export default function LandingPage() {
             <span style={{ fontWeight: 700, fontSize: 16, color: '#E91E63' }}>スタンダード</span>
             <span style={{ fontSize: 24, fontWeight: 700, color: '#E91E63' }}>¥300<span style={{ fontSize: 13, color: '#888' }}>/月</span></span>
           </div>
-          <p style={{ fontSize: 11, color: '#aaa', margin: '0 0 10px' }}>月200通（1日約6通）</p>
+          <p style={{ fontSize: 11, color: '#aaa', margin: '0 0 10px' }}>月200会話（1日約6会話）</p>
           {[
             'あおい・さくら・りか・なつこ（4名）と話せる',
             'ニックネームで呼んでもらえる',
@@ -343,7 +342,7 @@ export default function LandingPage() {
             <span style={{ fontWeight: 700, fontSize: 16, color: '#880E4F' }}>プレミアム</span>
             <span style={{ fontSize: 24, fontWeight: 700, color: '#880E4F' }}>¥980<span style={{ fontSize: 13, color: '#888' }}>/月</span></span>
           </div>
-          <p style={{ fontSize: 11, color: '#C2185B', margin: '0 0 10px', fontWeight: 600 }}>月900通（1日約30通）— 1通単価がスタンダードより27%お得</p>
+          <p style={{ fontSize: 11, color: '#C2185B', margin: '0 0 10px', fontWeight: 600 }}>月900会話（1日約30会話）— 1会話単価がスタンダードより27%お得</p>
           {[
             { text: 'スタンダードの全機能', prefix: '✓' },
             { text: '🎤 音声テキスト入力（話すだけで文字起こし）', prefix: '✓' },
@@ -362,7 +361,7 @@ export default function LandingPage() {
             <span style={{ fontSize: 13, fontWeight: 700, color: '#F57F17' }}>🎟️ 使い放題チケット</span>
             <span style={{ fontSize: 16, fontWeight: 700, color: '#F57F17' }}>¥300/日</span>
           </div>
-          <p style={{ fontSize: 12, color: '#888', margin: 0 }}>スタンダード以上で購入可。その日1日、通数制限なし</p>
+          <p style={{ fontSize: 12, color: '#888', margin: 0 }}>スタンダード以上で購入可。その日1日、会話回数制限なし</p>
         </div>
       </section>
 
@@ -374,8 +373,8 @@ export default function LandingPage() {
         {[
           { icon: '🔐', text: '会話はAI学習に使いません' },
           { icon: '🗑️', text: '退会後、個人情報を段階的に速やかに削除' },
-          { icon: '👀', text: 'スタッフは基本的に閲覧しません' },
-          { icon: '💳', text: 'Stripeの安全な決済システム' },
+          { icon: '👀', text: '会話の記録は残りません。会話を閉じたら削除されます。' },
+          { icon: '💳', text: '安全な決済システム（Stripe）' },
           { icon: '🔒', text: '全通信SSL暗号化' },
         ].map((item, i) => (
           <div key={i} style={{
@@ -408,7 +407,7 @@ export default function LandingPage() {
           今日の「ふぅ」を、ここで。
         </p>
         <p style={{ fontSize: 14, color: '#888', marginBottom: 28 }}>
-          10日間は完全無料。クレジットカード不要。
+          10日間は完全無料。
         </p>
         <Link href="/signin" style={{
           display: 'inline-block',
