@@ -39,6 +39,8 @@ export default function ChatPage() {
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const nicknameInputRef = useRef<HTMLInputElement>(null)
   const recognitionRef = useRef<any>(null)
+  // refで最新値を保持（handleSend時に非同期タイミングのズレを防ぐ）
+  const journalContextRef = useRef<string>('')
 
   // STT
   const [isListening, setIsListening] = useState(false)
@@ -141,6 +143,27 @@ export default function ChatPage() {
       // 同セッション内 → そのまま通常チャット
       startNormalChat(savedNickname)
     }
+
+    // 気持ちの箱を初期化と同時にfetch（タイミングズレ防止）
+    ;(async () => {
+      try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+        const { data } = await supabase
+          .from('guchi_journals')
+          .select('date, reframed')
+          .eq('user_id', user.id)
+          .order('date', { ascending: false })
+          .limit(3)
+        if (!data || data.length === 0) return
+        const lines = data.map((j: { date: string; reframed: string }) =>
+          `・${j.date}：${j.reframed}`
+        ).join('\n')
+        setJournalContext(lines)
+        journalContextRef.current = lines  // refも同期更新
+      } catch { /* 取得失敗は無視 */ }
+    })()
   }, [characterId, character])
 
   // ── STT初期化（ページロード時に事前準備してタイムラグを最小化）──
@@ -197,28 +220,6 @@ export default function ChatPage() {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, guchiSummary])
-
-  // 過去の気持ちの箱を取得してsystemPromptに渡す文字列を生成
-  useEffect(() => {
-    ;(async () => {
-      try {
-        const supabase = createClient()
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return
-        const { data } = await supabase
-          .from('guchi_journals')
-          .select('date, reframed')
-          .eq('user_id', user.id)
-          .order('date', { ascending: false })
-          .limit(3)
-        if (!data || data.length === 0) return
-        const lines = data.map((j: { date: string; reframed: string }) =>
-          `・${j.date}：${j.reframed}`
-        ).join('\n')
-        setJournalContext(lines)
-      } catch { /* 取得失敗は無視 */ }
-    })()
-  }, [])
 
   useEffect(() => {
     if (nicknamePhase === 'asking' || nicknamePhase === 'confirming') {
@@ -326,7 +327,7 @@ export default function ChatPage() {
           message: userMessage,
           nickname: nickname || undefined,
           mode: chatMode,
-          journalContext: journalContext || undefined,
+          journalContext: journalContextRef.current || undefined,
           conversationHistory: updatedMessages.map(m => ({
             role: m.role, content: m.content,
           })),
