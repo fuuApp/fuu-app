@@ -326,9 +326,12 @@ export async function POST(req: NextRequest) {
       effectiveMode === 'hybrid'          ? HYBRID_BRIEF_PROMPT : // 後方互換
       instruction
     // 過去の気持ちの箱があれば文脈として差し込む
+    const isFollowUp = /つづき|続き|この前|前回|また来た|また話|さっきの/.test(message)
     const journalInstruction = journalContext
-      ? `\n\n【過去の気持ちの箱（直近の感情サマリー）】\n以下はユーザーが過去に話してくれた内容をAIがまとめたものです。会話の中で自然に触れてもよいし、触れなくてもよい。無理に使わない。\n${journalContext}`
-      : ''
+      ? `\n\n【過去の気持ちの箱（直近の感情サマリー）】\n以下はユーザーが過去に話してくれた内容をAIがまとめたものです。\n${journalContext}\n\n【使い方ルール】\n- ユーザーが「つづき」「この前の続き」「また来た」など前回の話題を示す言葉を使った場合：必ずこの情報を参照して「この前〇〇って感じてたんだったよね」「あれからどうだった？」のように自然につなぐこと。\n- それ以外の場合：新しい話題があればそちらを優先。過去の気持ちの箱は無理に触れなくてよい。`
+      : isFollowUp
+        ? `\n\n【注意】ユーザーが「つづき」と言っているが過去の記録がない。「どんなことがあったか、もう一度教えてくれる？」と自然に聞き直すこと。`
+        : ''
 
     const dynamicSystemPrompt = `${character.systemPrompt}\n\n${nameInstruction}${journalInstruction}\n\n${modeInstruction}`
 
