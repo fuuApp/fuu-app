@@ -7,9 +7,12 @@ import { createClient } from '@/lib/supabase'
 interface Journal { id: string; date: string; reframed: string; originalContent?: string }
 
 function formatDate(dateStr: string): string {
-  const d = new Date(dateStr), now = new Date()
+  // "YYYY-MM-DD" をローカル時刻として解釈（UTCとして解釈するとJST+9で-1日になる）
+  const d = new Date(dateStr + 'T00:00:00')
+  const nowLocal = new Date()
+  const now = new Date(nowLocal.getFullYear(), nowLocal.getMonth(), nowLocal.getDate())
   const diff = Math.floor((now.getTime()-d.getTime())/86400000)
-  if (diff===0) return '今日'; if (diff===1) return '昨日'; if (diff<7) return `${diff}日前`
+  if (diff===0) return '今日'; if (diff===1) return '昨日'; if (diff>1 && diff<7) return `${diff}日前`
   return `${d.getMonth()+1}月${d.getDate()}日`
 }
 
@@ -68,11 +71,20 @@ export default function JournalPage() {
               </div>
               <span style={{ fontSize:16,color:'#ccc',transition:'transform 0.2s',transform:expandedId===journal.id?'rotate(90deg)':'rotate(0)' }}>›</span>
             </div>
-            <div style={{ padding:expandedId===journal.id?16:'0 16px',maxHeight:expandedId===journal.id?400:60,overflow:'hidden',transition:'all 0.25s ease' }}>
-              <div style={{ fontSize:14,color:'#555',lineHeight:1.8,background:expandedId===journal.id?'#FFF0F5':'transparent',borderRadius:12,padding:expandedId===journal.id?14:'8px 0',borderLeft:expandedId===journal.id?'3px solid #E91E63':'none',paddingLeft:expandedId===journal.id?14:0 }}>
-                {journal.reframed}
+            {expandedId !== journal.id && (
+              <div style={{ padding:'8px 16px 12px' }}>
+                <div style={{ fontSize:13,color:'#888',lineHeight:1.6,overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical' }}>
+                  {journal.reframed}
+                </div>
               </div>
-            </div>
+            )}
+            {expandedId === journal.id && (
+              <div style={{ padding:16 }}>
+                <div style={{ fontSize:14,color:'#555',lineHeight:1.8,background:'#FFF0F5',borderRadius:12,padding:14,borderLeft:'3px solid #E91E63' }}>
+                  {journal.reframed}
+                </div>
+              </div>
+            )}
           </div>
         ))}
         <div style={{ height:32 }} />

@@ -108,6 +108,7 @@ export default function SettingsPage() {
   const [eveningTime, setEveningTime] = useState('21:00')
   const [notifSaving, setNotifSaving] = useState(false)
   const [notifSaved, setNotifSaved] = useState(false)
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission>('default')
 
   useEffect(() => {
     const n = localStorage.getItem(NICKNAME_KEY) ?? ''
@@ -117,6 +118,14 @@ export default function SettingsPage() {
     setBgmEnabled(bgm === null ? true : bgm === 'true')
     const mt = localStorage.getItem('fuu_morning_time'); if (mt) setMorningTime(mt)
     const et = localStorage.getItem('fuu_evening_time'); if (et) setEveningTime(et)
+    // 通知権限の現在状態を取得
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setNotifPermission(Notification.permission)
+    }
+    // Service Worker 登録
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {})
+    }
   }, [])
 
   const handleSaveNickname = () => {
@@ -129,6 +138,27 @@ export default function SettingsPage() {
     setNotifSaving(true)
     localStorage.setItem('fuu_morning_time', morningTime)
     localStorage.setItem('fuu_evening_time', eveningTime)
+
+    try {
+      // 通知権限リクエスト
+      if ('Notification' in window && Notification.permission !== 'denied') {
+        const permission = await Notification.requestPermission()
+        setNotifPermission(permission)
+
+        if (permission === 'granted') {
+          // Service Worker にスケジュールを送信
+          const reg = await navigator.serviceWorker.ready
+          if (reg.active) {
+            reg.active.postMessage({
+              type: 'SCHEDULE_NOTIFICATIONS',
+              morningTime,
+              eveningTime,
+            })
+          }
+        }
+      }
+    } catch { /* 通知API非対応端末は無視 */ }
+
     setNotifSaved(true); setTimeout(() => setNotifSaved(false), 2500); setNotifSaving(false)
   }
   const handleDeleteAccount = async () => {
@@ -218,24 +248,35 @@ export default function SettingsPage() {
         <div style={{ background:'#fff',borderRadius:16,overflow:'hidden',boxShadow:'0 1px 6px rgba(233,30,99,0.07)' }}>
           <div style={{ padding:'12px 16px',borderBottom:'1px solid #FCE4EC',fontSize:12,color:'#E91E63',fontWeight:700 }}>通知設定</div>
           <div style={{ padding:16 }}>
+            {notifPermission === 'denied' && (
+              <div style={{ background:'#FFF3E0',border:'1px solid #FFB74D',borderRadius:10,padding:'10px 14px',marginBottom:14,fontSize:12,color:'#E65100',lineHeight:1.7 }}>
+                ⚠️ ブラウザの通知がブロックされています。<br />
+                ブラウザの設定から「fuu-app.vercel.app」の通知を許可してください。
+              </div>
+            )}
+            {notifPermission === 'granted' && (
+              <div style={{ background:'#E8F5E9',border:'1px solid #A5D6A7',borderRadius:10,padding:'8px 14px',marginBottom:14,fontSize:12,color:'#2E7D32' }}>
+                🔔 通知が許可されています
+              </div>
+            )}
             <p style={{ fontSize:12,color:'#aaa',marginBottom:16,lineHeight:1.7 }}>
-              朝・夜のメッセージを受け取る時間を設定できます。<br />
-              ※ スタンダード・プレミアム共通機能です<br />
-              ※ プッシュ通知はブラウザの通知許可が必要です（ホーム画面追加推奨）
+              朝・夜のリマインダーを届けます。<br />
+              「保存する」を押すと通知の許可を求めます。<br />
+              ※ ブラウザを開いているときに通知が届きます
             </p>
             <div style={{ marginBottom:14 }}>
-              <div style={{ fontSize:13,fontWeight:600,color:'#555',marginBottom:6 }}>🌅 おはようメッセージ</div>
+              <div style={{ fontSize:13,fontWeight:600,color:'#555',marginBottom:6 }}>🌅 おはようリマインダー</div>
               <input type="time" value={morningTime} onChange={e=>setMorningTime(e.target.value)} style={{ border:'1.5px solid #F48FB1',borderRadius:10,padding:'8px 12px',fontSize:16,outline:'none',background:'#fdf4f7',fontFamily:'inherit',color:'#333',width:140 }} />
             </div>
             <div style={{ marginBottom:16 }}>
-              <div style={{ fontSize:13,fontWeight:600,color:'#555',marginBottom:6 }}>🌙 おやすみメッセージ</div>
+              <div style={{ fontSize:13,fontWeight:600,color:'#555',marginBottom:6 }}>🌙 おやすみリマインダー</div>
               <input type="time" value={eveningTime} onChange={e=>setEveningTime(e.target.value)} style={{ border:'1.5px solid #F48FB1',borderRadius:10,padding:'8px 12px',fontSize:16,outline:'none',background:'#fdf4f7',fontFamily:'inherit',color:'#333',width:140 }} />
             </div>
             <div style={{ display:'flex',alignItems:'center',gap:10 }}>
               <button onClick={handleSaveNotifications} disabled={notifSaving} style={{ background:'linear-gradient(135deg,#E91E63,#C2185B)',border:'none',borderRadius:20,padding:'8px 20px',fontSize:13,fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:'inherit',opacity:notifSaving?0.7:1 }}>
-                {notifSaving?'保存中...':'保存する'}
+                {notifSaving?'保存中...':notifPermission==='default'?'保存する（通知を許可）':'保存する'}
               </button>
-              {notifSaved && <span style={{ fontSize:13,color:'#4CAF50' }}>✅ 保存しました</span>}
+              {notifSaved && <span style={{ fontSize:13,color:'#4CAF50' }}>✅ 設定しました</span>}
             </div>
           </div>
         </div>

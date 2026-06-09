@@ -360,19 +360,29 @@ export default function ChatPage() {
         }),
       })
       const data = await res.json()
-      const summary = res.ok ? data.message : 'ゆっくり休んでね。今日もよく頑張ったよ。'
+      const summary = res.ok ? data.message : '今日もたくさん話してくれてありがとう。ゆっくり休んでね。'
       setGuchiSummary(summary)
       setGuchiDone(true)
 
-      // ── sessionStorage に保存（ジャーナルページのデモ表示用） ──
+      const today = getTodayJST()
+
+      // ── sessionStorage に保存（オフライン/未ログイン時のフォールバック用） ──
       try {
-        const today = getTodayJST()
-        const key = `fuu_guchi_${today}`
-        sessionStorage.setItem(key, JSON.stringify({
-          date: today,
-          reframed: summary,
-        }))
-      } catch { /* ストレージ制限などは無視 */ }
+        sessionStorage.setItem(`fuu_guchi_${today}`, JSON.stringify({ date: today, reframed: summary }))
+      } catch { /* ignore */ }
+
+      // ── Supabase guchi_journals に保存 ──
+      try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          // original_content は保存しない（PP第5条「会話はサーバーに保存されない」との整合性を維持）
+          await supabase.from('guchi_journals').upsert(
+            { user_id: user.id, date: today, reframed: summary, original_content: '' },
+            { onConflict: 'user_id,date' }
+          )
+        }
+      } catch { /* DB保存失敗はサイレント。sessionStorageにはある */ }
 
     } catch {
       const fallback = '今日もたくさん話してくれてありがとう。ゆっくり休んでね。'
