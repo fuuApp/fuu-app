@@ -281,6 +281,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const { characterId, message, conversationHistory } = body
     const mode: string = body.mode ?? 'guchi' // 'guchi' | 'soudan' | 'hybrid'
+    const journalContext: string | undefined = body.journalContext
 
     if (!message?.trim()) {
       return NextResponse.json({ error: 'メッセージが空です' }, { status: 400 })
@@ -324,7 +325,12 @@ export async function POST(req: NextRequest) {
       effectiveMode === 'soudan'          ? SOUDAN_BRIEF_PROMPT : // 後方互換
       effectiveMode === 'hybrid'          ? HYBRID_BRIEF_PROMPT : // 後方互換
       instruction
-    const dynamicSystemPrompt = `${character.systemPrompt}\n\n${nameInstruction}\n\n${modeInstruction}`
+    // 過去の気持ちの箱があれば文脈として差し込む
+    const journalInstruction = journalContext
+      ? `\n\n【過去の気持ちの箱（直近の感情サマリー）】\n以下はユーザーが過去に話してくれた内容をAIがまとめたものです。会話の中で自然に触れてもよいし、触れなくてもよい。無理に使わない。\n${journalContext}`
+      : ''
+
+    const dynamicSystemPrompt = `${character.systemPrompt}\n\n${nameInstruction}${journalInstruction}\n\n${modeInstruction}`
 
     const history = (conversationHistory ?? []).slice(-20).map((m: { role: string; content: string }) => ({
       role: m.role as 'user' | 'assistant',

@@ -45,6 +45,9 @@ export default function ChatPage() {
   const [sttSupported, setSttSupported] = useState(false)
   const [isPremium, setIsPremium] = useState(false)
 
+  // 過去の気持ちの箱（直近3件）→ systemPromptに差し込む
+  const [journalContext, setJournalContext] = useState<string>('')
+
   const { startBgm } = useBgm()
 
   const quickReplies = ['今日しんどかった', 'ただ聞いてほしい', '子どものこと', '旦那のこと', 'ママ友のこと', '困っていること']
@@ -195,6 +198,28 @@ export default function ChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, guchiSummary])
 
+  // 過去の気持ちの箱を取得してsystemPromptに渡す文字列を生成
+  useEffect(() => {
+    ;(async () => {
+      try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+        const { data } = await supabase
+          .from('guchi_journals')
+          .select('date, reframed')
+          .eq('user_id', user.id)
+          .order('date', { ascending: false })
+          .limit(3)
+        if (!data || data.length === 0) return
+        const lines = data.map((j: { date: string; reframed: string }) =>
+          `・${j.date}：${j.reframed}`
+        ).join('\n')
+        setJournalContext(lines)
+      } catch { /* 取得失敗は無視 */ }
+    })()
+  }, [])
+
   useEffect(() => {
     if (nicknamePhase === 'asking' || nicknamePhase === 'confirming') {
       nicknameInputRef.current?.focus()
@@ -301,6 +326,7 @@ export default function ChatPage() {
           message: userMessage,
           nickname: nickname || undefined,
           mode: chatMode,
+          journalContext: journalContext || undefined,
           conversationHistory: updatedMessages.map(m => ({
             role: m.role, content: m.content,
           })),
