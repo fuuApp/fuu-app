@@ -49,6 +49,8 @@ export default function ChatPage() {
 
   // 過去の気持ちの箱（直近3件）→ systemPromptに差し込む
   const [journalContext, setJournalContext] = useState<string>('')
+  // journal fetchが完了するまで送信をブロック
+  const [journalLoaded, setJournalLoaded] = useState(false)
 
   const { startBgm } = useBgm()
 
@@ -144,25 +146,29 @@ export default function ChatPage() {
       startNormalChat(savedNickname)
     }
 
-    // 気持ちの箱を初期化と同時にfetch（タイミングズレ防止）
+    // 気持ちの箱fetch（完了するまで送信ブロック）
     ;(async () => {
       try {
         const supabase = createClient()
         const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return
-        const { data } = await supabase
-          .from('guchi_journals')
-          .select('date, reframed')
-          .eq('user_id', user.id)
-          .order('date', { ascending: false })
-          .limit(3)
-        if (!data || data.length === 0) return
-        const lines = data.map((j: { date: string; reframed: string }) =>
-          `・${j.date}：${j.reframed}`
-        ).join('\n')
-        setJournalContext(lines)
-        journalContextRef.current = lines  // refも同期更新
-      } catch { /* 取得失敗は無視 */ }
+        if (user) {
+          const { data } = await supabase
+            .from('guchi_journals')
+            .select('date, reframed')
+            .eq('user_id', user.id)
+            .order('date', { ascending: false })
+            .limit(3)
+          if (data && data.length > 0) {
+            const lines = data.map((j: { date: string; reframed: string }) =>
+              `・${j.date}：${j.reframed}`
+            ).join('\n')
+            setJournalContext(lines)
+            journalContextRef.current = lines
+          }
+        }
+      } catch { /* 取得失敗は無視 */ } finally {
+        setJournalLoaded(true)  // 成功・失敗・未ログイン問わず完了マーク
+      }
     })()
   }, [characterId, character])
 
@@ -302,7 +308,7 @@ export default function ChatPage() {
 
   const handleSend = async (messageText?: string) => {
     const userMessage = (messageText ?? input).trim()
-    if (!userMessage || loading) return
+    if (!userMessage || loading || !journalLoaded) return
     setInput('')
     setShowQuickReplies(false)
     setLoading(true)
@@ -707,12 +713,13 @@ export default function ChatPage() {
           background: '#fdf4f7',
         }}>
           {quickReplies.map(reply => (
-            <button key={reply} onClick={() => handleSend(reply)} style={{
+            <button key={reply} onClick={() => journalLoaded && handleSend(reply)} style={{
               background: '#fff', border: '1.5px solid #F48FB1', borderRadius: 20,
               padding: '7px 14px', fontSize: 13, color: '#E91E63',
-              cursor: 'pointer', fontFamily: 'inherit',
+              cursor: journalLoaded ? 'pointer' : 'not-allowed',
+              fontFamily: 'inherit', opacity: journalLoaded ? 1 : 0.6,
             }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#FCE4EC' }}
+              onMouseEnter={e => { if (journalLoaded) e.currentTarget.style.background = '#FCE4EC' }}
               onMouseLeave={e => { e.currentTarget.style.background = '#fff' }}
             >{reply}</button>
           ))}
@@ -844,11 +851,11 @@ export default function ChatPage() {
               </button>
             )}
 
-            <button onClick={() => handleSend()} disabled={!input.trim() || loading} style={{
+            <button onClick={() => handleSend()} disabled={!input.trim() || loading || !journalLoaded} style={{
               width: 44, height: 44, borderRadius: '50%', border: 'none',
-              background: input.trim() && !loading ? 'linear-gradient(135deg,#E91E63,#C2185B)' : '#F8BBD9',
+              background: input.trim() && !loading && journalLoaded ? 'linear-gradient(135deg,#E91E63,#C2185B)' : '#F8BBD9',
               color: '#fff', fontSize: 18,
-              cursor: input.trim() && !loading ? 'pointer' : 'not-allowed',
+              cursor: input.trim() && !loading && journalLoaded ? 'pointer' : 'not-allowed',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               flexShrink: 0, transition: 'background 0.2s',
             }}>↑</button>
