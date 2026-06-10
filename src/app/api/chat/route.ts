@@ -295,6 +295,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '無効なキャラクターです' }, { status: 400 })
     }
 
+    // ── 気持ちの箱サマリー専用モード（キャラ人格を一切使わない）──
+    const isGuchiSummary: boolean = body.isGuchiSummary ?? false
+    if (isGuchiSummary) {
+      const response = await anthropic.messages.create({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 200,
+        system: `あなたは感情サマリーを生成するAIアシスタントです。
+ユーザーが話した内容から感じていた気持ちを、指定された形式で簡潔にまとめてください。
+キャラクターの口調・人格は一切出さないでください。
+質問・確認・アドバイスは不要です。形式通りにまとめるだけです。`,
+        messages: [{ role: 'user', content: message }],
+      })
+      const summary = response.content[0].type === 'text'
+        ? response.content[0].text
+        : '今日もたくさん話してくれてありがとう。ゆっくり休んでね。'
+      return NextResponse.json({ message: summary, characterId })
+    }
+
     const { nickname } = body
     const { instruction, maxTokens } = getResponseGuide(message.length, mode)
 

@@ -4,7 +4,12 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 
-interface Journal { id: string; date: string; reframed: string; originalContent?: string }
+interface Journal { id: string; date: string; reframed: string; originalContent?: string; characterId?: string }
+
+const charNames: Record<string, string> = {
+  aoi: 'あおい', sakura: 'さくら', rika: 'りか',
+  natsuko: 'なつこ', kenji: 'けんじ', hiroshi: 'ひろし'
+}
 
 function formatDate(dateStr: string): string {
   // "YYYY-MM-DD" をローカル時刻として解釈（UTCとして解釈するとJST+9で-1日になる）
@@ -28,8 +33,8 @@ export default function JournalPage() {
         const supabase = createClient()
         const { data: { session } } = await supabase.auth.getSession()
         if (session?.user) {
-          const { data } = await supabase.from('guchi_journals').select('id,date,reframed,original_content').order('date',{ascending:false}).limit(30)
-          if (data && data.length>0) { setJournals(data.map(d=>({id:d.id,date:d.date,reframed:d.reframed,originalContent:d.original_content}))); setLoading(false); return }
+          const { data } = await supabase.from('guchi_journals').select('id,date,reframed,original_content,character_id').order('date',{ascending:false}).limit(30)
+          if (data && data.length>0) { setJournals(data.map(d=>({id:d.id,date:d.date,reframed:d.reframed,originalContent:d.original_content,characterId:d.character_id}))); setLoading(false); return }
         }
         const demo: Journal[] = []
         for (let i=0; i<sessionStorage.length; i++) {
@@ -67,7 +72,17 @@ export default function JournalPage() {
             <div onClick={()=>setExpandedId(expandedId===journal.id?null:journal.id)} style={{ padding:'14px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',cursor:'pointer',borderBottom:expandedId===journal.id?'1px solid #FCE4EC':'none' }}>
               <div style={{ display:'flex',alignItems:'center',gap:10 }}>
                 <div style={{ width:36,height:36,borderRadius:10,flexShrink:0,background:index===0?'linear-gradient(135deg,#E91E63,#F48FB1)':'#FCE4EC',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18 }}>✨</div>
-                <div><div style={{ fontSize:14,fontWeight:700,color:'#333' }}>{formatDate(journal.date)}の気持ちの箱</div><div style={{ fontSize:11,color:'#aaa' }}>{journal.date}</div></div>
+                <div>
+                  <div style={{ display:'flex',alignItems:'center',gap:6,flexWrap:'wrap' }}>
+                    <div style={{ fontSize:14,fontWeight:700,color:'#333' }}>{formatDate(journal.date)}の気持ちの箱</div>
+                    {journal.characterId && journal.characterId !== 'unknown' && (
+                      <span style={{ fontSize:11,background:'#FCE4EC',color:'#E91E63',borderRadius:10,padding:'1px 8px',fontWeight:600 }}>
+                        {charNames[journal.characterId] ?? journal.characterId}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize:11,color:'#aaa' }}>{journal.date}</div>
+                </div>
               </div>
               <span style={{ fontSize:16,color:'#ccc',transition:'transform 0.2s',transform:expandedId===journal.id?'rotate(90deg)':'rotate(0)' }}>›</span>
             </div>
