@@ -146,7 +146,9 @@ export default function ChatPage() {
       startNormalChat(savedNickname)
     }
 
-    // 気持ちの箱コンテキストをlocalStorageから同期読み込み（ネットワーク不要・確実）
+    // 気持ちの箱コンテキスト読み込み
+    // ① localStorageにあれば同期で即読み込み（高速パス）
+    let localHit = false
     try {
       const storedList: Array<{ date: string; reframed: string }> =
         JSON.parse(localStorage.getItem('fuu_journal_context_list') || '[]')
@@ -154,9 +156,43 @@ export default function ChatPage() {
         const lines = storedList.map(j => `・${j.date}：${j.reframed}`).join('\n')
         setJournalContext(lines)
         journalContextRef.current = lines
+        localHit = true
       }
     } catch { /* ignore */ }
-    setJournalLoaded(true)  // 同期なので即完了
+
+    if (localHit) {
+      setJournalLoaded(true)  // localStorage命中 → 即完了
+    } else {
+      // ② localStorage未作成（初回 or 別デバイス）→ DBフォールバック
+      // getSession()を使用（getUser()はサーバーRTT必要で遅い）
+      ;(async () => {
+        try {
+          const supabase = createClient()
+          const { data: { session } } = await supabase.auth.getSession()
+          if (session?.user) {
+            const { data } = await supabase
+              .from('guchi_journals')
+              .select('date, reframed')
+              .eq('user_id', session.user.id)
+              .order('date', { ascending: false })
+              .limit(3)
+            if (data && data.length > 0) {
+              // DBデータをlocalStorageにシード（次回から高速パスを通る）
+              try {
+                localStorage.setItem('fuu_journal_context_list',
+                  JSON.stringify(data.map(d => ({ date: d.date, reframed: d.reframed }))))
+              } catch { /* ignore */ }
+              const lines = data.map((j: { date: string; reframed: string }) =>
+                `・${j.date}：${j.reframed}`).join('\n')
+              setJournalContext(lines)
+              journalContextRef.current = lines
+            }
+          }
+        } catch { /* 取得失敗は無視 */ } finally {
+          setJournalLoaded(true)
+        }
+      })()
+    }
   }, [characterId, character])
 
   // ── STT初期化（ページロード時に事前準備してタイムラグを最小化）──
