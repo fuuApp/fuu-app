@@ -174,6 +174,7 @@ export default function ChatPage() {
               .from('guchi_journals')
               .select('date, reframed')
               .eq('user_id', session.user.id)
+              .eq('character_id', characterId)
               .order('date', { ascending: false })
               .limit(3)
             if (data && data.length > 0) {
@@ -451,8 +452,8 @@ export default function ChatPage() {
         if (user) {
           // original_content は保存しない（PP第5条「会話はサーバーに保存されない」との整合性を維持）
           await supabase.from('guchi_journals').upsert(
-            { user_id: user.id, date: today, reframed: summary, original_content: '' },
-            { onConflict: 'user_id,date' }
+            { user_id: user.id, date: today, reframed: summary, original_content: '', character_id: characterId },
+            { onConflict: 'user_id,date,character_id' }
           )
         }
       } catch { /* DB保存失敗はサイレント。sessionStorageにはある */ }
