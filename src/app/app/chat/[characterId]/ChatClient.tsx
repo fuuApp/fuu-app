@@ -417,8 +417,7 @@ export default function ChatPage() {
         body: JSON.stringify({
           characterId,
           message: `【愚痴お片付けモード】ユーザーが今日話してくれた内容から、感じていた気持ちを3つの絵文字と一言でまとめてください。形式：\n💭 [感情1]\n💭 [感情2]\n💭 [感情3]\n\nそして最後に一言で締めてください。全体100文字以内。${prevContext}\n\n【ユーザーが話した内容】\n${userMessages}`,
-          // 会話履歴をcontextとして渡す（AIが文脈を理解するため）
-          conversationHistory: messages.map(m => ({ role: m.role, content: m.content })),
+          conversationHistory: [],
         }),
       })
       const data = await res.json()
