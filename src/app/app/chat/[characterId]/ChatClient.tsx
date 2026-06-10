@@ -404,14 +404,21 @@ export default function ChatPage() {
 
   const handleGuchi = async () => {
     setLoadingSummary(true)
-    const userMessages = messages.filter(m => m.role === 'user').map(m => m.content).join('\n')
+    // 全会話（user+assistant両方）をテキスト化。前回の続き会話でも文脈を正確に把握できる
+    const fullConversation = messages
+      .map(m => `${m.role === 'user' ? 'ユーザー' : 'AI'}：${m.content}`)
+      .join('\n')
+    // 前回の気持ちの箱がある場合はサマリー生成に含める
+    const prevContext = journalContextRef.current
+      ? `\n\n【前回までの気持ちの箱（文脈参照用）】\n${journalContextRef.current}`
+      : ''
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           characterId,
-          message: `【愚痴お片付けモード】今日の会話を振り返って、ユーザーが感じていた気持ちを3つの絵文字と一言でまとめてください。形式：\n💭 [感情1]\n💭 [感情2]\n💭 [感情3]\n\nそして最後に一言で締めてください。全体100文字以内。\n\n今日の内容：\n${userMessages}`,
+          message: `【愚痴お片付けモード】今日の会話全体を振り返って、ユーザーが感じていた気持ちを3つの絵文字と一言でまとめてください。形式：\n💭 [感情1]\n💭 [感情2]\n💭 [感情3]\n\nそして最後に一言で締めてください。全体100文字以内。${prevContext}\n\n【今日の会話】\n${fullConversation}`,
           conversationHistory: [],
         }),
       })
