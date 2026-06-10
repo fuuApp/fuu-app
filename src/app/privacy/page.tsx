@@ -77,7 +77,7 @@ export default function PrivacyPage() {
         </Section>
 
         <Section title="第6条（Cookie・ローカルストレージ）">
-          <p style={{ margin: '0 0 6px' }}>本サービスはユーザー体験向上のためローカルストレージを使用します（ニックネーム・BGM設定・利用日数等）。ブラウザの設定から削除可能です。</p>
+          <p style={{ margin: '0 0 6px' }}>本サービスはユーザー体験向上のためローカルストレージを使用します（ニックネーム・BGM設定・利用日数・気持ちの箱コンテキスト等）。ブラウザの設定から削除可能です。</p>
         </Section>
 
         <Section title="第7条（ユーザーの権利）">

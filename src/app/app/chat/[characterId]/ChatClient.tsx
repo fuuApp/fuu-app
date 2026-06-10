@@ -146,30 +146,17 @@ export default function ChatPage() {
       startNormalChat(savedNickname)
     }
 
-    // 気持ちの箱fetch（完了するまで送信ブロック）
-    ;(async () => {
-      try {
-        const supabase = createClient()
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user) {
-          const { data } = await supabase
-            .from('guchi_journals')
-            .select('date, reframed')
-            .eq('user_id', user.id)
-            .order('date', { ascending: false })
-            .limit(3)
-          if (data && data.length > 0) {
-            const lines = data.map((j: { date: string; reframed: string }) =>
-              `・${j.date}：${j.reframed}`
-            ).join('\n')
-            setJournalContext(lines)
-            journalContextRef.current = lines
-          }
-        }
-      } catch { /* 取得失敗は無視 */ } finally {
-        setJournalLoaded(true)  // 成功・失敗・未ログイン問わず完了マーク
+    // 気持ちの箱コンテキストをlocalStorageから同期読み込み（ネットワーク不要・確実）
+    try {
+      const storedList: Array<{ date: string; reframed: string }> =
+        JSON.parse(localStorage.getItem('fuu_journal_context_list') || '[]')
+      if (storedList.length > 0) {
+        const lines = storedList.map(j => `・${j.date}：${j.reframed}`).join('\n')
+        setJournalContext(lines)
+        journalContextRef.current = lines
       }
-    })()
+    } catch { /* ignore */ }
+    setJournalLoaded(true)  // 同期なので即完了
   }, [characterId, character])
 
   // ── STT初期化（ページロード時に事前準備してタイムラグを最小化）──
@@ -402,6 +389,18 @@ export default function ChatPage() {
       // ── sessionStorage に保存（オフライン/未ログイン時のフォールバック用） ──
       try {
         sessionStorage.setItem(`fuu_guchi_${today}`, JSON.stringify({ date: today, reframed: summary }))
+      } catch { /* ignore */ }
+
+      // ── localStorage に直近3件を保存（次回セッションの「前回の続き」機能用） ──
+      try {
+        const existing: Array<{ date: string; reframed: string }> =
+          JSON.parse(localStorage.getItem('fuu_journal_context_list') || '[]')
+        const updated = [{ date: today, reframed: summary }, ...existing.filter(e => e.date !== today)].slice(0, 3)
+        localStorage.setItem('fuu_journal_context_list', JSON.stringify(updated))
+        // 現セッションのrefも更新（同セッション内に再度送信した場合も最新を使う）
+        const lines = updated.map(j => `・${j.date}：${j.reframed}`).join('\n')
+        journalContextRef.current = lines
+        setJournalContext(lines)
       } catch { /* ignore */ }
 
       // ── Supabase guchi_journals に保存 ──
