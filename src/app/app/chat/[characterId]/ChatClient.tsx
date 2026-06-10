@@ -151,7 +151,7 @@ export default function ChatPage() {
     let localHit = false
     try {
       const storedList: Array<{ date: string; reframed: string }> =
-        JSON.parse(localStorage.getItem('fuu_journal_context_list') || '[]')
+        JSON.parse(localStorage.getItem(`fuu_journal_context_list_${characterId}`) || '[]')
       if (storedList.length > 0) {
         const lines = storedList.map(j => `・${j.date}：${j.reframed}`).join('\n')
         setJournalContext(lines)
@@ -179,7 +179,7 @@ export default function ChatPage() {
             if (data && data.length > 0) {
               // DBデータをlocalStorageにシード（次回から高速パスを通る）
               try {
-                localStorage.setItem('fuu_journal_context_list',
+                localStorage.setItem(`fuu_journal_context_list_${characterId}`,
                   JSON.stringify(data.map(d => ({ date: d.date, reframed: d.reframed }))))
               } catch { /* ignore */ }
               const lines = data.map((j: { date: string; reframed: string }) =>
@@ -435,9 +435,9 @@ export default function ChatPage() {
       // ── localStorage に直近3件を保存（次回セッションの「前回の続き」機能用） ──
       try {
         const existing: Array<{ date: string; reframed: string }> =
-          JSON.parse(localStorage.getItem('fuu_journal_context_list') || '[]')
+          JSON.parse(localStorage.getItem(`fuu_journal_context_list_${characterId}`) || '[]')
         const updated = [{ date: today, reframed: summary }, ...existing.filter(e => e.date !== today)].slice(0, 3)
-        localStorage.setItem('fuu_journal_context_list', JSON.stringify(updated))
+        localStorage.setItem(`fuu_journal_context_list_${characterId}`, JSON.stringify(updated))
         // 現セッションのrefも更新（同セッション内に再度送信した場合も最新を使う）
         const lines = updated.map(j => `・${j.date}：${j.reframed}`).join('\n')
         journalContextRef.current = lines
