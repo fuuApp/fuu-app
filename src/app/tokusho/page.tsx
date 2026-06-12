@@ -17,7 +17,7 @@ export default function TokushoPage() {
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <tbody>
             {[
-              ['販売事業者', 'OGDStudio'],
+              ['販売事業者', 'OGAWAVE'],
               ['運営責任者', '[氏名]'],
               ['所在地', '[バーチャルオフィス住所]（※契約後に更新）'],
               ['電話番号', '電話番号は請求があり次第、遅滞なく開示いたします\nお問い合わせ：fuu.support@gmail.com'],
@@ -56,7 +56,7 @@ export default function TokushoPage() {
         </table>
 
         <div style={{ marginTop: 32, padding: '16px', background: '#fff', borderRadius: 12, fontSize: 12, color: '#888', textAlign: 'center' }}>
-          OGDStudio<br />
+          OGAWAVE<br />
           お問い合わせ：fuu.support@gmail.com
         </div>
       </div>

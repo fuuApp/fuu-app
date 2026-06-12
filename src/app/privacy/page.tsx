@@ -14,7 +14,7 @@ export default function PrivacyPage() {
         </p>
 
         <p style={{ marginBottom: 20 }}>
-          OGDStudio（以下「当社」）は、fuu ふぅ（以下「本サービス」）におけるユーザーの個人情報の取り扱いについて、以下のとおりプライバシーポリシー（以下「本ポリシー」）を定めます。
+          OGAWAVE（以下「当社」）は、fuu ふぅ（以下「本サービス」）におけるユーザーの個人情報の取り扱いについて、以下のとおりプライバシーポリシー（以下「本ポリシー」）を定めます。
         </p>
 
         <Section title="第1条（収集する情報）">
@@ -94,7 +94,7 @@ export default function PrivacyPage() {
 
         <div style={{ marginTop: 32, padding: '16px', background: '#fff', borderRadius: 12, textAlign: 'center' }}>
           <div style={{ fontSize: 12, color: '#888' }}>お問い合わせ：fuu.support@gmail.com</div>
-          <div style={{ fontSize: 10, color: '#ccc', marginTop: 6 }}>OGDStudio（個人事業主：[氏名]）</div>
+          <div style={{ fontSize: 10, color: '#ccc', marginTop: 6 }}>OGAWAVE（個人事業主：[氏名]）</div>
         </div>
       </div>
     </main>

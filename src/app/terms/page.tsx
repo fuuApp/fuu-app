@@ -14,7 +14,7 @@ export default function TermsPage() {
         </p>
 
         <Section title="第1条（定義）">
-          <Item n="1">「本サービス」とは、OGDStudioが提供するAI共感アプリ「fuu ふぅ」（Webアプリ及び関連サービス）を指します。</Item>
+          <Item n="1">「本サービス」とは、OGAWAVEが提供するAI共感アプリ「fuu ふぅ」（Webアプリ及び関連サービス）を指します。</Item>
           <Item n="2">「ユーザー」とは、本サービスに登録した個人を指します。</Item>
           <Item n="3">「AIキャラクター」とは、本サービス上のペルソナ（AIが生成する架空の人物）を指します。実在の人物ではありません。</Item>
           <Item n="4">「プレミアム機能」とは、月額¥980のプレミアムプランのみで利用可能な機能（音声テキスト入力・プレミアム専用キャラ等）を指します。</Item>
@@ -71,7 +71,7 @@ export default function TermsPage() {
         </Section>
 
         <Section title="第9条（著作権）">
-          <Item n="1">本サービスのコンテンツ（キャラクター・BGM・UI等）の著作権はOGDStudioに帰属します。</Item>
+          <Item n="1">本サービスのコンテンツ（キャラクター・BGM・UI等）の著作権はOGAWAVEに帰属します。</Item>
           <Item n="2">BGMはAI生成によるオリジナル楽曲です。</Item>
         </Section>
 
@@ -82,7 +82,7 @@ export default function TermsPage() {
 
         <div style={{ marginTop: 32, padding: '16px', background: '#fff', borderRadius: 12, textAlign: 'center' }}>
           <div style={{ fontSize: 12, color: '#888' }}>お問い合わせ：fuu.support@gmail.com</div>
-          <div style={{ fontSize: 10, color: '#ccc', marginTop: 6 }}>OGDStudio（個人事業主：[氏名]）</div>
+          <div style={{ fontSize: 10, color: '#ccc', marginTop: 6 }}>OGAWAVE（個人事業主：[氏名]）</div>
         </div>
       </div>
     </main>
