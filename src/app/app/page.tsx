@@ -6,17 +6,11 @@ import { getAllCharacters } from '@/lib/characters'
 import { createClient } from '@/lib/supabase'
 import type { Character } from '@/types'
 
-const TRIAL_START_KEY = 'fuu_trial_started_at'
 const PLAN_CACHE_KEY = 'fuu_plan'
 
-function getUsageDays(): number {
-  if (typeof window === 'undefined') return 0
-  const started = localStorage.getItem(TRIAL_START_KEY)
-  if (!started) {
-    localStorage.setItem(TRIAL_START_KEY, new Date().toISOString())
-    return 0
-  }
-  return Math.floor((Date.now() - new Date(started).getTime()) / (1000 * 60 * 60 * 24))
+function calcUsageDays(trialStartedAt: string | null): number {
+  if (!trialStartedAt) return 0
+  return Math.floor((Date.now() - new Date(trialStartedAt).getTime()) / (1000 * 60 * 60 * 24))
 }
 
 function charEmoji(id: string): string {
@@ -53,13 +47,11 @@ export default function CharacterSelectPage() {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setUsageDays(getUsageDays())
-
     // まずlocalStorageキャッシュで即時表示（UI遅延防止）
     const cached = localStorage.getItem(PLAN_CACHE_KEY)
     if (cached) setPlan(cached)
 
-    // Supabaseから最新プランを取得してキャッシュを更新
+    // Supabaseから最新プラン・trial_started_atを取得
     ;(async () => {
       try {
         const supabase = createClient()
@@ -67,16 +59,18 @@ export default function CharacterSelectPage() {
         if (user) {
           const { data: profile } = await supabase
             .from('profiles')
-            .select('plan')
+            .select('plan, trial_started_at')
             .eq('user_id', user.id)
             .single()
           if (profile?.plan) {
             setPlan(profile.plan)
             localStorage.setItem(PLAN_CACHE_KEY, profile.plan)
           }
+          // 使用日数はSupabaseのtrial_started_atから計算
+          setUsageDays(calcUsageDays(profile?.trial_started_at ?? null))
         }
       } catch {
-        // 失敗時はキャッシュのまま
+        // 失敗時は0のまま
       }
     })()
 
