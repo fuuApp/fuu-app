@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
-import { createRouteHandlerClient, createAdminClient } from '@/lib/supabase'
+import { createAdminClient } from '@/lib/supabase'
+import { createRouteHandlerClient } from '@/lib/supabase-server'
 import { getCharacter } from '@/lib/characters'
 import type { ChatRequest } from '@/types'
 

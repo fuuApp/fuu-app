@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient, createAdminClient } from '@/lib/supabase'
+import { createAdminClient } from '@/lib/supabase'
+import { createRouteHandlerClient } from '@/lib/supabase-server'
 
 export async function POST(req: NextRequest) {
   try {
