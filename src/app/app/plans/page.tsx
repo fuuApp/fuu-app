@@ -64,22 +64,40 @@ function PlansContent() {
   const searchParams = useSearchParams()
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
   const [loadingTicket, setLoadingTicket] = useState(false)
+  const [loadingActivate, setLoadingActivate] = useState(false)
   const [currentPlan, setCurrentPlan] = useState<string>('trial') // trial / standard / premium
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [ticketActiveUntil, setTicketActiveUntil] = useState<string | null>(null)
+  const [availableTickets, setAvailableTickets] = useState(0)
+  const [userId, setUserId] = useState<string>('')
+  const [userEmail, setUserEmail] = useState<string>('')
 
-  // Supabaseから現在のプランを取得
+  // Supabaseから現在のプランとチケット状態を取得
   useEffect(() => {
     ;(async () => {
       try {
         const supabase = createClient()
         const { data: { user } } = await supabase.auth.getUser()
         if (user) {
+          setUserId(user.id)
+          setUserEmail(user.email ?? '')
           const { data: profile } = await supabase
             .from('profiles')
-            .select('plan')
+            .select('plan, ticket_active_until')
             .eq('id', user.id)
             .single()
           if (profile?.plan) setCurrentPlan(profile.plan)
+          if (profile?.ticket_active_until) setTicketActiveUntil(profile.ticket_active_until)
+
+          // 未使用チケット枚数を取得
+          const now = new Date().toISOString()
+          const { data: tickets } = await supabase
+            .from('tickets')
+            .select('quantity, used')
+            .eq('user_id', user.id)
+            .gt('expires_at', now)
+          const remaining = tickets?.reduce((sum, t) => sum + (t.quantity - t.used), 0) ?? 0
+          setAvailableTickets(remaining)
         }
       } catch { /* 取得失敗時はtrialのまま */ }
     })()
@@ -111,7 +129,6 @@ function PlansContent() {
     }
   }, [toastMessage])
 
-  // サブスクリプション開始ハンドラ
   // チケット購入ハンドラ
   const handleTicket = async () => {
     setLoadingTicket(true)
@@ -119,7 +136,7 @@ function PlansContent() {
       const res = await fetch('/api/subscription/ticket', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ userId, email: userEmail }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'チケット購入の準備に失敗しました')
@@ -130,6 +147,28 @@ function PlansContent() {
       setLoadingTicket(false)
     }
   }
+
+  // チケット有効化ハンドラ（購入済みチケットを24時間有効にする）
+  const handleActivateTicket = async () => {
+    setLoadingActivate(true)
+    try {
+      const res = await fetch('/api/subscription/activate-ticket', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'チケットの有効化に失敗しました')
+      setTicketActiveUntil(data.activeUntil)
+      setAvailableTickets(prev => Math.max(0, prev - 1))
+      setToastMessage({ type: 'success', text: '🎫 チケットを有効化しました！24時間使い放題です。' })
+    } catch (err: any) {
+      setToastMessage({ type: 'error', text: err.message ?? 'エラーが発生しました' })
+    } finally {
+      setLoadingActivate(false)
+    }
+  }
+
+  // サブスクリプション開始ハンドラ
 
   const handleSubscribe = async (planId: string) => {
     if (!isSupabaseConfigured) {
@@ -385,9 +424,43 @@ function PlansContent() {
               </div>
             </div>
             <div style={{ fontSize: 12, color: '#795548', lineHeight: 1.8, marginBottom: 14 }}>
-              購入当日の24:00まで通数制限なし。<br />
+              購入から24時間、通数制限なし。<br />
               話したい日に、好きなだけ話せる1日券。
             </div>
+
+            {/* チケット有効中バナー */}
+            {ticketActiveUntil && new Date(ticketActiveUntil) > new Date() && (
+              <div style={{
+                background: 'linear-gradient(135deg,#E8F5E9,#C8E6C9)',
+                border: '1.5px solid #66BB6A',
+                borderRadius: 12, padding: '10px 14px',
+                marginBottom: 12, fontSize: 12, color: '#2E7D32', lineHeight: 1.7,
+              }}>
+                ✅ チケット有効中！<br />
+                <strong>{new Date(ticketActiveUntil).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</strong> まで使い放題
+              </div>
+            )}
+
+            {/* 購入済みチケット有効化ボタン */}
+            {availableTickets > 0 && (
+              <button
+                onClick={handleActivateTicket}
+                disabled={loadingActivate || (!!ticketActiveUntil && new Date(ticketActiveUntil) > new Date())}
+                style={{
+                  width: '100%', padding: '13px',
+                  background: (loadingActivate || (!!ticketActiveUntil && new Date(ticketActiveUntil) > new Date()))
+                    ? '#E0E0E0'
+                    : 'linear-gradient(135deg,#43A047,#2E7D32)',
+                  color: '#fff', border: 'none', borderRadius: 50,
+                  fontSize: 14, fontWeight: 700,
+                  cursor: 'pointer', fontFamily: 'inherit',
+                  marginBottom: 8,
+                }}
+              >
+                {loadingActivate ? '有効化中...' : `🎫 購入済みチケットを使う（残${availableTickets}枚）`}
+              </button>
+            )}
+
             <button
               onClick={handleTicket}
               disabled={loadingTicket}

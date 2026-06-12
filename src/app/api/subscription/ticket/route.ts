@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
       cancel_url:  `${baseUrl}/app/plans?canceled=true`,
       customer_email: email ?? undefined,
       metadata: {
-        userId: userId ?? '',
+        user_id: userId ?? '',  // webhookと統一（user_id）
         type: 'ticket',
       },
       locale: 'ja',

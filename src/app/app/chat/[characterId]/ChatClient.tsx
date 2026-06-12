@@ -47,6 +47,10 @@ export default function ChatPage() {
   const [sttSupported, setSttSupported] = useState(false)
   const [isPremium, setIsPremium] = useState(false)
 
+  // 残り会話回数
+  const [remaining, setRemaining] = useState<number | null>(null)
+  const [ticketActive, setTicketActive] = useState(false)
+
   // 過去の気持ちの箱（直近3件）→ systemPromptに差し込む
   const [journalContext, setJournalContext] = useState<string>('')
   // journal fetchが完了するまで送信をブロック
@@ -366,6 +370,10 @@ export default function ChatPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'エラーが発生しました')
 
+      // 残り会話回数を更新
+      if (typeof data.remaining === 'number') setRemaining(data.remaining)
+      if (typeof data.ticketActive === 'boolean') setTicketActive(data.ticketActive)
+
       // 愚痴→相談の自動検知でハイブリッドモードに切り替え
       if (data.autoHybrid) {
         setChatMode('soudan')
@@ -526,10 +534,28 @@ export default function ChatPage() {
           <div style={{ fontWeight: 700, fontSize: 15, color: '#333' }}>{character.name}</div>
           <div style={{ fontSize: 11, color: '#E91E63' }}>{character.role}</div>
         </div>
-        {nickname && (
-          <div style={{ marginLeft: 'auto', fontSize: 12, color: '#bbb' }}>{nickname}</div>
-        )}
-        <div style={{ marginLeft: nickname ? 8 : 'auto', width: 8, height: 8, borderRadius: '50%', background: '#4CAF50' }} />
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+          {nickname && (
+            <div style={{ fontSize: 12, color: '#bbb' }}>{nickname}</div>
+          )}
+          {/* 残り会話回数バッジ */}
+          {remaining !== null && (
+            <div style={{
+              fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 20,
+              background: ticketActive
+                ? 'linear-gradient(135deg,#43A047,#2E7D32)'
+                : remaining <= 10
+                  ? 'linear-gradient(135deg,#F44336,#B71C1C)'
+                  : remaining <= 30
+                    ? 'linear-gradient(135deg,#FF9800,#E65100)'
+                    : '#FCE4EC',
+              color: ticketActive || remaining <= 30 ? '#fff' : '#E91E63',
+            }}>
+              {ticketActive ? '∞ 使い放題' : `残り${remaining}回`}
+            </div>
+          )}
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#4CAF50' }} />
+        </div>
       </div>
 
       {/* メッセージ一覧 */}

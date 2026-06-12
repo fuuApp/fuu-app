@@ -3,9 +3,11 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { getAllCharacters } from '@/lib/characters'
+import { createClient } from '@/lib/supabase'
 import type { Character } from '@/types'
 
 const TRIAL_START_KEY = 'fuu_trial_started_at'
+const PLAN_CACHE_KEY = 'fuu_plan'
 
 function getUsageDays(): number {
   if (typeof window === 'undefined') return 0
@@ -52,7 +54,32 @@ export default function CharacterSelectPage() {
 
   useEffect(() => {
     setUsageDays(getUsageDays())
-    setPlan(localStorage.getItem('fuu_plan') ?? 'free')
+
+    // まずlocalStorageキャッシュで即時表示（UI遅延防止）
+    const cached = localStorage.getItem(PLAN_CACHE_KEY)
+    if (cached) setPlan(cached)
+
+    // Supabaseから最新プランを取得してキャッシュを更新
+    ;(async () => {
+      try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('plan')
+            .eq('id', user.id)
+            .single()
+          if (profile?.plan) {
+            setPlan(profile.plan)
+            localStorage.setItem(PLAN_CACHE_KEY, profile.plan)
+          }
+        }
+      } catch {
+        // 失敗時はキャッシュのまま
+      }
+    })()
+
     setMounted(true)
   }, [])
 

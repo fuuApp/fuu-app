@@ -1,11 +1,91 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
+import { createRouteHandlerClient, createAdminClient } from '@/lib/supabase'
 import { getCharacter } from '@/lib/characters'
 import type { ChatRequest } from '@/types'
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,
 })
+
+// ── プラン別月間会話上限 ──────────────────────────────────────
+const PLAN_LIMITS: Record<string, number> = {
+  free:     70,
+  standard: 200,
+  premium:  900,
+}
+
+// ── 月間カウントのリセット判定（月が変わっていればリセット）──
+function isNewMonth(resetAt: string): boolean {
+  const reset = new Date(resetAt)
+  const now = new Date()
+  return reset.getFullYear() !== now.getFullYear() || reset.getMonth() !== now.getMonth()
+}
+
+// ── 会話制限チェック＆カウントインクリメント ──────────────────
+async function checkAndIncrementUsage(userId: string): Promise<
+  { allowed: true; remaining: number; ticketActive: boolean } |
+  { allowed: false; reason: string; code: string }
+> {
+  const supabase = createAdminClient()
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('plan, trial_end_at, monthly_chat_count, monthly_chat_reset_at, ticket_active_until')
+    .eq('id', userId)
+    .single()
+
+  if (error || !profile) {
+    return { allowed: false, reason: 'プロフィールの取得に失敗しました', code: 'PROFILE_ERROR' }
+  }
+
+  const now = new Date()
+
+  // ── チケット有効チェック（優先）──
+  const ticketActive = !!(profile.ticket_active_until && new Date(profile.ticket_active_until) > now)
+  if (ticketActive) {
+    // カウントはインクリメントしない（使い放題）
+    return { allowed: true, remaining: 9999, ticketActive: true }
+  }
+
+  // ── トライアル期限チェック ──
+  if (profile.plan === 'free') {
+    const trialEnd = profile.trial_end_at ? new Date(profile.trial_end_at) : null
+    if (!trialEnd || trialEnd < now) {
+      return {
+        allowed: false,
+        reason: 'トライアル期間が終了しました。プランを選択してください。',
+        code: 'TRIAL_EXPIRED',
+      }
+    }
+  }
+
+  // ── 月間カウントのリセット処理 ──
+  let currentCount = profile.monthly_chat_count ?? 0
+  if (isNewMonth(profile.monthly_chat_reset_at ?? now.toISOString())) {
+    currentCount = 0
+    await supabase.from('profiles').update({
+      monthly_chat_count: 0,
+      monthly_chat_reset_at: now.toISOString(),
+    }).eq('id', userId)
+  }
+
+  // ── 上限チェック ──
+  const limit = PLAN_LIMITS[profile.plan] ?? PLAN_LIMITS.free
+  if (currentCount >= limit) {
+    return {
+      allowed: false,
+      reason: `今月の会話上限（${limit}通）に達しました。プランのアップグレードまたはチケットをお使いください。`,
+      code: 'LIMIT_EXCEEDED',
+    }
+  }
+
+  // ── カウントインクリメント ──
+  await supabase.from('profiles').update({
+    monthly_chat_count: currentCount + 1,
+  }).eq('id', userId)
+
+  return { allowed: true, remaining: limit - currentCount - 1, ticketActive: false }
+}
 
 // 入力の長さに応じた返答スタイル指示と max_tokens を返す
 function getResponseGuide(messageLength: number, mode: string): { instruction: string; maxTokens: number } {
@@ -295,7 +375,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '無効なキャラクターです' }, { status: 400 })
     }
 
+    // ── 認証チェック ──────────────────────────────────────────
+    const supabaseClient = await createRouteHandlerClient()
+    const { data: { user } } = await supabaseClient.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: 'ログインが必要です', code: 'UNAUTHORIZED' }, { status: 401 })
+    }
+
     // ── 気持ちの箱サマリー専用モード（キャラ人格を一切使わない）──
+    // ※ サマリーはカウント対象外
     const isGuchiSummary: boolean = body.isGuchiSummary ?? false
     if (isGuchiSummary) {
       const response = await anthropic.messages.create({
@@ -311,6 +399,15 @@ export async function POST(req: NextRequest) {
         ? response.content[0].text
         : '今日もたくさん話してくれてありがとう。ゆっくり休んでね。'
       return NextResponse.json({ message: summary, characterId })
+    }
+
+    // ── 会話回数制限チェック（通常会話のみ）─────────────────────
+    const usageResult = await checkAndIncrementUsage(user.id)
+    if (!usageResult.allowed) {
+      return NextResponse.json(
+        { error: usageResult.reason, code: usageResult.code },
+        { status: 403 }
+      )
     }
 
     const { nickname } = body
@@ -377,6 +474,8 @@ export async function POST(req: NextRequest) {
       characterId,
       autoHybrid: autoHybrid ?? false,
       deepDive: deepDive ?? false,
+      remaining: usageResult.remaining,
+      ticketActive: usageResult.ticketActive,
     })
   } catch (error) {
     console.error('Chat API error:', error)

@@ -93,7 +93,8 @@ export async function POST(req: NextRequest) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
         if (session.mode === 'payment' && session.metadata?.type === 'ticket') {
-          const userId = session.metadata.user_id
+          // ticket APIは metadata.userId で送信 → user_id / userId どちらにも対応
+          const userId = session.metadata.user_id ?? session.metadata.userId
           const quantity = parseInt(session.metadata.quantity ?? '1')
 
           await supabase.from('tickets').insert({
