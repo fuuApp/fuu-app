@@ -68,7 +68,7 @@ export default function CharacterSelectPage() {
           const { data: profile } = await supabase
             .from('profiles')
             .select('plan')
-            .eq('id', user.id)
+            .eq('user_id', user.id)
             .single()
           if (profile?.plan) {
             setPlan(profile.plan)

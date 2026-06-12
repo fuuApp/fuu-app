@@ -112,10 +112,11 @@ export async function POST(req: NextRequest) {
 
     // push_tokenを取得
     const admin = createAdminClient()
+    // profilesの主キーはuser_id
     const { data: profile } = await admin
       .from('profiles')
       .select('push_token, notification_time, morning_time')
-      .eq('id', userId)
+      .eq('user_id', userId)
       .single()
 
     if (!profile?.push_token) {

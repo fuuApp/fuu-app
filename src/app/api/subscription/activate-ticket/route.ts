@@ -64,12 +64,12 @@ export async function POST(req: NextRequest) {
         updated_at: now.toISOString(),
       }, { onConflict: 'user_id,year_month' })
 
-    // ── profilesのticket_active_untilを24時間後に設定 ──
+    // ── profilesのticket_active_untilを24時間後に設定（主キーはuser_id）──
     const activeUntil = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString()
     await admin
       .from('profiles')
       .update({ ticket_active_until: activeUntil })
-      .eq('id', user.id)
+      .eq('user_id', user.id)
 
     return NextResponse.json({
       success: true,

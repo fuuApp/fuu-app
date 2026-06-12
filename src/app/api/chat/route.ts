@@ -28,10 +28,11 @@ async function checkAndIncrementUsage(userId: string): Promise<
   { allowed: false; reason: string; code: string }
 > {
   const supabase = createAdminClient()
+  // ※ profilesの主キーは user_id（idではない）
   const { data: profile, error } = await supabase
     .from('profiles')
-    .select('plan, trial_end_at, monthly_chat_count, monthly_chat_reset_at, ticket_active_until')
-    .eq('id', userId)
+    .select('plan, trial_started_at, monthly_chat_count, monthly_chat_reset_at, ticket_active_until')
+    .eq('user_id', userId)
     .single()
 
   if (error || !profile) {
@@ -43,13 +44,13 @@ async function checkAndIncrementUsage(userId: string): Promise<
   // ── チケット有効チェック（優先）──
   const ticketActive = !!(profile.ticket_active_until && new Date(profile.ticket_active_until) > now)
   if (ticketActive) {
-    // カウントはインクリメントしない（使い放題）
     return { allowed: true, remaining: 9999, ticketActive: true }
   }
 
-  // ── トライアル期限チェック ──
+  // ── トライアル期限チェック（trial_started_at + 10日）──
   if (profile.plan === 'free') {
-    const trialEnd = profile.trial_end_at ? new Date(profile.trial_end_at) : null
+    const trialStart = profile.trial_started_at ? new Date(profile.trial_started_at) : null
+    const trialEnd = trialStart ? new Date(trialStart.getTime() + 10 * 24 * 60 * 60 * 1000) : null
     if (!trialEnd || trialEnd < now) {
       return {
         allowed: false,
@@ -66,7 +67,7 @@ async function checkAndIncrementUsage(userId: string): Promise<
     await supabase.from('profiles').update({
       monthly_chat_count: 0,
       monthly_chat_reset_at: now.toISOString(),
-    }).eq('id', userId)
+    }).eq('user_id', userId)
   }
 
   // ── 上限チェック ──
@@ -82,7 +83,7 @@ async function checkAndIncrementUsage(userId: string): Promise<
   // ── カウントインクリメント ──
   await supabase.from('profiles').update({
     monthly_chat_count: currentCount + 1,
-  }).eq('id', userId)
+  }).eq('user_id', userId)
 
   return { allowed: true, remaining: limit - currentCount - 1, ticketActive: false }
 }

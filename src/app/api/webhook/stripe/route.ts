@@ -39,10 +39,10 @@ export async function POST(req: NextRequest) {
         const priceId = sub.items.data[0]?.price.id
         const plan = PLAN_PRICE_MAP[priceId] ?? 'standard'
 
-        // stripe_customer_id からユーザーを特定
+        // stripe_customer_id からユーザーを特定（主キーはuser_id）
         const { data: profile } = await supabase
           .from('profiles')
-          .select('id')
+          .select('user_id')
           .eq('stripe_customer_id', customerId)
           .single()
 
@@ -50,10 +50,10 @@ export async function POST(req: NextRequest) {
           await supabase.from('profiles').update({
             plan,
             updated_at: new Date().toISOString(),
-          }).eq('id', profile.id)
+          }).eq('user_id', profile.user_id)
 
           await supabase.from('subscriptions').upsert({
-            user_id: profile.id,
+            user_id: profile.user_id,
             stripe_subscription_id: sub.id,
             plan,
             status: sub.status,
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
 
         const { data: profile } = await supabase
           .from('profiles')
-          .select('id')
+          .select('user_id')
           .eq('stripe_customer_id', customerId)
           .single()
 
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
           await supabase.from('profiles').update({
             plan: 'free',
             updated_at: new Date().toISOString(),
-          }).eq('id', profile.id)
+          }).eq('user_id', profile.user_id)
 
           await supabase.from('subscriptions').update({
             status: 'canceled',

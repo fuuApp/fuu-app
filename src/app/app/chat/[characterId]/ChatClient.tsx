@@ -241,7 +241,7 @@ export default function ChatPage() {
           const { data: profile } = await supabase
             .from('profiles')
             .select('plan')
-            .eq('id', user.id)
+            .eq('user_id', user.id)
             .single()
           setIsPremium(profile?.plan === 'premium')
         }

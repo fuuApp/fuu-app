@@ -39,8 +39,8 @@ export async function POST(req: NextRequest) {
     // ── 2. プロフィール取得 ──
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('id, stripe_customer_id, plan')
-      .eq('id', userId)
+      .select('user_id, stripe_customer_id, plan')
+      .eq('user_id', userId)
       .single()
 
     if (profileError || !profile) {
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
         stripe_customer_id: null,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', userId)
+      .eq('user_id', userId)
 
     if (deleteError) {
       console.error('Soft delete error:', deleteError)

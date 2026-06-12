@@ -84,7 +84,7 @@ function PlansContent() {
           const { data: profile } = await supabase
             .from('profiles')
             .select('plan, ticket_active_until')
-            .eq('id', user.id)
+            .eq('user_id', user.id)
             .single()
           if (profile?.plan) setCurrentPlan(profile.plan)
           if (profile?.ticket_active_until) setTicketActiveUntil(profile.ticket_active_until)
