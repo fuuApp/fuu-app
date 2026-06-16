@@ -18,7 +18,6 @@ export default function TokushoPage() {
           <tbody>
             {[
               ['販売事業者', 'OGAWAVE'],
-              ['運営責任者', '小川博吉'],
               ['所在地', '[バーチャルオフィス住所]（※契約後に更新）'],
               ['電話番号', '電話番号は請求があり次第、遅滞なく開示いたします\nお問い合わせ：fuu.support@gmail.com'],
               ['メールアドレス', 'fuu.support@gmail.com'],
@@ -32,6 +31,7 @@ export default function TokushoPage() {
               ['返金ポリシー', '原則として購入後の返金は行いません\n※チケットの例外については上記キャンセル方法を参照'],
               ['動作環境', 'iOS 15以上 / Android 9以上\nGoogle Chrome・Safari等モダンブラウザ'],
               ['特記事項', '本サービスのAIキャラクターは架空の人物です。実在の人物ではありません。\n医療・法律・金融の専門的アドバイスを提供するものではありません。'],
+              ['運営責任者', '小川博吉'],
             ].map(([label, value], i) => (
               <tr key={i} style={{ borderBottom: '1px solid #FCE4EC' }}>
                 <td style={{
