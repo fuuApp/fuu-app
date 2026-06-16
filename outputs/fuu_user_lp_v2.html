@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>fuu ふぅ — 育児ママのための AI 共感アプリ</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic Pro","Yu Gothic",Arial,sans-serif;background:#fdf4f7;color:#212121}
+.lp{max-width:480px;margin:0 auto;padding:1.5rem 1.25rem 3rem}
+
+/* Hero */
+.hero{background:linear-gradient(145deg,#E91E63 0%,#C2185B 100%);border-radius:20px;padding:2rem 1.5rem 1.75rem;text-align:center;margin-bottom:1.25rem}
+.hero-badge{display:inline-block;background:rgba(255,255,255,0.2);color:#fff;font-size:11px;padding:4px 14px;border-radius:20px;margin-bottom:1rem;letter-spacing:1px}
+.hero h1{font-size:40px;font-weight:400;color:#fff;letter-spacing:6px;margin-bottom:.4rem}
+.hero .tagline{font-size:13px;color:#FCE4EC;line-height:1.9;margin-bottom:1.25rem}
+
+/* 統計バナー */
+.stat-banner{background:rgba(255,255,255,0.15);border-radius:12px;padding:.85rem 1rem;margin-bottom:1.25rem;text-align:center}
+.stat-banner .stat-num{font-size:28px;font-weight:600;color:#fff}
+.stat-banner .stat-text{font-size:11px;color:#FCE4EC;line-height:1.7;margin-top:3px}
+.stat-banner .stat-source{font-size:9px;color:rgba(255,255,255,0.5);margin-top:4px}
+
+/* Price boxes */
+.hero-price{display:flex;align-items:center;justify-content:center;gap:.75rem}
+.price-box{background:rgba(255,255,255,0.15);border-radius:12px;padding:.6rem 1rem;text-align:center;flex:1}
+.price-box.highlight{background:rgba(255,255,255,0.25);border:1px solid rgba(255,255,255,0.4)}
+.price-box .plan{font-size:10px;color:#FCE4EC;margin-bottom:3px;letter-spacing:.5px}
+.price-box .amount{font-size:20px;font-weight:500;color:#fff}
+.price-box .unit{font-size:10px;color:#FCE4EC}
+.trial-badge{display:inline-block;background:#fff;color:#E91E63;font-size:10px;font-weight:600;padding:3px 10px;border-radius:20px;margin-top:.5rem;letter-spacing:.5px}
+
+/* Section */
+.section{background:#fff;border-radius:16px;padding:1.25rem;margin-bottom:1rem;border:0.5px solid #f0e0e6}
+.section-title{font-size:11px;color:#C2185B;font-weight:500;letter-spacing:.5px;margin-bottom:.75rem}
+
+/* Pain */
+.pain-items{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pain-item{display:flex;align-items:flex-start;gap:8px;font-size:13px;color:#555;line-height:1.5}
+.pain-icon{color:#E91E63;font-size:16px;margin-top:1px;flex-shrink:0}
+.bubble{background:#FCE4EC;border-radius:10px;padding:.7rem 1rem;font-size:12px;color:#880E4F;line-height:1.7;margin-top:10px;font-style:italic}
+
+/* Stats section */
+.stats-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.75rem}
+.stat-card{background:#FCE4EC;border-radius:10px;padding:.75rem;text-align:center}
+.stat-card .num{font-size:26px;font-weight:600;color:#E91E63}
+.stat-card .label{font-size:10px;color:#880E4F;line-height:1.5;margin-top:3px}
+.stat-source-note{font-size:9px;color:#999;text-align:right;margin-top:4px}
+
+/* Features */
+.features{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1rem}
+.feat-card{background:#fff;border-radius:14px;padding:.9rem .75rem;text-align:center;border:0.5px solid #f0e0e6}
+.feat-icon{font-size:26px;color:#E91E63;margin-bottom:.4rem;display:block}
+.feat-title{font-size:12px;font-weight:500;color:#212121;margin-bottom:.25rem}
+.feat-desc{font-size:10px;color:#888;line-height:1.5}
+
+/* Persona */
+.persona-list{display:flex;flex-wrap:wrap;gap:7px}
+.persona{background:#FCE4EC;border-radius:20px;padding:5px 11px;font-size:12px;color:#880E4F;display:flex;align-items:center;gap:4px}
+.persona .age{font-size:10px;color:#C2185B}
+
+/* Plan compare */
+.plan-compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
+.plan-card{border-radius:16px;padding:1.25rem;border:0.5px solid #f0e0e6;background:#fff}
+.plan-card.premium{border:2px solid #E91E63;background:#fff}
+.plan-name{font-size:11px;font-weight:500;color:#888;margin-bottom:.4rem;letter-spacing:.5px}
+.plan-price{font-size:26px;font-weight:500;color:#E91E63;margin-bottom:.2rem}
+.plan-price span{font-size:11px;font-weight:400;color:#aaa}
+.plan-feature{font-size:11px;color:#666;margin-top:7px;display:flex;align-items:flex-start;gap:5px;line-height:1.5}
+.plan-feature i{color:#E91E63;font-size:13px;margin-top:1px;flex-shrink:0}
+.popular-badge{display:inline-block;background:#FCE4EC;color:#880E4F;font-size:10px;padding:2px 9px;border-radius:12px;margin-bottom:5px}
+
+/* Ticket */
+.ticket-card{background:linear-gradient(135deg,#FFF9C4,#FFFDE7);border:1px solid #F9A825;border-radius:16px;padding:1rem 1.25rem;margin-bottom:1rem;display:flex;align-items:center;gap:.75rem}
+.ticket-icon{font-size:32px;color:#F57F17;flex-shrink:0}
+.ticket-text .t-title{font-size:13px;font-weight:600;color:#E65100;margin-bottom:3px}
+.ticket-text .t-desc{font-size:11px;color:#795548;line-height:1.6}
+.ticket-price{font-size:22px;font-weight:600;color:#E65100;text-align:right;flex-shrink:0}
+.ticket-price small{display:block;font-size:10px;font-weight:400;color:#aaa}
+
+/* Safe */
+.safe-items{display:flex;flex-wrap:wrap;gap:6px}
+.safe-item{display:flex;align-items:center;gap:5px;font-size:12px;color:#555;background:#fdf4f7;border:0.5px solid #f0d8e3;padding:5px 11px;border-radius:20px}
+.safe-item i{color:#E91E63;font-size:14px}
+
+/* Trial flow */
+.flow{display:flex;align-items:center;justify-content:center;gap:4px;margin:8px 0}
+.flow-step{background:#FCE4EC;color:#880E4F;font-size:10px;padding:8px 6px;border-radius:8px;text-align:center;flex:1;line-height:1.5}
+.flow-step.active{background:#E91E63;color:#fff}
+.flow-arrow{color:#bbb;font-size:12px;flex-shrink:0}
+
+/* CTA */
+.cta{background:linear-gradient(145deg,#E91E63 0%,#C2185B 100%);border-radius:20px;padding:2rem 1.5rem;text-align:center}
+.cta h3{font-size:18px;font-weight:500;color:#fff;margin-bottom:.4rem}
+.cta p{font-size:12px;color:#FCE4EC;margin-bottom:1.25rem;line-height:1.7}
+.cta-btn{display:inline-block;background:#fff;color:#E91E63;font-size:14px;font-weight:600;padding:.8rem 2.5rem;border-radius:28px;text-decoration:none;letter-spacing:.5px;box-shadow:0 4px 16px rgba(0,0,0,0.15)}
+.cta-note{font-size:10px;color:#FCE4EC;margin-top:.85rem}
+.cta-sub{font-size:11px;color:rgba(255,255,255,0.7);margin-top:.5rem}
+</style>
+</head>
+<body>
+<div class="lp">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge">育児中ママのための、ひみつの隠れ家</div>
+    <h1>fuu　ふぅ</h1>
+    <p class="tagline">「誰にも言えない」育児の愚痴と本音を、<br>AIのママ友がいつでも、そっと聞いてくれる。</p>
+
+    <div class="stat-banner">
+      <div class="stat-num">4人に1人</div>
+      <div class="stat-text">育児中のママが、周囲に「全く頼れていない」と回答。<br>頼れない理由1位は<strong style="color:#fff">「相手への遠慮」43%</strong>。</div>
+      <div class="stat-source">出典：カラダノート調査（回答者415人）</div>
+    </div>
+
+    <div class="hero-price">
+      <div class="price-box">
+        <div class="plan">スタンダード</div>
+        <div class="amount">¥100<span style="font-size:12px">/月</span></div>
+        <div class="unit">お守り価格</div>
+      </div>
+      <div class="price-box highlight">
+        <div class="plan">プレミアム</div>
+        <div class="amount">¥980<span style="font-size:12px">/月</span></div>
+        <div class="unit">音声通話つき</div>
+      </div>
+      <div class="price-box">
+        <div class="plan">今日だけ</div>
+        <div class="amount">¥300<span style="font-size:12px">/日</span></div>
+        <div class="unit">チケット制</div>
+      </div>
+    </div>
+    <div class="trial-badge">✨ まず10日間、完全無料で試せる</div>
+  </div>
+
+  <!-- 課題セクション -->
+  <div class="section">
+    <div class="section-title">こんなこと、ありませんか？</div>
+    <div class="pain-items">
+      <div class="pain-item"><i class="ti ti-heart-broken pain-icon"></i>旦那には話しても伝わらない</div>
+      <div class="pain-item"><i class="ti ti-moon pain-icon"></i>夜中に誰かに愚痴りたくなる</div>
+      <div class="pain-item"><i class="ti ti-users pain-icon"></i>ママ友に弱音は言いにくい</div>
+      <div class="pain-item"><i class="ti ti-clock pain-icon"></i>ワンオペで話す相手がいない</div>
+    </div>
+    <div class="bubble">「育児って誰かに共感してもらうだけで、こんなに楽になれるんだって気づいた」</div>
+  </div>
+
+  <!-- 統計セクション -->
+  <div class="section">
+    <div class="section-title">「サイレント・ワンオペ」の実態</div>
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="num">43%</div>
+        <div class="label">頼れない理由1位<br>「相手への遠慮」</div>
+      </div>
+      <div class="stat-card">
+        <div class="num">29%</div>
+        <div class="label">「相手の反応が<br>気になるから」</div>
+      </div>
+    </div>
+    <p style="font-size:12px;color:#555;line-height:1.7">AIのママ友は、<strong>遠慮しなくていい。</strong>不機嫌にならない。罪悪感もいらない。深夜でも、何回でも、全部聞いてくれる。</p>
+    <div class="stat-source-note">カラダノート調査（回答者415人）より</div>
+  </div>
+
+  <!-- 機能カード -->
+  <div class="features">
+    <div class="feat-card">
+      <i class="ti ti-message-circle feat-icon"></i>
+      <div class="feat-title">AIママ友<br>10人以上</div>
+      <div class="feat-desc">年代・性格バラバラ。今の気分に合う相手を選んでチャット</div>
+    </div>
+    <div class="feat-card">
+      <i class="ti ti-music feat-icon"></i>
+      <div class="feat-title">懐かしの<br>BGM</div>
+      <div class="feat-desc">エモいJ-POPスタイルが静かに流れる。あの頃の自分に戻れる時間</div>
+    </div>
+    <div class="feat-card">
+      <i class="ti ti-lock feat-icon"></i>
+      <div class="feat-title">完全<br>匿名</div>
+      <div class="feat-desc">会話は暗号化。AI学習にも使われない。ここだけの話が守られる</div>
+    </div>
+    <div class="feat-card">
+      <i class="ti ti-microphone feat-icon"></i>
+      <div class="feat-title">音声<br>通話</div>
+      <div class="feat-desc">プレミアムはAIと実際に話せる。低音パパキャラも登場予定</div>
+    </div>
+    <div class="feat-card">
+      <i class="ti ti-bell feat-icon"></i>
+      <div class="feat-title">朝夜<br>ボイス</div>
+      <div class="feat-desc">毎朝7時・夜10時にペルソナの声で通知が届く</div>
+    </div>
+    <div class="feat-card">
+      <i class="ti ti-sparkles feat-icon"></i>
+      <div class="feat-title">愚痴<br>お片付け</div>
+      <div class="feat-desc">昨日の愚痴を翌朝AIがポジティブな日記に変換して届けてくれる</div>
+    </div>
+  </div>
+
+  <!-- なぜ「ふぅ」という名前なのか -->
+  <div class="section" style="border-left:3px solid #E91E63">
+    <div class="section-title">なぜ「ふぅ」という名前なのか</div>
+    <p style="font-size:13px;color:#555;line-height:2;margin-bottom:.75rem">
+      育児中のママが、やっと子どもを寝かしつけた後に、<br>
+      ひとりでつく深呼吸。
+    </p>
+    <p style="font-size:22px;color:#E91E63;font-weight:400;letter-spacing:4px;margin-bottom:.75rem;text-align:center">
+      「ふぅ。」
+    </p>
+    <p style="font-size:13px;color:#555;line-height:2">
+      その一息が、明日もなんとかやれる気力になる。<br>
+      そんな「ふぅ」を、いつでも作れる場所があったら——<br>
+      3人の子育てをしながら、ずっとそう思っていた私が作りました。
+    </p>
+    <div style="margin-top:1rem;padding:.75rem 1rem;background:#fdf4f7;border-radius:10px;font-size:11px;color:#C2185B;line-height:1.8">
+      誰かに話す前から「これって聞いていいのかな」と思ってしまう人へ。<br>
+      ここでは、そんな遠慮は一切いりません。
+    </div>
+  </div>
+
+  <!-- ペルソナ -->
+  <div class="section">
+    <div class="section-title">あなたに合うAIママ友が必ずいる</div>
+    <div class="persona-list">
+      <div class="persona"><i class="ti ti-user-circle"></i>あおいちゃん<span class="age"> 25歳・新米ママ</span></div>
+      <div class="persona"><i class="ti ti-user-circle"></i>さくらさん<span class="age"> 30歳・共感上手</span></div>
+      <div class="persona"><i class="ti ti-user-circle"></i>みほさん<span class="age"> 33歳・ワーキング</span></div>
+      <div class="persona"><i class="ti ti-user-circle"></i>ゆきこさん<span class="age"> 38歳・先輩ママ</span></div>
+      <div class="persona"><i class="ti ti-user-circle"></i>りかさん<span class="age"> 42歳・毒舌系</span></div>
+      <div class="persona"><i class="ti ti-user-circle"></i>なつこさん<span class="age"> 45歳・癒し系</span></div>
+      <div class="persona" style="background:#f5f5f5;color:#888">+ 続々追加予定</div>
+    </div>
+    <p style="font-size:11px;color:#aaa;margin-top:.75rem">※ パパキャラはリリース3ヶ月後に解禁予定</p>
+  </div>
+
+  <!-- 10日トライアルフロー -->
+  <div class="section">
+    <div class="section-title">10日間の無料体験の流れ</div>
+    <div class="flow">
+      <div class="flow-step active">① 無料登録<br><span style="font-size:9px">クレカ不要</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">② 10日体験<br><span style="font-size:9px">3キャラ×各5回</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">③ 続けるなら<br><span style="font-size:9px">¥100/月〜</span></div>
+    </div>
+    <p style="font-size:11px;color:#888;text-align:center;margin-top:.6rem">いつでも解約できます。自動更新は継続を選んだ場合のみ。</p>
+  </div>
+
+  <!-- プランカード -->
+  <div class="plan-compare">
+    <div class="plan-card">
+      <div class="plan-name">スタンダード</div>
+      <div class="plan-price">¥100<span>/月</span></div>
+      <div class="plan-feature"><i class="ti ti-check"></i>全キャラとチャット無制限</div>
+      <div class="plan-feature"><i class="ti ti-check"></i>BGM 自動再生</div>
+      <div class="plan-feature"><i class="ti ti-check"></i>チャット履歴保存</div>
+      <div class="plan-feature"><i class="ti ti-check"></i>プッシュ通知</div>
+    </div>
+    <div class="plan-card premium">
+      <div class="popular-badge">おすすめ</div>
+      <div class="plan-name">プレミアム</div>
+      <div class="plan-price">¥980<span>/月</span></div>
+      <div class="plan-feature"><i class="ti ti-check"></i>スタンダード全機能</div>
+      <div class="plan-feature"><i class="ti ti-check"></i>音声通話（月30分）</div>
+      <div class="plan-feature"><i class="ti ti-check"></i>朝夜ボイス通知</div>
+      <div class="plan-feature"><i class="ti ti-check"></i>愚痴お片付け機能</div>
+    </div>
+  </div>
+
+  <!-- チケット -->
+  <div class="ticket-card">
+    <i class="ti ti-ticket ticket-icon"></i>
+    <div class="ticket-text">
+      <div class="t-title">今日だけチケット</div>
+      <div class="t-desc">「今日だけご褒美したい」ときのプレミアム1日券。限界の夜に。</div>
+    </div>
+    <div>
+      <div class="ticket-price">¥300<small>/日</small></div>
+    </div>
+  </div>
+
+  <!-- 安心・安全 -->
+  <div class="section" style="margin-bottom:1rem">
+    <div class="section-title">安心・安全の仕組み</div>
+    <div class="safe-items">
+      <div class="safe-item"><i class="ti ti-shield-check"></i>会話は AES-256 暗号化</div>
+      <div class="safe-item"><i class="ti ti-ban"></i>AI 学習に使用しない</div>
+      <div class="safe-item"><i class="ti ti-trash"></i>退会後 90 日で完全削除</div>
+      <div class="safe-item"><i class="ti ti-24-hours"></i>24 時間いつでも話せる</div>
+      <div class="safe-item"><i class="ti ti-device-mobile"></i>アプリで使える（iOS/Android）</div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta">
+    <h3>まず、10日間試してみませんか？</h3>
+    <p>クレカなし・登録1分。<br>合わなければそのままやめてOK。<br>遠慮しなくていい場所が、ここにあります。</p>
+    <a class="cta-btn" href="#">10日間 無料で試す</a>
+    <p class="cta-note">※ 継続の場合のみ ¥100/月〜 が発生します</p>
+    <p class="cta-sub">fuu ふぅ は OGDStudio が運営するサービスです</p>
+  </div>
+
+</div>
+</body>
+</html>

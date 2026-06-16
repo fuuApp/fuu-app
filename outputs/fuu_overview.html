@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>fuu ふぅ — プロジェクト概要</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:#f7f7f7;padding:2rem;color:#212121}
+.page{max-width:860px;margin:0 auto}
+.header{background:#E91E63;border-radius:12px;padding:1.5rem 2rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between}
+.header-left h1{font-size:30px;font-weight:500;color:#fff;letter-spacing:3px}
+.header-left p{font-size:13px;color:#FCE4EC;margin-top:4px}
+.header-right{text-align:right}
+.header-right .badge{background:rgba(255,255,255,0.2);color:#fff;font-size:11px;padding:4px 12px;border-radius:20px;display:inline-block;margin-bottom:4px}
+.header-right p{font-size:11px;color:#FCE4EC}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.card{background:#fff;border:0.5px solid #e0e0e0;border-radius:12px;padding:1rem 1.25rem}
+.card-title{font-size:11px;color:#888;font-weight:500;letter-spacing:.5px;margin-bottom:.75rem;display:flex;align-items:center;gap:5px}
+.card-title i{font-size:14px}
+.metric-card{background:#f5f5f5;border-radius:8px;padding:.75rem 1rem;text-align:center}
+.metric-label{font-size:11px;color:#888;margin-bottom:3px}
+.metric-value{font-size:22px;font-weight:500;color:#E91E63}
+.metric-sub{font-size:10px;color:#999;margin-top:2px}
+.tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;margin:2px}
+.tag-pink{background:#FCE4EC;color:#880E4F}
+.tag-blue{background:#E3F2FD;color:#0C447C}
+.tag-green{background:#EAF3DE;color:#27500A}
+.tag-amber{background:#FAEEDA;color:#633806}
+table{width:100%;border-collapse:collapse;font-size:12px}
+td,th{padding:6px 8px;text-align:left;border-bottom:0.5px solid #e0e0e0}
+th{font-size:10px;font-weight:500;color:#888;background:#f5f5f5}
+td:first-child{color:#212121;font-weight:500}
+td:not(:first-child){color:#616161}
+.flow{display:flex;align-items:center;gap:4px;flex-wrap:nowrap}
+.flow-step{background:#FCE4EC;color:#880E4F;font-size:10px;padding:6px 8px;border-radius:6px;white-space:nowrap;flex:1;text-align:center;line-height:1.4}
+.flow-step.main{background:#E91E63;color:#fff}
+.flow-arrow{color:#bbb;font-size:14px;flex-shrink:0}
+.owner-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:0.5px solid #e0e0e0;font-size:12px}
+.owner-row:last-child{border-bottom:none}
+.owner-name{flex:1;color:#212121;font-weight:500}
+.pill{font-size:10px;padding:2px 8px;border-radius:12px;min-width:70px;text-align:center;display:inline-block}
+.pill-grey{background:#f0f0f0;color:#888}
+.pill-pink{background:#FCE4EC;color:#880E4F}
+.pill-green{background:#EAF3DE;color:#27500A}
+.grid-pages{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.page-box{border-radius:6px;padding:8px;font-size:11px}
+.page-box .label{font-weight:500;color:#E91E63;margin-bottom:3px}
+.page-box .desc{color:#888;line-height:1.4}
+.page-box.normal{background:#f5f5f5}
+.page-box.main-app{background:#FCE4EC}
+.page-box.main-app .label{color:#880E4F}
+.page-box.main-app .desc{color:#880E4F}
+.page-box.legal{background:#FFF9C4;border:0.5px solid #F57F17}
+.page-box.legal .label{color:#E65100}
+.page-box.legal .desc{color:#E65100}
+footer{margin-top:1.5rem;text-align:center;font-size:11px;color:#bbb;padding-bottom:1rem}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div class="header-left">
+      <h1>fuu　ふぅ</h1>
+      <p>育児ママのための AI 共感サブスクアプリ</p>
+    </div>
+    <div class="header-right">
+      <div class="badge">OGDStudio</div>
+      <p>屋号 / 妻名義で事業運営</p>
+    </div>
+  </div>
+
+  <div class="grid4">
+    <div class="metric-card"><div class="metric-label">スタンダード</div><div class="metric-value">¥100</div><div class="metric-sub">/月（年払い）</div></div>
+    <div class="metric-card"><div class="metric-label">プレミアム</div><div class="metric-value">¥980</div><div class="metric-sub">/月（音声つき）</div></div>
+    <div class="metric-card"><div class="metric-label">Stripe 手数料</div><div class="metric-value">3.6%</div><div class="metric-sub">App Store の 15% より有利</div></div>
+    <div class="metric-card"><div class="metric-label">初期投資</div><div class="metric-value">¥0</div><div class="metric-sub">持ち出し不要</div></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title"><i class="ti ti-target"></i>KPI ロードマップ</div>
+      <table>
+        <tr><th>時期</th><th>会員数</th><th>月間 MRR</th><th>月間純利益</th></tr>
+        <tr><td>3ヶ月後</td><td>100人</td><td>¥23,200</td><td>¥15,090</td></tr>
+        <tr><td>6ヶ月後</td><td>1,000人</td><td>¥232,000</td><td>¥150,898</td></tr>
+        <tr><td>1年後</td><td>3,000人</td><td>¥696,000</td><td>¥450,194</td></tr>
+        <tr><td>2年後</td><td>5,000人</td><td>¥1,160,000</td><td>¥751,990</td></tr>
+      </table>
+      <div style="margin-top:8px;font-size:10px;color:#999">※ 1年目累計売上 約¥320万 ／ 2年目累計 約¥1,114万</div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-stack"></i>技術スタック</div>
+      <div style="margin-bottom:6px"><span class="tag tag-pink">Next.js 14 (PWA)</span><span class="tag tag-pink">Vercel</span></div>
+      <div style="margin-bottom:6px"><span class="tag tag-blue">Supabase DB/Auth</span><span class="tag tag-blue">AES-256 暗号</span></div>
+      <div style="margin-bottom:6px"><span class="tag tag-amber">Claude Haiku API</span><span class="tag tag-amber">OpenAI 音声</span></div>
+      <div style="margin-bottom:6px"><span class="tag tag-green">Stripe 決済</span><span class="tag tag-green">Resend メール</span></div>
+      <div style="margin-top:10px;padding:8px 10px;background:#f5f5f5;border-radius:6px;font-size:11px;color:#888;line-height:1.5">
+        <strong style="color:#E91E63">Phase 2</strong> — 会員安定後に React Native でネイティブアプリ化
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:10px">
+    <div class="card-title"><i class="ti ti-route"></i>ユーザーが辿る流れ</div>
+    <div class="flow">
+      <div class="flow-step">① SNS / 口コミ</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">② LP 閲覧<br><span style="font-size:9px">fuu-app.jp</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">③ 無料登録<br><span style="font-size:9px">初月無料</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step main">④ Stripe 決済<br><span style="font-size:9px">¥100 / ¥980</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">⑤ アプリ利用<br><span style="font-size:9px">PWA / ブラウザ</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">⑥ 継続 or 解約<br><span style="font-size:9px">年払いで抑制</span></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title"><i class="ti ti-building"></i>名義・ブランドの関係</div>
+      <table>
+        <tr><th>区分</th><th>名称</th><th>用途</th></tr>
+        <tr><td>屋号（法的）</td><td>OGDStudio</td><td>特商法・Stripe・契約</td></tr>
+        <tr><td>ブランド</td><td>fuu ふぅ</td><td>アプリ・SNS・LP</td></tr>
+        <tr><td>ドメイン</td><td>fuu-app.jp 等</td><td>LP〜アプリ全ページ</td></tr>
+        <tr><td>OGDStudio サイト</td><td>不要（当面）</td><td>2サービス目以降に検討</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-switch-horizontal"></i>社長 → 妻 切り替え一覧</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px;font-size:10px">
+        <span class="pill pill-grey">社長（開発中）</span>
+        <span class="pill pill-pink">妻へ切替（ローンチ）</span>
+        <span class="pill pill-green">最初から妻</span>
+      </div>
+      <div class="owner-row"><span class="owner-name">Claude API</span><span class="pill pill-grey">社長</span><span style="color:#bbb;font-size:12px;padding:0 2px">→</span><span class="pill pill-pink">妻へ（キー差替）</span></div>
+      <div class="owner-row"><span class="owner-name">OpenAI API</span><span class="pill pill-grey">社長</span><span style="color:#bbb;font-size:12px;padding:0 2px">→</span><span class="pill pill-pink">妻へ（キー差替）</span></div>
+      <div class="owner-row"><span class="owner-name">Vercel</span><span class="pill pill-grey">社長</span><span style="color:#bbb;font-size:12px;padding:0 2px">→</span><span class="pill pill-pink">妻へ（移管）</span></div>
+      <div class="owner-row"><span class="owner-name">Stripe</span><span class="pill" style="visibility:hidden">—</span><span style="color:transparent;font-size:12px;padding:0 2px">→</span><span class="pill pill-green">最初から妻</span></div>
+      <div class="owner-row"><span class="owner-name">Supabase 本番</span><span class="pill" style="visibility:hidden">—</span><span style="color:transparent;font-size:12px;padding:0 2px">→</span><span class="pill pill-green">最初から妻</span></div>
+      <div class="owner-row"><span class="owner-name">Google Play</span><span class="pill" style="visibility:hidden">—</span><span style="color:transparent;font-size:12px;padding:0 2px">→</span><span class="pill pill-green">最初から妻</span></div>
+      <div class="owner-row"><span class="owner-name">GitHub</span><span class="pill pill-grey">社長のまま</span><span style="color:#bbb;font-size:12px;padding:0 2px">—</span><span class="pill pill-grey">切替不要</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><i class="ti ti-layout-list"></i>ドメイン内ページ構成（Next.js PWA — 1 ドメインですべて完結）</div>
+    <div class="grid-pages">
+      <div class="page-box normal"><div class="label">/ トップ</div><div class="desc">LP・新規獲得の入口</div></div>
+      <div class="page-box normal"><div class="label">/login</div><div class="desc">メール・Google SSO 登録</div></div>
+      <div class="page-box main-app"><div class="label">/app</div><div class="desc">チャット・BGM・タイムライン本体</div></div>
+      <div class="page-box normal"><div class="label">/app/chat/:id</div><div class="desc">ペルソナ個別チャット</div></div>
+      <div class="page-box normal"><div class="label">/terms</div><div class="desc">利用規約</div></div>
+      <div class="page-box normal"><div class="label">/privacy</div><div class="desc">プライバシーポリシー</div></div>
+      <div class="page-box legal"><div class="label">/tokusho</div><div class="desc">特商法：OGDStudio + 妻本名（法定必須）</div></div>
+      <div class="page-box normal"><div class="label">/app/settings</div><div class="desc">プラン変更・設定</div></div>
+    </div>
+  </div>
+
+  <footer>OGDStudio × fuu ふぅ　プロジェクト概要 — 社長 × CEO</footer>
+</div>
+</body>
+</html>

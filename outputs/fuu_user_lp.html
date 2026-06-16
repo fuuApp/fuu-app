@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>fuu ふぅ — 育児ママのための AI 共感アプリ</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic Pro","Yu Gothic",Arial,sans-serif;background:#fdf4f7;color:#212121}
+.lp{max-width:480px;margin:0 auto;padding:1.5rem 1.25rem 3rem}
+.hero{background:#E91E63;border-radius:20px;padding:2rem 1.5rem 1.75rem;text-align:center;margin-bottom:1.25rem}
+.hero-badge{display:inline-block;background:rgba(255,255,255,0.2);color:#fff;font-size:11px;padding:4px 14px;border-radius:20px;margin-bottom:1rem;letter-spacing:1px}
+.hero h1{font-size:36px;font-weight:400;color:#fff;letter-spacing:5px;margin-bottom:.5rem}
+.hero .tagline{font-size:13px;color:#FCE4EC;line-height:1.8;margin-bottom:1.5rem}
+.hero-price{display:flex;align-items:center;justify-content:center;gap:1rem}
+.price-box{background:rgba(255,255,255,0.15);border-radius:12px;padding:.6rem 1.25rem;text-align:center}
+.price-box .plan{font-size:10px;color:#FCE4EC;margin-bottom:3px;letter-spacing:.5px}
+.price-box .amount{font-size:22px;font-weight:500;color:#fff}
+.price-box .unit{font-size:10px;color:#FCE4EC}
+.section{background:#fff;border-radius:16px;padding:1.25rem;margin-bottom:1rem;border:0.5px solid #f0e0e6}
+.section-title{font-size:11px;color:#C2185B;font-weight:500;letter-spacing:.5px;margin-bottom:.75rem}
+.pain-items{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pain-item{display:flex;align-items:flex-start;gap:8px;font-size:13px;color:#555;line-height:1.5}
+.pain-icon{color:#E91E63;font-size:16px;margin-top:1px;flex-shrink:0}
+.bubble{background:#FCE4EC;border-radius:10px;padding:.7rem 1rem;font-size:12px;color:#880E4F;line-height:1.7;margin-top:10px;font-style:italic}
+.features{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1rem}
+.feat-card{background:#fff;border-radius:14px;padding:.9rem .75rem;text-align:center;border:0.5px solid #f0e0e6}
+.feat-icon{font-size:26px;color:#E91E63;margin-bottom:.4rem;display:block}
+.feat-title{font-size:12px;font-weight:500;color:#212121;margin-bottom:.25rem}
+.feat-desc{font-size:10px;color:#888;line-height:1.5}
+.persona-list{display:flex;flex-wrap:wrap;gap:7px}
+.persona{background:#FCE4EC;border-radius:20px;padding:5px 11px;font-size:12px;color:#880E4F;display:flex;align-items:center;gap:4px}
+.persona .age{font-size:10px;color:#C2185B}
+.plan-compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem}
+.plan-card{border-radius:16px;padding:1.25rem;border:0.5px solid #f0e0e6;background:#fff}
+.plan-card.premium{border:2px solid #E91E63;background:#fff}
+.plan-name{font-size:11px;font-weight:500;color:#888;margin-bottom:.4rem;letter-spacing:.5px}
+.plan-price{font-size:26px;font-weight:500;color:#E91E63;margin-bottom:.2rem}
+.plan-price span{font-size:11px;font-weight:400;color:#aaa}
+.plan-feature{font-size:11px;color:#666;margin-top:7px;display:flex;align-items:flex-start;gap:5px;line-height:1.5}
+.plan-feature i{color:#E91E63;font-size:13px;margin-top:1px;flex-shrink:0}
+.popular-badge{display:inline-block;background:#FCE4EC;color:#880E4F;font-size:10px;padding:2px 9px;border-radius:12px;margin-bottom:5px}
+.safe-items{display:flex;flex-wrap:wrap;gap:6px}
+.safe-item{display:flex;align-items:center;gap:5px;font-size:12px;color:#555;background:#fdf4f7;border:0.5px solid #f0d8e3;padding:5px 11px;border-radius:20px}
+.safe-item i{color:#E91E63;font-size:14px}
+.cta{background:#E91E63;border-radius:20px;padding:2rem 1.5rem;text-align:center}
+.cta h3{font-size:18px;font-weight:500;color:#fff;margin-bottom:.4rem}
+.cta p{font-size:12px;color:#FCE4EC;margin-bottom:1.25rem;line-height:1.7}
+.cta-btn{display:inline-block;background:#fff;color:#E91E63;font-size:14px;font-weight:500;padding:.75rem 2.25rem;border-radius:28px;text-decoration:none;letter-spacing:.5px}
+.cta-note{font-size:10px;color:#FCE4EC;margin-top:.85rem}
+</style>
+</head>
+<body>
+<div class="lp">
+
+  <div class="hero">
+    <div class="hero-badge">育児中ママのための、ひみつの隠れ家</div>
+    <h1>fuu　ふぅ</h1>
+    <p class="tagline">「誰にも言えない」育児の愚痴と本音を、<br>AIのママ友がいつでも、そっと聞いてくれる。</p>
+    <div class="hero-price">
+      <div class="price-box">
+        <div class="plan">スタンダード</div>
+        <div class="amount">¥100<span style="font-size:12px">/月</span></div>
+        <div class="unit">お守り価格</div>
+      </div>
+      <div class="price-box">
+        <div class="plan">プレミアム</div>
+        <div class="amount">¥980<span style="font-size:12px">/月</span></div>
+        <div class="unit">音声通話つき</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">こんなこと、ありませんか？</div>
+    <div class="pain-items">
+      <div class="pain-item"><i class="ti ti-heart-broken pain-icon"></i>旦那には話しても伝わらない</div>
+      <div class="pain-item"><i class="ti ti-moon pain-icon"></i>夜中に誰かに愚痴りたくなる</div>
+      <div class="pain-item"><i class="ti ti-users pain-icon"></i>ママ友に弱音は言いにくい</div>
+      <div class="pain-item"><i class="ti ti-clock pain-icon"></i>ワンオペで話す相手がいない</div>
+    </div>
+    <div class="bubble">「育児って誰かに共感してもらうだけで、こんなに楽になれるんだって気づいた」</div>
+  </div>
+
+  <div class="features">
+    <div class="feat-card">
+      <i class="ti ti-message-circle feat-icon"></i>
+      <div class="feat-title">10人のAIママ友</div>
+      <div class="feat-desc">年代・性格バラバラな10人から今の気分に合う相手を選んでチャット</div>
+    </div>
+    <div class="feat-card">
+      <i class="ti ti-music feat-icon"></i>
+      <div class="feat-title">懐かしのBGM</div>
+      <div class="feat-desc">エモいJ-POPが静かに流れる。あの頃の自分に戻れる時間</div>
+    </div>
+    <div class="feat-card">
+      <i class="ti ti-lock feat-icon"></i>
+      <div class="feat-title">完全匿名</div>
+      <div class="feat-desc">会話は暗号化。AI学習にも使われない。ここだけの話が守られる</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">10人のペルソナ — あなたに合う相手が必ずいる</div>
+    <div class="persona-list">
+      <div class="persona"><i class="ti ti-user-circle"></i>あおいちゃん<span class="age"> 25歳・新米ママ</span></div>
+      <div class="persona"><i class="ti ti-user-circle"></i>さくらさん<span class="age"> 30歳・共感上手</span></div>
+      <div class="persona"><i class="ti ti-user-circle"></i>みほさん<span class="age"> 33歳・ワーキングママ</span></div>
+      <div class="persona"><i class="ti ti-user-circle"></i>ゆきこさん<span class="age"> 38歳・先輩ママ</span></div>
+      <div class="persona"><i class="ti ti-user-circle"></i>りかさん<span class="age"> 42歳・毒舌系</span></div>
+      <div class="persona"><i class="ti ti-user-circle"></i>なつこさん<span class="age"> 45歳・癒し系</span></div>
+      <div class="persona" style="background:#f5f5f5;color:#888">+ 4人</div>
+    </div>
+  </div>
+
+  <div class="plan-compare">
+    <div class="plan-card">
+      <div class="plan-name">スタンダード</div>
+      <div class="plan-price">¥100<span>/月</span></div>
+      <div class="plan-feature"><i class="ti ti-check"></i>全員とチャット無制限</div>
+      <div class="plan-feature"><i class="ti ti-check"></i>BGM 自動再生</div>
+      <div class="plan-feature"><i class="ti ti-check"></i>チャット履歴保存</div>
+      <div class="plan-feature"><i class="ti ti-check"></i>通知機能</div>
+    </div>
+    <div class="plan-card premium">
+      <div class="popular-badge">おすすめ</div>
+      <div class="plan-name">プレミアム</div>
+      <div class="plan-price">¥980<span>/月</span></div>
+      <div class="plan-feature"><i class="ti ti-check"></i>スタンダード全機能</div>
+      <div class="plan-feature"><i class="ti ti-check"></i>音声通話（月60分）</div>
+      <div class="plan-feature"><i class="ti ti-check"></i>BGM リクエスト</div>
+      <div class="plan-feature"><i class="ti ti-check"></i>カスタムペルソナ</div>
+    </div>
+  </div>
+
+  <div class="section" style="margin-bottom:1rem">
+    <div class="section-title">安心・安全の仕組み</div>
+    <div class="safe-items">
+      <div class="safe-item"><i class="ti ti-shield-check"></i>会話は AES-256 暗号化</div>
+      <div class="safe-item"><i class="ti ti-ban"></i>AI 学習に使用しない</div>
+      <div class="safe-item"><i class="ti ti-trash"></i>退会後 90 日で完全削除</div>
+      <div class="safe-item"><i class="ti ti-24-hours"></i>24 時間いつでも話せる</div>
+      <div class="safe-item"><i class="ti ti-device-mobile"></i>ブラウザだけで使える</div>
+    </div>
+  </div>
+
+  <div class="cta">
+    <h3>まず、試してみませんか？</h3>
+    <p>初月無料。クレカなしで登録できます。<br>いつでも退会できるから、気軽に始めてみて。</p>
+    <a class="cta-btn" href="#">今すぐ無料で試す</a>
+    <p class="cta-note">※ fuu ふぅ は OGDStudio が運営するサービスです</p>
+  </div>
+
+</div>
+</body>
+</html>
