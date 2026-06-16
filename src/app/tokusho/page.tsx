@@ -18,7 +18,7 @@ export default function TokushoPage() {
           <tbody>
             {[
               ['販売事業者', 'OGAWAVE'],
-              ['運営責任者', '[氏名]'],
+              ['運営責任者', '小川博吉'],
               ['所在地', '[バーチャルオフィス住所]（※契約後に更新）'],
               ['電話番号', '電話番号は請求があり次第、遅滞なく開示いたします\nお問い合わせ：fuu.support@gmail.com'],
               ['メールアドレス', 'fuu.support@gmail.com'],
@@ -46,7 +46,7 @@ export default function TokushoPage() {
                 </td>
                 <td style={{
                   padding: '12px 0', verticalAlign: 'top', whiteSpace: 'pre-line',
-                  ...(label === '運営責任者' ? { fontSize: 10, color: '#bbb' } : {}),
+                  ...(label === '運営責任者' ? { fontSize: 7, color: '#ddd' } : {}),
                 }}>
                   {value}
                 </td>
