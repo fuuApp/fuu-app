@@ -1,4 +1,0 @@
-User-agent: *
-Disallow: /tokusho
-Disallow: /terms
-Disallow: /privacy
