@@ -1,9 +1,10 @@
 # fuu ふぅ プロジェクト状態メモ
-## 最終更新：2026-06-08（午後）
+## 最終更新：2026-06-16
 
 ## 仕様書
-- 最新：**fuu_master_spec_v14.docx**（プロジェクトルート）← v14に更新済
+- 最新：**fuu_master_spec_v16.4.docx**（プロジェクトルート）← v16.4に更新済
 - 本番URL：https://fuu-app.vercel.app（デプロイ済・稼働中）
+- 事業者名：**OGAWAVE**（個人事業主）← OGLabから変更済
 
 ## 技術スタック
 - Next.js 14 + TypeScript + Tailwind
@@ -17,7 +18,8 @@
 - STRIPE_SECRET_KEY ✅
 - STRIPE_PRICE_STANDARD ✅（¥300）
 - STRIPE_PRICE_PREMIUM ✅（¥980）
-- STRIPE_WEBHOOK_SECRET ✅
+- STRIPE_WEBHOOK_SECRET ✅（本番Webhook: vibrant-breeze）
+- STRIPE_PRICE_TICKET ✅（¥300 チケット）
 - ENCRYPTION_KEY ✅（2026/6/8設定完了）
 - ANTHROPIC_API_KEY ✅
 - OPENAI_API_KEY ✅
@@ -86,18 +88,21 @@
 ### プラン判定
 - ChatClient.tsx：Supabase profiles.plan を参照（STT表示制御）
 - plans/page.tsx：Supabase profiles.plan を参照（プラン表示）
-- app/page.tsx（キャラ選択）：localStorage('fuu_trial_started_at') で使用日数表示
+- app/page.tsx（キャラ選択）：Supabase profiles.trial_started_at から使用日数計算（localStorage廃止）
 
 ## 残タスク（優先順）
-- [ ] 🔴 スタンダード¥300本番決済テスト（ブラウザで可能）
-- [ ] 🔴 300円チケット決済テスト
+- [ ] 🔴 本番動作テスト（チャット回数制限・残り回数バッジ・チケット有効化）
+- [ ] 🔴 特商法ページ実名・住所更新（[氏名]プレースホルダーを実名に）
+- [ ] 🔴 バーチャルオフィス契約（Karigo推奨）→ 特商法住所に反映
+- [ ] 🔴 開業届提出
 - [x] 🔴 fuu.support@gmail.com 取得 ✅ 完了（2026/6/8）
-- [ ] 🔴 Stripe statement_descriptor 設定（Dashboard → Settings）
-- [ ] 🔴 特商法ページ実名更新（[氏名]プレースホルダーを実名に）
-- [ ] 🔴 バーチャルオフィス契約（Karigo推奨）
+- [x] 🔴 Stripe本番アカウント設定（OGAWAVE名義）✅ 完了（2026/6/16）
+- [x] 🔴 Stripe商品3つ・クーポン2つ作成 ✅ 完了（2026/6/16）
+- [x] 🔴 Stripe Webhook設定（本番） ✅ 完了（2026/6/16）
+- [ ] 🟡 Stripe statement_descriptor 設定（Dashboard → Settings）
 - [ ] 🟡 iOS ビルド・動作確認
 - [ ] 🟡 電気通信事業届出（総務省オンライン）
-- [ ] 🟡 開業届・青色申告申請書
+- [ ] 🟡 Firebase push notification設定（延期中）
 
 ## ファイル構成メモ
 - Next.js ソース：src/
