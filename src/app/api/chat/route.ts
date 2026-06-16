@@ -12,6 +12,7 @@ const anthropic = new Anthropic({
 // ── プラン別月間会話上限 ──────────────────────────────────────
 const PLAN_LIMITS: Record<string, number> = {
   free:     70,
+  trial:    70,  // DBのplan列が'trial'の場合も同じ制限
   standard: 200,
   premium:  900,
 }
@@ -49,7 +50,8 @@ async function checkAndIncrementUsage(userId: string): Promise<
   }
 
   // ── トライアル期限チェック（trial_started_at + 10日）──
-  if (profile.plan === 'free') {
+  // DBのplan値は 'free' または 'trial' どちらもトライアル扱い
+  if (profile.plan === 'free' || profile.plan === 'trial') {
     const trialStart = profile.trial_started_at ? new Date(profile.trial_started_at) : null
     const trialEnd = trialStart ? new Date(trialStart.getTime() + 10 * 24 * 60 * 60 * 1000) : null
     if (!trialEnd || trialEnd < now) {

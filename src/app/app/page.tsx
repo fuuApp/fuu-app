@@ -79,8 +79,10 @@ export default function CharacterSelectPage() {
 
   const allCharacters = getAllCharacters().filter(c => c.isAvailable)
 
-  // トライアル終了判定（free planで10日超過）
-  const trialExpired = plan === 'free' && usageDays >= 10
+  // トライアル終了判定（free/trial planで10日超過）
+  // DBのplan値は'free'または'trial'どちらもトライアル扱い
+  const isTrial = plan === 'free' || plan === 'trial'
+  const trialExpired = isTrial && usageDays >= 10
 
   // 解放条件：サブスクプランで判定
   // あおい・さくら：無料トライアルから（常に解放）
@@ -90,7 +92,7 @@ export default function CharacterSelectPage() {
     if (!c.isPremium && c.unlockDaysRequired === 0) return false // あおい・さくら
     if (c.isPremium) return plan !== 'premium'  // けんじ・ひろし
     // りか・なつこ（isPremium:false かつ unlockDaysRequired:0 だが将来的にstandard制限）
-    return plan === 'free' && usageDays < 10    // トライアル10日以内はりか・なつこもロック
+    return isTrial && usageDays < 10    // トライアル10日以内はりか・なつこもロック
   }
 
   const unlockLabel = (c: Character): string => {
