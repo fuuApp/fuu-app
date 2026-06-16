@@ -76,7 +76,7 @@ export default function LandingPage() {
               style={{ borderRadius: 12, flexShrink: 0 }}
             />
             <p style={{ fontSize: 13, color: '#880E4F', fontStyle: 'italic', margin: 0 }}>
-              3人の子育てをしながら、<br />ずっとそう思っていた私が作りました。
+              3人の子育てをした妻の想いを聞き作りました。
             </p>
           </div>
         </div>
