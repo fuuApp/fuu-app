@@ -86,7 +86,8 @@ function PlansContent() {
             .select('plan, ticket_active_until')
             .eq('user_id', user.id)
             .single()
-          if (profile?.plan) setCurrentPlan(profile.plan)
+          // 'free' はトライアル扱いとして表示
+          if (profile?.plan) setCurrentPlan(profile.plan === 'free' ? 'trial' : profile.plan)
           if (profile?.ticket_active_until) setTicketActiveUntil(profile.ticket_active_until)
 
           // 未使用チケット枚数を取得

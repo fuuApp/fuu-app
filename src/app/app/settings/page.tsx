@@ -86,10 +86,9 @@ function DeleteAccountModal({ onConfirm, onCancel, isDeleting }: {
   )
 }
 
-function calcTrialDaysLeft(): number {
-  const started = localStorage.getItem(TRIAL_START_KEY)
-  if (!started) { localStorage.setItem(TRIAL_START_KEY, new Date().toISOString()); return TRIAL_DAYS }
-  return Math.max(0, TRIAL_DAYS - Math.floor((Date.now() - new Date(started).getTime()) / 86400000))
+function calcTrialDaysLeftFromDate(trialStartedAt: string | null): number {
+  if (!trialStartedAt) return TRIAL_DAYS
+  return Math.max(0, TRIAL_DAYS - Math.floor((Date.now() - new Date(trialStartedAt).getTime()) / 86400000))
 }
 
 export default function SettingsPage() {
@@ -99,7 +98,7 @@ export default function SettingsPage() {
   const [editing, setEditing] = useState(false)
   const [saved, setSaved] = useState(false)
   const [trialDaysLeft, setTrialDaysLeft] = useState(TRIAL_DAYS)
-  const [userPlan] = useState<'trial'|'standard'|'premium'>('trial')
+  const [userPlan, setUserPlan] = useState<'trial'|'standard'|'premium'>('trial')
   const [bgmEnabled, setBgmEnabled] = useState(true)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -113,7 +112,6 @@ export default function SettingsPage() {
   useEffect(() => {
     const n = localStorage.getItem(NICKNAME_KEY) ?? ''
     setNickname(n); setNicknameInput(n)
-    setTrialDaysLeft(calcTrialDaysLeft())
     const bgm = localStorage.getItem(BGM_KEY)
     setBgmEnabled(bgm === null ? true : bgm === 'true')
     const mt = localStorage.getItem('fuu_morning_time'); if (mt) setMorningTime(mt)
@@ -126,6 +124,26 @@ export default function SettingsPage() {
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(() => {})
     }
+    // Supabaseからプランとtrial_started_atを取得
+    ;(async () => {
+      try {
+        const { createClient } = await import('@/lib/supabase')
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('plan, trial_started_at')
+          .eq('user_id', user.id)
+          .single()
+        if (!profile) return
+        const plan = profile.plan ?? 'free'
+        if (plan === 'premium') setUserPlan('premium')
+        else if (plan === 'standard') setUserPlan('standard')
+        else setUserPlan('trial')
+        setTrialDaysLeft(calcTrialDaysLeftFromDate(profile.trial_started_at ?? null))
+      } catch {}
+    })()
   }, [])
 
   const handleSaveNickname = () => {
