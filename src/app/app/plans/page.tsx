@@ -65,6 +65,8 @@ function PlansContent() {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
   const [loadingTicket, setLoadingTicket] = useState(false)
   const [loadingActivate, setLoadingActivate] = useState(false)
+  const [loadingCancel, setLoadingCancel] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [currentPlan, setCurrentPlan] = useState<string>('trial') // trial / standard / premium
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [ticketActiveUntil, setTicketActiveUntil] = useState<string | null>(null)
@@ -499,8 +501,65 @@ function PlansContent() {
             <strong>STRIPE_SETUP.md</strong> を参照してください。
           </div>
         )}
+
+        {/* 解約ボタン（有料プランのみ表示） */}
+        {(currentPlan === 'standard' || currentPlan === 'premium') && (
+          <div style={{ marginTop: 32, paddingTop: 24, borderTop: '1px solid #FCE4EC', textAlign: 'center' }}>
+            <button
+              onClick={() => setShowCancelConfirm(true)}
+              style={{ background: 'none', border: 'none', color: '#aaa', fontSize: 13, cursor: 'pointer', textDecoration: 'underline', fontFamily: 'inherit' }}
+            >
+              解約する
+            </button>
+            <div style={{ fontSize: 11, color: '#ccc', marginTop: 6 }}>解約後も次回更新日まで利用できます</div>
+          </div>
+        )}
+
+        <div style={{ height: 40 }} />
       </div>
     </div>
+
+    {/* 解約確認モーダル */}
+    {showCancelConfirm && (
+      <div
+        onClick={() => setShowCancelConfirm(false)}
+        style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: 24 }}
+      >
+        <div
+          onClick={e => e.stopPropagation()}
+          style={{ background: '#fff', borderRadius: 20, padding: 28, maxWidth: 320, width: '100%', boxShadow: '0 8px 32px rgba(0,0,0,0.15)' }}
+        >
+          <div style={{ fontSize: 13, color: '#333', lineHeight: 1.8, marginBottom: 20 }}>
+            <strong>解約しますか？</strong><br />
+            解約後も次回更新日まで引き続きご利用いただけます。日割り返金はありません。
+          </div>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button
+              onClick={() => setShowCancelConfirm(false)}
+              style={{ flex: 1, background: '#f5f5f5', border: 'none', borderRadius: 12, padding: '12px 0', fontSize: 14, color: '#666', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}
+            >キャンセル</button>
+            <button
+              onClick={async () => {
+                setLoadingCancel(true)
+                try {
+                  const res = await fetch('/api/subscription/cancel', { method: 'POST' })
+                  const data = await res.json()
+                  if (!res.ok) throw new Error(data.error)
+                  setShowCancelConfirm(false)
+                  setToastMessage({ type: 'success', text: `解約しました。${data.cancelAt ? data.cancelAt + 'まで' : '次回更新日まで'}ご利用できます。` })
+                } catch (e: any) {
+                  setToastMessage({ type: 'error', text: e.message ?? '解約処理に失敗しました' })
+                } finally {
+                  setLoadingCancel(false)
+                }
+              }}
+              disabled={loadingCancel}
+              style={{ flex: 1, background: '#f44336', border: 'none', borderRadius: 12, padding: '12px 0', fontSize: 14, color: '#fff', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 700, opacity: loadingCancel ? 0.6 : 1 }}
+            >{loadingCancel ? '処理中...' : '解約する'}</button>
+          </div>
+        </div>
+      </div>
+    )}
   )
 }
 
