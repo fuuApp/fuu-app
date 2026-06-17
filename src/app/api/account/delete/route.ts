@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ── 3. Stripeサブスクを即時キャンセル（有料ユーザーのみ）──
-    if (profile.stripe_customer_id && profile.plan !== 'free') {
+    if (profile.stripe_customer_id && profile.plan !== 'free' && profile.plan !== 'trial') {
       try {
         const subscriptions = await stripe.subscriptions.list({
           customer: profile.stripe_customer_id,

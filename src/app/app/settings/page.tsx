@@ -10,11 +10,10 @@ const TRIAL_START_KEY = 'fuu_trial_started_at'
 const TRIAL_DAYS = 10
 const BGM_KEY = 'fuu_bgm_enabled'
 
-function DeleteAccountModal({ onConfirm, onCancel, isDeleting }: {
-  onConfirm: () => void; onCancel: () => void; isDeleting: boolean
+function DeleteAccountModal({ onConfirm, onCancel, isDeleting, isTrial }: {
+  onConfirm: () => void; onCancel: () => void; isDeleting: boolean; isTrial: boolean
 }) {
   const [confirmText, setConfirmText] = useState('')
-  const [step, setStep] = useState<1 | 2>(1)
   const REQUIRED = '退会する'
   const ready = confirmText === REQUIRED && !isDeleting
 
@@ -24,43 +23,45 @@ function DeleteAccountModal({ onConfirm, onCancel, isDeleting }: {
         <div style={{ fontSize:32,textAlign:'center',marginBottom:12 }}>⚠️</div>
         <div style={{ fontWeight:700,fontSize:17,color:'#333',textAlign:'center',marginBottom:16 }}>退会の前に必ずご確認ください</div>
 
-        {/* STEP 1: サブスクキャンセル案内 */}
-        <div style={{ background:'#FFF3E0',border:'1px solid #FFB74D',borderRadius:14,padding:'14px 16px',marginBottom:14 }}>
-          <div style={{ fontWeight:700,fontSize:13,color:'#E65100',marginBottom:8 }}>📌 STEP 1：サブスクリプションを先にキャンセル</div>
-          <div style={{ fontSize:12,color:'#555',lineHeight:1.8 }}>
-            月額プラン（スタンダード・プレミアム）をご利用中の場合、<strong>退会前に必ずサブスクリプションをキャンセル</strong>してください。<br /><br />
-            退会後もサブスクリプションは自動継続されます。キャンセルしないと引き落としが続きます。
-          </div>
-          <div style={{ marginTop:10,background:'#fff',borderRadius:10,padding:'10px 12px',border:'1px solid #FFD180' }}>
-            <div style={{ fontSize:11,color:'#F57F17',fontWeight:700,marginBottom:6 }}>▼ キャンセル手順（Stripe）</div>
-            <div style={{ fontSize:11,color:'#555',lineHeight:1.9 }}>
-              1. <a href="https://billing.stripe.com/p/login" target="_blank" rel="noreferrer" style={{ color:'#E91E63',fontWeight:700 }}>billing.stripe.com</a> にアクセス<br />
-              2. ご登録のメールアドレスでログイン<br />
-              3.「サブスクリプション」→「キャンセル」をタップ<br />
-              4. キャンセル完了のメールを確認<br />
-              5. キャンセル後にこの退会手続きへ進む
+        {/* 有料プランのみ: サブスクキャンセル案内 */}
+        {!isTrial && (
+          <div style={{ background:'#FFF3E0',border:'1px solid #FFB74D',borderRadius:14,padding:'14px 16px',marginBottom:14 }}>
+            <div style={{ fontWeight:700,fontSize:13,color:'#E65100',marginBottom:8 }}>📌 STEP 1：サブスクリプションを先にキャンセル</div>
+            <div style={{ fontSize:12,color:'#555',lineHeight:1.8 }}>
+              月額プラン（スタンダード・プレミアム）をご利用中の場合、<strong>退会前に必ずサブスクリプションをキャンセル</strong>してください。<br /><br />
+              退会後もサブスクリプションは自動継続されます。キャンセルしないと引き落としが続きます。
+            </div>
+            <div style={{ marginTop:10,background:'#fff',borderRadius:10,padding:'10px 12px',border:'1px solid #FFD180' }}>
+              <div style={{ fontSize:11,color:'#F57F17',fontWeight:700,marginBottom:6 }}>▼ キャンセル手順（Stripe）</div>
+              <div style={{ fontSize:11,color:'#555',lineHeight:1.9 }}>
+                1. <a href="https://billing.stripe.com/p/login" target="_blank" rel="noreferrer" style={{ color:'#E91E63',fontWeight:700 }}>billing.stripe.com</a> にアクセス<br />
+                2. ご登録のメールアドレスでログイン<br />
+                3.「サブスクリプション」→「キャンセル」をタップ<br />
+                4. キャンセル完了のメールを確認<br />
+                5. キャンセル後にこの退会手続きへ進む
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* STEP 2: 削除されるデータ */}
+        {/* 削除されるデータ */}
         <div style={{ background:'#FFF8E1',border:'1px solid #FFD54F',borderRadius:14,padding:'14px 16px',marginBottom:14 }}>
-          <div style={{ fontWeight:700,fontSize:13,color:'#F57F17',marginBottom:8 }}>📌 STEP 2：削除されるデータを確認</div>
+          <div style={{ fontWeight:700,fontSize:13,color:'#F57F17',marginBottom:8 }}>📌 {isTrial ? 'STEP 1' : 'STEP 2'}：削除されるデータを確認</div>
           <div style={{ fontSize:12,color:'#555',lineHeight:1.9 }}>
             退会すると以下のデータが<strong>完全に削除</strong>され、復元できません：<br />
             ・すべての会話履歴<br />
             ・気持ちの箱（愚痴の変換記録）<br />
             ・ニックネーム・設定情報<br />
-            ・アカウント情報<br /><br />
-            ※ サブスクリプション未キャンセルのまま退会した場合の返金はできかねます。
+            ・アカウント情報<br />
+            {!isTrial && <><br />※ サブスクリプション未キャンセルのまま退会した場合の返金はできかねます。</>}
           </div>
         </div>
 
-        {/* STEP 3: 確認入力 */}
+        {/* 確認入力 */}
         <div style={{ background:'#FFEBEE',border:'1px solid #FFCDD2',borderRadius:14,padding:'14px 16px',marginBottom:16 }}>
-          <div style={{ fontWeight:700,fontSize:13,color:'#C62828',marginBottom:8 }}>📌 STEP 3：退会を実行</div>
+          <div style={{ fontWeight:700,fontSize:13,color:'#C62828',marginBottom:8 }}>📌 {isTrial ? 'STEP 2' : 'STEP 3'}：退会を実行</div>
           <div style={{ fontSize:12,color:'#888',marginBottom:8 }}>
-            サブスクキャンセル完了後、「<strong style={{ color:'#E57373' }}>退会する</strong>」と入力して退会ボタンを押してください
+            「<strong style={{ color:'#E57373' }}>退会する</strong>」と入力して退会ボタンを押してください
           </div>
           <input
             value={confirmText}
@@ -207,7 +208,7 @@ export default function SettingsPage() {
 
   return (
     <div style={{ maxWidth:480,margin:'0 auto',background:'#fdf4f7',minHeight:'100dvh' }}>
-      {showDeleteModal && <DeleteAccountModal onConfirm={handleDeleteAccount} onCancel={() => { setShowDeleteModal(false); setDeleteError('') }} isDeleting={isDeleting} />}
+      {showDeleteModal && <DeleteAccountModal onConfirm={handleDeleteAccount} onCancel={() => { setShowDeleteModal(false); setDeleteError('') }} isDeleting={isDeleting} isTrial={userPlan === 'trial'} />}
 
       {/* ヘッダー */}
       <div style={{ background:'#fff',borderBottom:'1px solid #FCE4EC',padding:'14px 16px',display:'flex',alignItems:'center',gap:12,position:'sticky',top:0,zIndex:10 }}>
