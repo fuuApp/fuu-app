@@ -210,6 +210,7 @@ function PlansContent() {
   }
 
   return (
+    <>
     <div style={{ maxWidth: 480, margin: '0 auto', background: '#fdf4f7', minHeight: '100dvh' }}>
 
       {/* ヘッダー */}
@@ -560,6 +561,7 @@ function PlansContent() {
         </div>
       </div>
     )}
+    </>
   )
 }
 
