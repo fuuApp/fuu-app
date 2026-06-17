@@ -79,20 +79,24 @@ export default function CharacterSelectPage() {
 
   const allCharacters = getAllCharacters().filter(c => c.isAvailable)
 
-  // トライアル終了判定（free/trial planで10日超過）
-  // DBのplan値は'free'または'trial'どちらもトライアル扱い
+  // plan状態の分類
+  // 'trial'/'free' → トライアル中
+  // 'standard'/'premium' → 有料プラン中
+  // 'canceled' → 有料プラン解約後（期末到達済み）
   const isTrial = plan === 'free' || plan === 'trial'
+  const isCanceled = plan === 'canceled'
+  const isPaid = plan === 'standard' || plan === 'premium'
   const trialExpired = isTrial && usageDays >= 10
 
   // 解放条件：サブスクプランで判定
-  // あおい・さくら：無料トライアルから（常に解放）
-  // りか・なつこ：スタンダード以上
+  // あおい・さくら：常に解放
+  // りか・なつこ：スタンダード以上（トライアル10日未満はロック、解約後もロック）
   // けんじ・ひろし：プレミアムのみ
   const isLocked = (c: Character): boolean => {
     if (!c.isPremium && c.unlockDaysRequired === 0) return false // あおい・さくら
     if (c.isPremium) return plan !== 'premium'  // けんじ・ひろし
-    // りか・なつこ（isPremium:false かつ unlockDaysRequired:0 だが将来的にstandard制限）
-    return isTrial && usageDays < 10    // トライアル10日以内はりか・なつこもロック
+    // りか・なつこ：有料プラン中のみ解放
+    return !isPaid
   }
 
   const unlockLabel = (c: Character): string => {
@@ -129,6 +133,29 @@ export default function CharacterSelectPage() {
         <p style={{ fontSize: 14, color: '#888', marginBottom: 16, textAlign: 'center' }}>
           今日は誰に話す？
         </p>
+
+        {/* 解約後バナー */}
+        {isCanceled && (
+          <div style={{
+            background: 'linear-gradient(135deg,#F3E5F5,#E1BEE7)',
+            borderRadius: 14, padding: '14px 16px',
+            marginBottom: 16, border: '1.5px solid #CE93D8',
+          }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#6A1B9A', marginBottom: 6 }}>
+              💜 プランが終了しました
+            </div>
+            <p style={{ fontSize: 12, color: '#4A148C', margin: '0 0 10px', lineHeight: 1.7 }}>
+              またふぅと話したいときは、プランを選んでください。いつでも再開できます。
+            </p>
+            <Link href="/app/plans" style={{
+              display: 'inline-block', background: '#7B1FA2', color: '#fff',
+              fontSize: 13, fontWeight: 700, padding: '8px 18px',
+              borderRadius: 20, textDecoration: 'none',
+            }}>
+              プランを選ぶ →
+            </Link>
+          </div>
+        )}
 
         {/* トライアル終了バナー */}
         {trialExpired && (

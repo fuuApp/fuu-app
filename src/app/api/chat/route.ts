@@ -49,6 +49,15 @@ async function checkAndIncrementUsage(userId: string): Promise<
     return { allowed: true, remaining: 9999, ticketActive: true }
   }
 
+  // ── 解約済みチェック ──
+  if (profile.plan === 'canceled') {
+    return {
+      allowed: false,
+      reason: 'プランが終了しています。再度プランを選択してください。',
+      code: 'PLAN_CANCELED',
+    }
+  }
+
   // ── トライアル期限チェック（trial_started_at + 10日）──
   // DBのplan値は 'free' または 'trial' どちらもトライアル扱い
   if (profile.plan === 'free' || profile.plan === 'trial') {

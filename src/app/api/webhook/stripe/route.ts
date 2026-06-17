@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
 
         if (profile) {
           await supabase.from('profiles').update({
-            plan: 'free',
+            plan: 'canceled',
             updated_at: new Date().toISOString(),
           }).eq('user_id', profile.user_id)
 

@@ -99,7 +99,7 @@ export default function SettingsPage() {
   const [editing, setEditing] = useState(false)
   const [saved, setSaved] = useState(false)
   const [trialDaysLeft, setTrialDaysLeft] = useState(TRIAL_DAYS)
-  const [userPlan, setUserPlan] = useState<'trial'|'standard'|'premium'>('trial')
+  const [userPlan, setUserPlan] = useState<'trial'|'standard'|'premium'|'canceled'>('trial')
   const [bgmEnabled, setBgmEnabled] = useState(true)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -141,6 +141,7 @@ export default function SettingsPage() {
         const plan = profile.plan ?? 'free'
         if (plan === 'premium') setUserPlan('premium')
         else if (plan === 'standard') setUserPlan('standard')
+        else if (plan === 'canceled') setUserPlan('canceled')
         else setUserPlan('trial')
         setTrialDaysLeft(calcTrialDaysLeftFromDate(profile.trial_started_at ?? null))
       } catch {}
@@ -305,13 +306,13 @@ export default function SettingsPage() {
           <div style={{ padding:'12px 16px',borderBottom:'1px solid #FCE4EC',fontSize:12,color:'#E91E63',fontWeight:700 }}>現在のプラン</div>
           <div style={{ padding:16 }}>
             <div style={{ display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8 }}>
-              <span style={{ background:userPlan==='premium'?'linear-gradient(135deg,#C2185B,#880E4F)':userPlan==='standard'?'linear-gradient(135deg,#F48FB1,#E91E63)':'linear-gradient(135deg,#E91E63,#C2185B)',color:'#fff',borderRadius:20,padding:'4px 12px',fontSize:12,fontWeight:700 }}>
-                {userPlan==='trial'?'無料トライアル中':userPlan==='premium'?'プレミアム':'スタンダード'}
+              <span style={{ background:userPlan==='premium'?'linear-gradient(135deg,#C2185B,#880E4F)':userPlan==='standard'?'linear-gradient(135deg,#F48FB1,#E91E63)':userPlan==='canceled'?'#9E9E9E':'linear-gradient(135deg,#E91E63,#C2185B)',color:'#fff',borderRadius:20,padding:'4px 12px',fontSize:12,fontWeight:700 }}>
+                {userPlan==='trial'?'無料トライアル中':userPlan==='premium'?'プレミアム':userPlan==='canceled'?'解約済み':'スタンダード'}
               </span>
               {userPlan==='trial' && <span style={{ fontSize:12,color:trialDaysLeft<=3?'#E91E63':'#aaa',fontWeight:trialDaysLeft<=3?700:400 }}>残り{trialDaysLeft}日</span>}
             </div>
             <p style={{ fontSize:13,color:'#888',margin:'8px 0 0',lineHeight:1.7 }}>
-              {userPlan==='trial'?(trialDaysLeft>0?<>トライアル終了後は月額プランへ。<br />いつでもキャンセルできます。</>:<>トライアルが終了しました。<br />プランを選んで続けましょう。</>):<>いつでもキャンセルできます。<br />解約後もその月末まで利用できます。</>}
+              {userPlan==='trial'?(trialDaysLeft>0?<>トライアル終了後は月額プランへ。<br />いつでもキャンセルできます。</>:<>トライアルが終了しました。<br />プランを選んで続けましょう。</>):userPlan==='canceled'?<>プランが終了しています。<br />またいつでも再開できます。</>:<>いつでもキャンセルできます。<br />解約後もその月末まで利用できます。</>}
             </p>
             <button onClick={()=>router.push('/app/plans')} style={{ marginTop:12,background:'none',border:'1px solid #F48FB1',borderRadius:20,padding:'8px 16px',fontSize:13,color:'#E91E63',cursor:'pointer',fontFamily:'inherit' }}>プランを見る →</button>
           </div>
