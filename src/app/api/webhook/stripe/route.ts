@@ -39,12 +39,30 @@ export async function POST(req: NextRequest) {
         const priceId = sub.items.data[0]?.price.id
         const plan = PLAN_PRICE_MAP[priceId] ?? 'standard'
 
-        // stripe_customer_id からユーザーを特定（主キーはuser_id）
-        const { data: profile } = await supabase
+        // まず stripe_customer_id でユーザーを特定
+        let { data: profile } = await supabase
           .from('profiles')
           .select('user_id')
           .eq('stripe_customer_id', customerId)
           .single()
+
+        // 見つからない場合は subscription.metadata.userId でフォールバック
+        // （checkout.session.completed より先に発火した場合の保険）
+        if (!profile && sub.metadata?.userId) {
+          const { data: fallback } = await supabase
+            .from('profiles')
+            .select('user_id')
+            .eq('user_id', sub.metadata.userId)
+            .single()
+          if (fallback) {
+            profile = fallback
+            // stripe_customer_id を保存しておく
+            await supabase.from('profiles').update({
+              stripe_customer_id: customerId,
+              updated_at: new Date().toISOString(),
+            }).eq('user_id', fallback.user_id)
+          }
+        }
 
         if (profile) {
           await supabase.from('profiles').update({
@@ -89,10 +107,23 @@ export async function POST(req: NextRequest) {
         break
       }
 
-      // ─── チケット購入（one-time payment）────────────────
+      // ─── Checkout完了 ──────────────────────────────────
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
-        if (session.mode === 'payment' && session.metadata?.type === 'ticket') {
+
+        if (session.mode === 'subscription') {
+          // サブスクリプション決済完了：stripe_customer_id を profiles に保存
+          // （これを先にやることで subscription.created/updated でユーザー特定できる）
+          const userId = session.metadata?.userId ?? session.metadata?.user_id
+          const customerId = session.customer as string
+          if (userId && customerId) {
+            await supabase.from('profiles').update({
+              stripe_customer_id: customerId,
+              updated_at: new Date().toISOString(),
+            }).eq('user_id', userId)
+          }
+        } else if (session.mode === 'payment' && session.metadata?.type === 'ticket') {
+          // チケット購入（one-time payment）
           // ticket APIは metadata.userId で送信 → user_id / userId どちらにも対応
           const userId = session.metadata.user_id ?? session.metadata.userId
           const quantity = parseInt(session.metadata.quantity ?? '1')
