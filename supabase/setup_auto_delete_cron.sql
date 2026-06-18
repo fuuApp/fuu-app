@@ -27,10 +27,10 @@ ALTER TABLE public.profiles
 CREATE OR REPLACE FUNCTION public.soft_delete_user(p_user_id UUID)
 RETURNS VOID AS $$
 BEGIN
-  -- profilesに削除日時をセット
+  -- profilesに削除日時をセット（PKはuser_id）
   UPDATE public.profiles
   SET deleted_at = NOW(), updated_at = NOW()
-  WHERE id = p_user_id;
+  WHERE user_id = p_user_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -41,21 +41,21 @@ SELECT cron.schedule(
   $$
     DELETE FROM public.messages
     WHERE user_id IN (
-      SELECT id FROM public.profiles
+      SELECT user_id FROM public.profiles
       WHERE deleted_at IS NOT NULL
         AND deleted_at < NOW() - INTERVAL '3 days'
     );
 
     DELETE FROM public.guchi_journals
     WHERE user_id IN (
-      SELECT id FROM public.profiles
+      SELECT user_id FROM public.profiles
       WHERE deleted_at IS NOT NULL
         AND deleted_at < NOW() - INTERVAL '3 days'
     );
 
     DELETE FROM public.conversations
     WHERE user_id IN (
-      SELECT id FROM public.profiles
+      SELECT user_id FROM public.profiles
       WHERE deleted_at IS NOT NULL
         AND deleted_at < NOW() - INTERVAL '3 days'
     );
@@ -69,14 +69,14 @@ SELECT cron.schedule(
   $$
     DELETE FROM public.bgm_favorites
     WHERE user_id IN (
-      SELECT id FROM public.profiles
+      SELECT user_id FROM public.profiles
       WHERE deleted_at IS NOT NULL
         AND deleted_at < NOW() - INTERVAL '30 days'
     );
 
     DELETE FROM public.ticket_monthly_usage
     WHERE user_id IN (
-      SELECT id FROM public.profiles
+      SELECT user_id FROM public.profiles
       WHERE deleted_at IS NOT NULL
         AND deleted_at < NOW() - INTERVAL '30 days'
     );

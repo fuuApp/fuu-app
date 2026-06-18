@@ -37,11 +37,9 @@ export async function POST(req: NextRequest) {
       cancel_at_period_end: true,
     })
 
-    // Supabaseのstatusを更新
-    await admin
-      .from('subscriptions')
-      .update({ status: 'cancel_at_period_end' })
-      .eq('stripe_subscription_id', sub.stripe_subscription_id)
+    // ※ subscriptionsテーブルのstatusはStripe側に合わせ 'active' のまま維持
+    // （cancel_at_period_end=true でも Stripe の status は 'active'）
+    // 期末に subscription.deleted が発火したタイミングで 'canceled' に更新される
 
     return NextResponse.json({
       success: true,

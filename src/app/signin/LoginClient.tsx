@@ -68,10 +68,20 @@ export default function LoginClient() {
         if (verifyErr) throw verifyErr
         if (data.session) {
           try {
+            const now = new Date().toISOString()
+            // 新規ユーザー: trialとして挿入（既存ユーザーはスキップ）
             await supabase.from('profiles').upsert(
-              { user_id: data.session.user.id, email: data.session.user.email ?? '', plan: 'trial', trial_started_at: new Date().toISOString() },
+              { user_id: data.session.user.id, email: data.session.user.email ?? '', plan: 'trial', trial_started_at: now },
               { onConflict: 'user_id', ignoreDuplicates: true }
             )
+            // Supabaseトリガーで作成されたプロフィール（trial_started_at=null）を補完
+            // トリガーはデフォルト値でINSERTするため trial_started_at が未設定になる場合がある
+            await supabase
+              .from('profiles')
+              .update({ trial_started_at: now, plan: 'trial' })
+              .eq('user_id', data.session.user.id)
+              .is('trial_started_at', null)
+              .in('plan', ['free', 'trial'])
           } catch (profileErr) {
             console.error('[login] profile upsert failed:', profileErr)
           }
