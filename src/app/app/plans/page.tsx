@@ -188,7 +188,7 @@ function PlansContent() {
       const res = await fetch('/api/subscription/stripe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: planId }),
+        body: JSON.stringify({ plan: planId, userId, email: userEmail }),
       })
 
       const data = await res.json()
@@ -283,7 +283,9 @@ function PlansContent() {
             <div style={{ fontSize: 14, color: '#333', fontWeight: 600 }}>
               {currentPlan === 'trial' ? '無料トライアル中（10日間）'
                 : currentPlan === 'standard' ? 'スタンダード'
-                : 'プレミアム'}
+                : currentPlan === 'premium' ? 'プレミアム'
+                : currentPlan === 'canceled' ? '解約済み（プラン終了）'
+                : '無料トライアル中（10日間）'}
             </div>
           </div>
         </div>
