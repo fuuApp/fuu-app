@@ -1,10 +1,10 @@
 # fuu ふぅ プロジェクト状態メモ
-## 最終更新：2026-06-16
+## 最終更新：2026-06-18
 
 ## 仕様書
-- 最新：**fuu_master_spec_v16.4.docx**（プロジェクトルート）← v16.4に更新済
+- 最新：**fuu_master_spec_v18.docx**（プロジェクトルート）← v18に更新済
 - 本番URL：https://fuu-app.vercel.app（デプロイ済・稼働中）
-- 事業者名：**OGAWAVE**（個人事業主）← OGLabから変更済
+- 事業者名：**OGAWAVE**（個人事業主）
 
 ## 技術スタック
 - Next.js 14 + TypeScript + Tailwind
@@ -29,7 +29,7 @@
 
 ## Supabase 設定
 - pg_cron 有効化済（2026/6/8）
-- setup_auto_delete_cron.sql 実行済（3ジョブ稼働中）
+- setup_auto_delete_cron.sql 実行済（3ジョブ稼働中）✅ v18でuser_id参照に修正済み
   - fuu-delete-conversation-content（毎日AM3時：会話履歴削除）
   - fuu-delete-profile-data（毎日AM4時：プロフィール削除）
   - fuu-delete-transaction-history（毎日AM5時：取引履歴削除）
@@ -90,19 +90,27 @@
 - plans/page.tsx：Supabase profiles.plan を参照（プラン表示）
 - app/page.tsx（キャラ選択）：Supabase profiles.trial_started_at から使用日数計算（localStorage廃止）
 
+## v18で完了した修正（2026-06-18）
+- [x] ✅ Bug1: 新規登録直後チャットブロック修正（LoginClient.tsx: trial_started_at IS NULL補完UPDATE追加）
+- [x] ✅ Bug2: 解約DB制約違反修正（cancel/route.ts: status:'cancel_at_period_end'更新行を削除）
+- [x] ✅ Bug3: pg_cron旧スキーマ修正（setup_auto_delete_cron.sql: id→user_id全修正、Supabaseで再schedule済）
+- [x] ✅ Stripe本番切り替え（sk_live_本番キー・STRIPE_WEBHOOK_SECRET設定済）
+- [x] ✅ Webhook URL修正（/api/stripe/webhook → /api/webhook/stripe）
+- [x] ✅ plans/page.tsx canceled状態表示追加
+- [x] ✅ 仕様書v18作成・git push完了
+
 ## 残タスク（優先順）
-- [ ] 🔴 本番動作テスト（チャット回数制限・残り回数バッジ・チケット有効化）
-- [ ] 🔴 特商法ページ実名・住所更新（[氏名]プレースホルダーを実名に）
-- [ ] 🔴 バーチャルオフィス契約（Karigo推奨）→ 特商法住所に反映
+- [ ] 🔴 本番動作テスト（¥300サブスク決済・チケット購入・チャット回数制限）ブラウザで可能
+- [ ] 🔴 特商法ページ実名・住所更新（社長の本名・バーチャルオフィス住所）
+- [ ] 🔴 バーチャルオフィス契約（Karigo推奨 ¥990/月〜）→ 特商法住所に反映
 - [ ] 🔴 開業届提出
+- [ ] 🔴 Stripe statement_descriptor 設定（Dashboard → Settings → Business Settings）
 - [x] 🔴 fuu.support@gmail.com 取得 ✅ 完了（2026/6/8）
-- [x] 🔴 Stripe本番アカウント設定（OGAWAVE名義）✅ 完了（2026/6/16）
-- [x] 🔴 Stripe商品3つ・クーポン2つ作成 ✅ 完了（2026/6/16）
-- [x] 🔴 Stripe Webhook設定（本番） ✅ 完了（2026/6/16）
-- [ ] 🟡 Stripe statement_descriptor 設定（Dashboard → Settings）
+- [x] 🔴 Stripe本番アカウント設定・商品・Webhook ✅ 完了（2026/6/16〜18）
 - [ ] 🟡 iOS ビルド・動作確認
 - [ ] 🟡 電気通信事業届出（総務省オンライン）
 - [ ] 🟡 Firebase push notification設定（延期中）
+- [ ] 🟡 STT実機テスト（プレミアム機能・実機のみ）
 
 ## ファイル構成メモ
 - Next.js ソース：src/
