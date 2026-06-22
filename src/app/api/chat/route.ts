@@ -7,6 +7,9 @@ import type { ChatRequest } from '@/types'
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,
+  defaultHeaders: {
+    'anthropic-beta': 'prompt-caching-2024-07-31',
+  },
 })
 
 // ── プラン別月間会話上限 ──────────────────────────────────────
@@ -461,7 +464,26 @@ export async function POST(req: NextRequest) {
         ? `\n\n【注意】ユーザーが「つづき」と言っているが過去の記録がない。「どんなことがあったか、もう一度教えてくれる？」と自然に聞き直すこと。`
         : ''
 
-    const dynamicSystemPrompt = `${character.systemPrompt}\n\n${nameInstruction}${journalInstruction}\n\n${modeInstruction}`
+    // ── キャッシュ対象：キャラプロンプト＋全モードプロンプト（静的・1024トークン超）──
+    // キャラごとに固定。同じキャラを使う全ユーザーでキャッシュを共有できる。
+    const staticSystemBlock = `${character.systemPrompt}
+
+---
+【モード別返答ルール一覧（以下のいずれか1つが動的セクションで指定される）】
+
+${SOUDAN_PROMPT}
+
+${SOUDAN_BRIEF_PROMPT}
+
+${SOUDAN_DEEPDIVE_PROMPT}
+
+${HYBRID_BRIEF_PROMPT}`
+
+    // ── 動的部分：リクエストごとに変わる小さなブロック ──
+    const dynamicBlock = `${nameInstruction}${journalInstruction}
+
+【今回の指示】
+${modeInstruction}`
 
     const history = (conversationHistory ?? []).slice(-20).map((m: { role: string; content: string }) => ({
       role: m.role as 'user' | 'assistant',
@@ -471,7 +493,17 @@ export async function POST(req: NextRequest) {
     const response = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: maxTokens,
-      system: dynamicSystemPrompt,
+      system: [
+        {
+          type: 'text',
+          text: staticSystemBlock,
+          cache_control: { type: 'ephemeral' },
+        },
+        {
+          type: 'text',
+          text: dynamicBlock,
+        },
+      ] as Parameters<typeof anthropic.messages.create>[0]['system'],
       messages: [
         ...history,
         { role: 'user', content: message },
