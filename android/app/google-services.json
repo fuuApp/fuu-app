@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1007440214773",
+    "project_id": "fuu-app-d7bd2",
+    "storage_bucket": "fuu-app-d7bd2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1007440214773:android:cb74142b6464823cc7e3bc",
+        "android_client_info": {
+          "package_name": "com.ogdstudio.fuu"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD8DSTfJfDwOY8CCGcijrYY0nCwhYSEK0E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
