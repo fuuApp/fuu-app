@@ -28,6 +28,7 @@ export async function POST(req: NextRequest) {
         user_id: userId ?? '',  // webhookと統一（user_id）
         type: 'ticket',
       },
+      allow_promotion_codes: true,
       locale: 'ja',
     })
 
