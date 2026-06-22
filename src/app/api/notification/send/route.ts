@@ -1,23 +1,26 @@
 /**
  * プッシュ通知送信API
  *
- * 【必要な環境変数】
+ * 【必要な環境変数（Vercel Dashboard で設定）】
  *   FIREBASE_PROJECT_ID     : FirebaseプロジェクトID
  *   FIREBASE_CLIENT_EMAIL   : Firebase Admin SDKのサービスアカウントメール
  *   FIREBASE_PRIVATE_KEY    : Firebase Admin SDKの秘密鍵（\nをそのまま含む文字列）
  *
- * 【呼び出し方】
+ * 【エンドポイント】
  *   POST /api/notification/send
  *   Body: { userId: string, title: string, body: string, data?: Record<string, string> }
- *   ※ Supabase ServiceRoleキー必須（サーバー間通信のみ）
+ *   ※ SUPABASE_SERVICE_ROLE_KEY をAuthorizationヘッダーに付けること（サーバー間通信のみ）
  *
- * 【使用箇所の例】
- *   - pg_cron（朝/夜の定期通知）
- *   - 会話終了時の翌朝リマインダー
+ *   PUT /api/notification/send
+ *   Body: { type: 'auto' }
+ *   → pg_cronから毎時呼び出す。JST時刻でmorning_time/evening_timeと照合し
+ *     一致ユーザーにキャラ口調のメッセージを送信する。
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase'
+import { pickMessage, CHARACTER_NAMES, DEFAULT_CHARACTER } from '@/lib/notificationMessages'
+import type { NotificationSlot } from '@/lib/notificationMessages'
 
 // ── FCM HTTP v1 アクセストークン取得 ─────────────────────────────
 async function getFirebaseAccessToken(): Promise<string> {
@@ -64,17 +67,11 @@ async function sendFcmNotification({
           data: data ?? {},
           apns: {
             payload: {
-              aps: {
-                sound: 'default',
-                badge: 1,
-              },
+              aps: { sound: 'default', badge: 1 },
             },
           },
           android: {
-            notification: {
-              sound: 'default',
-              click_action: 'FLUTTER_NOTIFICATION_CLICK',
-            },
+            notification: { sound: 'default' },
           },
         },
       }),
@@ -87,14 +84,30 @@ async function sendFcmNotification({
   }
 }
 
-// ── POST ハンドラ ─────────────────────────────────────────────────
+// ── 認証ヘルパー ──────────────────────────────────────────────────
+function isAuthorized(req: NextRequest): boolean {
+  const authHeader = req.headers.get('authorization')
+  return authHeader === `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`
+}
+
+// ── Firebase 環境変数チェック ─────────────────────────────────────
+function checkFirebaseEnv(): string | null {
+  if (!process.env.FIREBASE_PROJECT_ID)   return 'FIREBASE_PROJECT_ID が未設定です'
+  if (!process.env.FIREBASE_CLIENT_EMAIL) return 'FIREBASE_CLIENT_EMAIL が未設定です'
+  if (!process.env.FIREBASE_PRIVATE_KEY)  return 'FIREBASE_PRIVATE_KEY が未設定です'
+  return null
+}
+
+// ── POST: 特定ユーザーへの単発送信 ───────────────────────────────
 export async function POST(req: NextRequest) {
   try {
-    // このAPIはサーバー間通信のみ（Service Roleキーをヘッダーで確認）
-    const authHeader = req.headers.get('authorization')
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    if (!authHeader || authHeader !== `Bearer ${serviceRoleKey}`) {
+    if (!isAuthorized(req)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const envError = checkFirebaseEnv()
+    if (envError) {
+      return NextResponse.json({ error: envError }, { status: 503 })
     }
 
     const { userId, title, body, data } = await req.json()
@@ -102,20 +115,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '必須パラメータが不足しています' }, { status: 400 })
     }
 
-    // Firebase環境変数チェック
-    if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !process.env.FIREBASE_PRIVATE_KEY) {
-      return NextResponse.json(
-        { error: 'Firebase環境変数が設定されていません（FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY）' },
-        { status: 503 }
-      )
-    }
-
-    // push_tokenを取得
     const admin = createAdminClient()
-    // profilesの主キーはuser_id
     const { data: profile } = await admin
       .from('profiles')
-      .select('push_token, notification_time, morning_time')
+      .select('push_token')
       .eq('user_id', userId)
       .single()
 
@@ -124,47 +127,63 @@ export async function POST(req: NextRequest) {
     }
 
     await sendFcmNotification({ token: profile.push_token, title, body, data })
-
     return NextResponse.json({ success: true })
   } catch (error: any) {
     console.error('Push notification error:', error)
-    return NextResponse.json(
-      { error: error.message ?? 'プッシュ通知の送信に失敗しました' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: error.message ?? '送信に失敗しました' }, { status: 500 })
   }
 }
 
-/**
- * 複数ユーザーへの一括送信（pg_cronからの呼び出し用）
- * POST /api/notification/send/bulk
- */
+// ── PUT: pg_cronからの定時一括送信 ───────────────────────────────
+//
+// Supabase SQL Editor で以下を実行してスケジュールを登録する:
+//
+//   SELECT cron.schedule(
+//     'fuu-notification',
+//     '0 * * * *',
+//     $$
+//       SELECT net.http_put(
+//         url     := 'https://fuu-app.vercel.app/api/notification/send',
+//         headers := jsonb_build_object(
+//           'Content-Type',  'application/json',
+//           'Authorization', 'Bearer <SUPABASE_SERVICE_ROLE_KEY>'
+//         ),
+//         body    := '{"type":"auto"}'::jsonb
+//       );
+//     $$
+//   );
+//
+// ※ pg_net 拡張が必要（Supabase Dashboard → Database → Extensions で有効化）
+// ※ 毎時0分に実行。profiles.morning_time / evening_time と照合して送信先を絞る。
+// ──────────────────────────────────────────────────────────────────
 export async function PUT(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('authorization')
-    if (!authHeader || authHeader !== `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`) {
+    if (!isAuthorized(req)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { type } = await req.json() // type: 'morning' | 'evening'
-    const isMorning = type === 'morning'
+    const envError = checkFirebaseEnv()
+    if (envError) {
+      return NextResponse.json({ error: envError }, { status: 503 })
+    }
+
+    // JST 現在時刻（"HH:" 形式で比較）
+    const now = new Date()
+    const jstHour    = String((now.getUTCHours() + 9) % 24).padStart(2, '0')
+    const jstHourKey = `${jstHour}:`  // "07:" のように時間部分だけ比較
 
     const admin = createAdminClient()
-    const now = new Date()
-    const jstHour = (now.getUTCHours() + 9) % 24
 
-    // push_tokenがあるユーザー全員に送信
+    // push_token があり通知有効なユーザーを全取得
     const { data: profiles } = await admin
       .from('profiles')
-      .select('id, push_token')
+      .select('user_id, push_token, morning_time, evening_time, notification_character')
       .not('push_token', 'is', null)
+      .eq('notification_enabled', true)
 
-    if (!profiles?.length) return NextResponse.json({ success: true, sent: 0 })
-
-    const title = isMorning ? '☀️ おはよう！今日も一緒にがんばろ' : '🌙 今日はどんな日だった？'
-    const body = isMorning
-      ? 'ふぅに今日のことを話してみよう'
-      : '今日あったこと、ふぅに話してみて。聞いてるよ'
+    if (!profiles?.length) {
+      return NextResponse.json({ success: true, sent: 0, reason: '対象ユーザーなし' })
+    }
 
     let sent = 0
     const errors: string[] = []
@@ -173,17 +192,31 @@ export async function PUT(req: NextRequest) {
       profiles
         .filter(p => p.push_token)
         .map(async p => {
+          // 設定時刻の時間部分だけ現在時刻と照合
+          const mTime = (p.morning_time ?? '07:00').substring(0, 3)
+          const eTime = (p.evening_time ?? '21:00').substring(0, 3)
+
+          let slot: NotificationSlot | null = null
+          if (jstHourKey === mTime) slot = 'morning'
+          else if (jstHourKey === eTime) slot = 'evening'
+          if (!slot) return
+
+          const characterId = p.notification_character ?? DEFAULT_CHARACTER
+          const title = CHARACTER_NAMES[characterId] ?? 'ふぅより'
+          const body  = pickMessage(characterId, slot)
+
           try {
             await sendFcmNotification({ token: p.push_token!, title, body })
             sent++
           } catch (err: any) {
-            errors.push(`${p.id}: ${err.message}`)
+            errors.push(`${p.user_id}: ${err.message}`)
           }
         })
     )
 
-    return NextResponse.json({ success: true, sent, errors: errors.slice(0, 10) })
+    return NextResponse.json({ success: true, sent, errors: errors.slice(0, 10), jstHour })
   } catch (error: any) {
+    console.error('Bulk push notification error:', error)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }

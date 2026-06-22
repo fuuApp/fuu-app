@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
-import { isIOS, openStripeCheckout } from '@/lib/platform'
+import { isNative, openStripeCheckout } from '@/lib/platform'
 import { createClient } from '@/lib/supabase'
 
 // ─── プラン定義 ─────────────────────────────────────────────────
@@ -74,7 +74,35 @@ function PlansContent() {
   const [userId, setUserId] = useState<string>('')
   const [userEmail, setUserEmail] = useState<string>('')
 
-  // Supabaseから現在のプランとチケット状態を取得
+  // ── プラン・チケット状態をSupabaseから取得する共通関数 ──────────────
+  // 初回マウント時 + ネイティブアプリでSafari/Chrome決済後にアプリ復帰した際の
+  // 両方で呼ぶ。ユーザーIDは引数 or state から取る。
+  const fetchPlanStatus = async (uid?: string) => {
+    try {
+      const supabase = createClient()
+      const resolvedUid = uid ?? userId
+      if (!resolvedUid) return
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('plan, ticket_active_until')
+        .eq('user_id', resolvedUid)
+        .single()
+      if (profile?.plan) setCurrentPlan(profile.plan === 'free' ? 'trial' : profile.plan)
+      setTicketActiveUntil(profile?.ticket_active_until ?? null)
+
+      const now = new Date().toISOString()
+      const { data: tickets } = await supabase
+        .from('tickets')
+        .select('quantity, used')
+        .eq('user_id', resolvedUid)
+        .gt('expires_at', now)
+      const remaining = tickets?.reduce((sum, t) => sum + (t.quantity - t.used), 0) ?? 0
+      setAvailableTickets(remaining)
+    } catch { /* 取得失敗時はそのまま */ }
+  }
+
+  // Supabaseから現在のプランとチケット状態を取得（初回）
   useEffect(() => {
     ;(async () => {
       try {
@@ -83,28 +111,34 @@ function PlansContent() {
         if (user) {
           setUserId(user.id)
           setUserEmail(user.email ?? '')
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('plan, ticket_active_until')
-            .eq('user_id', user.id)
-            .single()
-          // 'free' はトライアル扱いとして表示
-          if (profile?.plan) setCurrentPlan(profile.plan === 'free' ? 'trial' : profile.plan)
-          if (profile?.ticket_active_until) setTicketActiveUntil(profile.ticket_active_until)
-
-          // 未使用チケット枚数を取得
-          const now = new Date().toISOString()
-          const { data: tickets } = await supabase
-            .from('tickets')
-            .select('quantity, used')
-            .eq('user_id', user.id)
-            .gt('expires_at', now)
-          const remaining = tickets?.reduce((sum, t) => sum + (t.quantity - t.used), 0) ?? 0
-          setAvailableTickets(remaining)
+          await fetchPlanStatus(user.id)
         }
       } catch { /* 取得失敗時はtrialのまま */ }
     })()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── ネイティブアプリ: Safari/Chrome 決済後にアプリへ戻った際にプランを再取得 ──
+  // iOS: Safari で Stripe 決済完了 → ユーザーがアプリに戻る → appStateChange(isActive=true)
+  // Android: Chrome で Stripe 決済完了 → ユーザーがアプリに戻る → appStateChange(isActive=true)
+  // Web: success_url のクエリパラメータ（?success=true）で処理するため不要
+  useEffect(() => {
+    if (!isNative()) return
+
+    let removeListener: (() => void) | undefined
+
+    ;(async () => {
+      const { App } = await import('@capacitor/app')
+      const handle = await App.addListener('appStateChange', (state) => {
+        if (state.isActive) {
+          // アプリがフォアグラウンドに戻ったらプラン状態を再取得
+          fetchPlanStatus()
+        }
+      })
+      removeListener = () => handle.remove()
+    })()
+
+    return () => { removeListener?.() }
+  }, [userId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 決済完了・キャンセルの通知処理
   useEffect(() => {
@@ -143,7 +177,7 @@ function PlansContent() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'チケット購入の準備に失敗しました')
-      if (data.url) openStripeCheckout(data.url)
+      if (data.url) await openStripeCheckout(data.url)
     } catch (err: any) {
       setToastMessage({ type: 'error', text: err.message ?? 'エラーが発生しました' })
     } finally {
@@ -198,9 +232,9 @@ function PlansContent() {
       }
 
       if (data.url) {
-        // iOS ネイティブ: Safari で開く（Apple ガイドライン対応）
-        // Android / Web: 同タブ遷移（通常の Stripe Checkout）
-        openStripeCheckout(data.url)
+        // iOS/Android ネイティブ: Browser.open() で Safari/Chrome（外部ブラウザ）を起動
+        // Web: 同タブ遷移（通常の Stripe Checkout）
+        await openStripeCheckout(data.url)
       }
     } catch (err: any) {
       setToastMessage({ type: 'error', text: err.message ?? 'エラーが発生しました' })
@@ -243,31 +277,19 @@ function PlansContent() {
           </div>
         )}
 
-        {/* iOS アプリ向け：購入は Safari に誘導するバナー */}
-        {isIOS() && (
+        {/* ネイティブアプリ向け：外部ブラウザで決済する旨の案内 */}
+        {isNative() && (
           <div style={{
             background: '#E3F2FD', border: '1px solid #90CAF9',
-            borderRadius: 14, padding: '14px 16px', lineHeight: 1.7,
+            borderRadius: 14, padding: '12px 16px', lineHeight: 1.7,
           }}>
-            <div style={{ fontWeight: 700, fontSize: 13, color: '#1565C0', marginBottom: 4 }}>
-              📱 iPhoneをお使いの方へ
+            <div style={{ fontWeight: 700, fontSize: 13, color: '#1565C0', marginBottom: 2 }}>
+              📱 アプリからのご登録について
             </div>
             <div style={{ fontSize: 12, color: '#1565C0' }}>
-              プランの登録・変更は Safari（ブラウザ）から行えます。<br />
-              下のボタンをタップするとブラウザが開きます。
+              下のボタンをタップするとブラウザ（Safari / Chrome）が開き、
+              そこでお支払い手続きができます。完了後アプリに戻るとプランが反映されます。
             </div>
-            <button
-              onClick={() => window.open('https://fuu-app.vercel.app/app/plans', '_blank')}
-              style={{
-                marginTop: 10, width: '100%', padding: '11px',
-                background: '#1565C0', color: '#fff',
-                border: 'none', borderRadius: 50,
-                fontSize: 13, fontWeight: 700,
-                cursor: 'pointer', fontFamily: 'inherit',
-              }}
-            >
-              Safari でプランを登録する →
-            </button>
           </div>
         )}
 
