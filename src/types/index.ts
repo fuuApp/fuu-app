@@ -1,5 +1,23 @@
 // ─── キャラクター型 ───────────────────────────────────────────
-export type CharacterId = 'aoi' | 'sakura' | 'rika' | 'natsuko' | 'kenji' | 'hiroshi'
+export type CharacterId =
+  // 既存キャラ
+  | 'aoi' | 'sakura' | 'rika' | 'natsuko' | 'kenji' | 'hiroshi'
+  // ママキャラ（0〜1歳）
+  | 'yui' | 'mio'
+  // ママキャラ（1〜3歳）
+  | 'haruka' | 'tomomi'
+  // ママキャラ（4〜6歳）
+  | 'ayaka'
+  // ママキャラ（7〜11歳）
+  | 'noriko'
+  // ママキャラ（12〜15歳）
+  | 'kazuko'
+  // ママキャラ（15〜18歳）
+  | 'michiko'
+  // 専門家系
+  | 'yoko' | 'akiko' | 'reiko'
+  // パパキャラ
+  | 'sota' | 'takashi' | 'daisuke' | 'yusuke' | 'koji'
 
 export interface Character {
   id: CharacterId

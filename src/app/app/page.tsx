@@ -13,6 +13,17 @@ function calcUsageDays(trialStartedAt: string | null): number {
   return Math.floor((Date.now() - new Date(trialStartedAt).getTime()) / (1000 * 60 * 60 * 24))
 }
 
+function calcUsageMonths(trialStartedAt: string | null): number {
+  if (!trialStartedAt) return 0
+  const start = new Date(trialStartedAt)
+  const now = new Date()
+  const months =
+    (now.getFullYear() - start.getFullYear()) * 12 +
+    (now.getMonth() - start.getMonth()) +
+    (now.getDate() >= start.getDate() ? 0 : -1)
+  return Math.max(0, months)
+}
+
 function charEmoji(id: string): string {
   const map: Record<string, string> = {
     aoi: '👧', sakura: '🌸', rika: '💪', natsuko: '🍵', kenji: '👨', hiroshi: '🧔',
@@ -43,6 +54,7 @@ function CharAvatar({ c, size = 56 }: { c: Character; size?: number }) {
 
 export default function CharacterSelectPage() {
   const [usageDays, setUsageDays] = useState(0)
+  const [usageMonths, setUsageMonths] = useState(0)
   const [plan, setPlan] = useState<string>('free')
   const [mounted, setMounted] = useState(false)
 
@@ -66,8 +78,10 @@ export default function CharacterSelectPage() {
             setPlan(profile.plan)
             localStorage.setItem(PLAN_CACHE_KEY, profile.plan)
           }
-          // 使用日数はSupabaseのtrial_started_atから計算
-          setUsageDays(calcUsageDays(profile?.trial_started_at ?? null))
+          // 使用日数・月数はSupabaseのtrial_started_atから計算
+          const startedAt = profile?.trial_started_at ?? null
+          setUsageDays(calcUsageDays(startedAt))
+          setUsageMonths(calcUsageMonths(startedAt))
         }
       } catch {
         // 失敗時は0のまま
@@ -88,20 +102,37 @@ export default function CharacterSelectPage() {
   const isPaid = plan === 'standard' || plan === 'premium'
   const trialExpired = isTrial && usageDays >= 10
 
-  // 解放条件：サブスクプランで判定
-  // あおい・さくら：常に解放
-  // りか・なつこ：スタンダード以上（トライアル10日未満はロック、解約後もロック）
-  // けんじ・ひろし：プレミアムのみ
+  // ── 解放条件判定 ───────────────────────────────────────────────
+  // あおい・さくら（isPremium:false, unlockAfterMonths:0）         → 全プラン常時解放
+  // りか・なつこ（isPremium:false, unlockDaysRequired:0, months:0）→ スタンダード以上
+  // スタンダード解放キャラ（isPremium:false, unlockAfterMonths>0） → スタンダード以上 + N ヶ月後
+  // プレミアム解放キャラ（isPremium:true, unlockAfterMonths>0）    → プレミアム + N ヶ月後
+  // けんじ・ひろし（isPremium:true, unlockAfterMonths:3）          → プレミアム + 3ヶ月後
   const isLocked = (c: Character): boolean => {
-    if (!c.isPremium && c.unlockDaysRequired === 0) return false // あおい・さくら
-    if (c.isPremium) return plan !== 'premium'  // けんじ・ひろし
-    // りか・なつこ：有料プラン中のみ解放
-    return !isPaid
+    if (!c.isPremium && c.unlockAfterMonths === 0 && c.unlockDaysRequired === 0) {
+      // あおい・さくら：常時解放（りか・なつこも現状ここに入るがスタンダード要件を適用）
+      // りか・なつこ判別：unlockDaysRequired===0 かつ role/id で区別する代わりに isPaid で制御
+      // ※ りか・なつこは id で特定するよりも将来的な変更に備え isPaid で制御
+      if (c.id === 'aoi' || c.id === 'sakura') return false
+      return !isPaid  // りか・なつこ
+    }
+    if (c.isPremium) {
+      if (plan !== 'premium') return true
+      return usageMonths < c.unlockAfterMonths
+    }
+    // スタンダード解放キャラ
+    if (!isPaid) return true
+    return usageMonths < c.unlockAfterMonths
   }
 
   const unlockLabel = (c: Character): string => {
-    if (c.isPremium) return 'プレミアムで解放'
-    if (isLocked(c)) return 'スタンダードで解放'
+    if (c.isPremium) {
+      if (plan !== 'premium') return 'プレミアムで解放'
+      if (usageMonths < c.unlockAfterMonths) return `プレミアム${c.unlockAfterMonths}ヶ月後に解放`
+    } else {
+      if (!isPaid) return 'スタンダードで解放'
+      if (usageMonths < c.unlockAfterMonths) return `スタンダード${c.unlockAfterMonths}ヶ月後に解放`
+    }
     return ''
   }
 
