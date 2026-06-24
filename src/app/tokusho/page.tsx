@@ -10,15 +10,11 @@ export default function TokushoPage() {
 
       <div style={{ padding: '24px 20px', fontSize: 13, color: '#333', lineHeight: 1.9 }}>
 
-        <div style={{ background: '#FFF8E1', border: '1px solid #FFD54F', borderRadius: 12, padding: '12px 16px', marginBottom: 24, fontSize: 12, color: '#F57F17' }}>
-          ⚠️ 事業者名・住所・運営責任者名は開業届・バーチャルオフィス契約後に正式な情報に更新してください。
-        </div>
-
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
           <tbody>
             {[
               ['販売事業者', 'OGAWAVE'],
-              ['所在地', '[バーチャルオフィス住所]（※契約後に更新）'],
+              ['所在地', '〒221-0056\n神奈川県横浜市神奈川区金港町5-14 クアドリフォリオ8階'],
               ['電話番号', '電話番号は請求があり次第、遅滞なく開示いたします\nお問い合わせ：fuu.support@gmail.com'],
               ['メールアドレス', 'fuu.support@gmail.com'],
               ['サービス名', 'fuu ふぅ（育児ママのためのAI共感アプリ）'],
@@ -46,7 +42,7 @@ export default function TokushoPage() {
                 </td>
                 <td style={{
                   padding: '12px 0', verticalAlign: 'top', whiteSpace: 'pre-line',
-                  ...(label === '運営責任者' ? { fontSize: 7, color: '#ddd' } : {}),
+                  ...(label === '運営責任者' ? { fontSize: 7, color: '#f0e8eb' } : {}),
                 }}>
                   {value}
                 </td>
