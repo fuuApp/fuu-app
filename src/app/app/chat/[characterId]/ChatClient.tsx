@@ -783,6 +783,14 @@ export default function ChatPage() {
                 aoi: 'またいつでも話しかけてね😊', sakura: 'またゆっくり話しましょう。',
                 rika: 'またいつでも来なよ！', natsuko: 'またね〜。ゆっくり休んでね。',
                 kenji: 'また話しかけてね。', hiroshi: '...また話しかけてくれ。',
+                yui: 'またいつでも話しかけてね！', mio: '...また来てね。',
+                haruka: 'またいつでも話しかけてね。', tomomi: 'またね！ゆっくり休んでね。',
+                ayaka: 'また話してね〜！', noriko: 'またね。いつでも来てね。',
+                kazuko: 'またいつでも話しかけてね。', michiko: 'またね。ゆっくり休んでね。',
+                yoko: 'またいつでもね！', akiko: 'またいつでも話しかけてね😊',
+                reiko: 'またね！いつでも来てね😊', sota: 'また話しかけてよ。',
+                takashi: 'また来てくれ。', daisuke: 'またいつでも来てよ！',
+                yusuke: 'また話しかけてな。', koji: '...また来てくれ。',
               }
               setMessages([{
                 id: Date.now().toString(), conversationId: 'local', role: 'assistant',
