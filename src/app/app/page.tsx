@@ -8,6 +8,14 @@ import type { Character } from '@/types'
 
 const PLAN_CACHE_KEY = 'fuu_plan'
 
+// 新規追加した16体のID（NEWバッジ対象）
+const NEW_CHAR_IDS = new Set([
+  'yui','mio','haruka','tomomi','ayaka','noriko',
+  'kazuko','michiko','yoko','akiko','reiko',
+  'sota','takashi','daisuke','yusuke','koji',
+])
+const NEW_BADGE_DAYS = 7
+
 function calcUsageDays(trialStartedAt: string | null): number {
   if (!trialStartedAt) return 0
   return Math.floor((Date.now() - new Date(trialStartedAt).getTime()) / (1000 * 60 * 60 * 24))
@@ -57,6 +65,7 @@ export default function CharacterSelectPage() {
   const [usageMonths, setUsageMonths] = useState(0)
   const [plan, setPlan] = useState<string>('free')
   const [mounted, setMounted] = useState(false)
+  const [newCharIds, setNewCharIds] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     // まずlocalStorageキャッシュで即時表示（UI遅延防止）
@@ -124,6 +133,32 @@ export default function CharacterSelectPage() {
     if (!isPaid) return true
     return usageMonths < c.unlockAfterMonths
   }
+
+  // ── NEWバッジ判定：初回アンロック日時をlocalStorageに記録し7日間表示 ──
+  useEffect(() => {
+    if (!mounted) return
+    const allChars = getAllCharacters().filter(c => c.isAvailable)
+    const now = Date.now()
+    const newSet = new Set<string>()
+
+    for (const c of allChars) {
+      if (!NEW_CHAR_IDS.has(c.id)) continue       // 新16体以外はスキップ
+      if (isLocked(c)) continue                    // まだロック中はスキップ
+
+      const key = `fuu_char_new_${c.id}`
+      const stored = localStorage.getItem(key)
+
+      if (!stored) {
+        // 初回アンロック → 日時を記録
+        localStorage.setItem(key, now.toString())
+        newSet.add(c.id)
+      } else {
+        const daysSince = (now - parseInt(stored)) / (1000 * 60 * 60 * 24)
+        if (daysSince < NEW_BADGE_DAYS) newSet.add(c.id)
+      }
+    }
+    setNewCharIds(newSet)
+  }, [mounted, usageMonths, plan]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const unlockLabel = (c: Character): string => {
     if (c.isPremium) {
@@ -287,6 +322,14 @@ export default function CharacterSelectPage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
                     <span style={{ fontWeight: 700, fontSize: 16, color: '#333' }}>{c.name}</span>
                     <span style={{ fontSize: 12, color: '#888' }}>{c.age}歳</span>
+                    {newCharIds.has(c.id) && (
+                      <span style={{
+                        fontSize: 10, fontWeight: 700,
+                        background: 'linear-gradient(135deg,#FF6F00,#FF8F00)',
+                        color: '#fff', padding: '2px 8px', borderRadius: 20,
+                        letterSpacing: '0.04em',
+                      }}>NEW</span>
+                    )}
                     {c.isPremium && (
                       <span style={{
                         fontSize: 10, background: 'linear-gradient(135deg,#C2185B,#880E4F)',

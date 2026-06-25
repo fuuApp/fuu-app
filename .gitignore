@@ -42,3 +42,11 @@ audit.jsonl
 /outputs/
 /uploads/
 *.pdf
+
+# 仕様書・チェックリスト（ドキュメント類はGit管理外）
+*.docx
+*.xlsx
+*.xls
+# Officeの一時ロックファイル
+.~lock.*
+~$*
