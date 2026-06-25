@@ -229,6 +229,16 @@ Step 3【深掘りへの誘導】（必須）
 - ですます調・丁寧語には絶対に切り替えない。長い説明になっても口調を崩さない
 - 「〜です」「〜ます」「〜ますか」「〜でしょう」「〜ですね」は一文字も使わない
 
+【提案の絶対禁止事項】
+SAFETY_RULESで定められた禁止事項は相談モードでも例外なく適用する。
+- 医療的な断言・投薬量・症状の診断を提案に含めない（「病院に行ってみては」の案内のみ可）
+- 法的判断・離婚・親権・養育費の具体的な見通しを提案しない
+- 金額・助成金額・受給条件の断言をしない
+- DVが背景にある相談に「話し合ってみて」「関係を修復して」を提案しない
+- 「離婚すれば解決」「専業主婦になれ」など人生の重大決断を提案しない
+- ルール33の原則（育児感情サポートの範疇外）を超える提案はしない
+提案は「育児・日常生活・気持ちの整理」の範囲に限定する。答えを出すのではなく、選択肢を並べて相手が選べるようにする。
+
 【フォーマット・絶対ルール】
 - 番号は①②③のみ使う（1. 2. 3. は使わない）
 - 必ず3つ出す（2つや4つにしない）
@@ -379,10 +389,14 @@ export async function POST(req: NextRequest) {
     const mode: string = body.mode ?? 'guchi' // 'guchi' | 'soudan' | 'hybrid'
     const journalContext: string | undefined = body.journalContext
 
+    // isGuchiSummaryを先に取り出す（長さチェックをスキップするため）
+    const isGuchiSummary: boolean = body.isGuchiSummary ?? false
+
     if (!message?.trim()) {
       return NextResponse.json({ error: 'メッセージが空です' }, { status: 400 })
     }
-    if (message.length > 2000) {
+    // isGuchiSummary は会話履歴全文+プロンプトを含むため2000字制限を除外
+    if (!isGuchiSummary && message.length > 2000) {
       return NextResponse.json({ error: 'メッセージが長すぎます（最大2000文字）' }, { status: 400 })
     }
 
@@ -400,7 +414,6 @@ export async function POST(req: NextRequest) {
 
     // ── 気持ちの箱サマリー専用モード（キャラ人格を一切使わない）──
     // ※ サマリーはカウント対象外
-    const isGuchiSummary: boolean = body.isGuchiSummary ?? false
     if (isGuchiSummary) {
       const response = await anthropic.messages.create({
         model: 'claude-haiku-4-5-20251001',
@@ -428,6 +441,11 @@ export async function POST(req: NextRequest) {
 
     const { nickname } = body
     const { instruction, maxTokens } = getResponseGuide(message.length, mode)
+
+    // 今日の日付・曜日（AIが文脈を理解するために使用）
+    const todayLabel = new Date().toLocaleDateString('ja-JP', {
+      year: 'numeric', month: 'long', day: 'numeric', weekday: 'long',
+    })
 
     // ニックネーム指示を動的に追加
     const nameInstruction = nickname
@@ -480,15 +498,27 @@ ${SOUDAN_DEEPDIVE_PROMPT}
 ${HYBRID_BRIEF_PROMPT}`
 
     // ── 動的部分：リクエストごとに変わる小さなブロック ──
-    const dynamicBlock = `${nameInstruction}${journalInstruction}
+    const dynamicBlock = `【今日の日付】${todayLabel}
+
+${nameInstruction}${journalInstruction}
 
 【今回の指示】
 ${modeInstruction}`
 
-    const history = (conversationHistory ?? []).slice(-20).map((m: { role: string; content: string }) => ({
+    // Anthropic API の要件:
+    //   1. messagesは必ずuser始まり（leading assistantメッセージを除去）
+    //   2. role が交互になること（連続する同一roleは不可）
+    //   3. 末尾は必ず現在のuserメッセージ（conversationHistory には含まれない）
+    const rawHistory = (conversationHistory ?? []).slice(-20).map((m: { role: string; content: string }) => ({
       role: m.role as 'user' | 'assistant',
       content: m.content,
     }))
+    // 先頭のassistantメッセージ（ウェルカム挨拶など）を除去してuser始まりにする
+    let startIdx = 0
+    while (startIdx < rawHistory.length && rawHistory[startIdx].role === 'assistant') {
+      startIdx++
+    }
+    const history = rawHistory.slice(startIdx)
 
     const response = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',

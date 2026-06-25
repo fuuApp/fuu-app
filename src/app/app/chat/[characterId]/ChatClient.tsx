@@ -419,7 +419,9 @@ export default function ChatPage() {
           nickname: nickname || undefined,
           mode: chatMode,
           journalContext: journalContextRef.current || undefined,
-          conversationHistory: updatedMessages.map(m => ({
+          // 現在のメッセージはAPIが別途 message パラメータで受け取るため
+          // conversationHistory には「送信前」の履歴（=messages）のみを渡す
+          conversationHistory: messages.map(m => ({
             role: m.role, content: m.content,
           })),
         }),
