@@ -298,7 +298,8 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* 通知設定（スタンダード・プレミアム共通） */}
+        {/* 通知設定（スタンダード・プレミアム限定） */}
+        {(userPlan === 'standard' || userPlan === 'premium') ? (
         <div style={{ background:'#fff',borderRadius:16,overflow:'hidden',boxShadow:'0 1px 6px rgba(233,30,99,0.07)' }}>
           <div style={{ padding:'12px 16px',borderBottom:'1px solid #FCE4EC',fontSize:12,color:'#E91E63',fontWeight:700 }}>通知設定</div>
           <div style={{ padding:16 }}>
@@ -379,6 +380,18 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
+        ) : (
+        <div style={{ background:'#fff',borderRadius:16,overflow:'hidden',boxShadow:'0 1px 6px rgba(233,30,99,0.07)' }}>
+          <div style={{ padding:'12px 16px',borderBottom:'1px solid #FCE4EC',fontSize:12,color:'#E91E63',fontWeight:700 }}>通知設定</div>
+          <div style={{ padding:16 }}>
+            <div style={{ background:'#FFF3E0',border:'1px solid #FFB74D',borderRadius:12,padding:'12px 14px' }}>
+              <div style={{ fontSize:13,color:'#E65100',fontWeight:700,marginBottom:4 }}>🔔 スタンダード以上の機能です</div>
+              <div style={{ fontSize:12,color:'#888',lineHeight:1.7 }}>朝・夜のリマインダー通知はスタンダードプラン以上でご利用いただけます。</div>
+              <button onClick={()=>router.push('/app/plans')} style={{ marginTop:10,background:'none',border:'1px solid #FFB74D',borderRadius:20,padding:'6px 14px',fontSize:12,color:'#E65100',cursor:'pointer',fontFamily:'inherit' }}>プランを見る →</button>
+            </div>
+          </div>
+        </div>
+        )}
 
         {/* プラン */}
         <div style={{ background:'#fff',borderRadius:16,overflow:'hidden',boxShadow:'0 1px 6px rgba(233,30,99,0.07)' }}>

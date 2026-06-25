@@ -8,7 +8,12 @@ interface Journal { id: string; date: string; reframed: string; originalContent?
 
 const charNames: Record<string, string> = {
   aoi: 'あおい', sakura: 'さくら', rika: 'りか',
-  natsuko: 'なつこ', kenji: 'けんじ', hiroshi: 'ひろし'
+  natsuko: 'なつこ', kenji: 'けんじ', hiroshi: 'ひろし',
+  yui: 'ゆい', mio: 'みお', haruka: 'はるか', tomomi: 'ともみ',
+  ayaka: 'あやか', noriko: 'のりこ', kazuko: 'かずこ', michiko: 'みちこ',
+  yoko: 'ようこ', akiko: 'あきこ', reiko: 'れいこ',
+  sota: 'そうた', takashi: 'たかし', daisuke: 'だいすけ',
+  yusuke: 'ゆうすけ', koji: 'こうじ',
 }
 
 function formatDate(dateStr: string): string {

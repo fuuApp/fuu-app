@@ -63,13 +63,13 @@ function AuthCallbackContent() {
           const { data: { session: sess } } = await supabase.auth.getSession()
           if (!sess) {
             console.error('[auth/callback] timeout: no session')
-            router.replace('/login?error=auth_failed')
+            router.replace('/signin?error=auth_failed')
           }
         }, 5000)
 
       } catch (err) {
         console.error('[auth/callback] error:', err)
-        router.replace('/login?error=auth_failed')
+        router.replace('/signin?error=auth_failed')
       }
     }
 
