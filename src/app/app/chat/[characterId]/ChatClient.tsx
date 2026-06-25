@@ -62,7 +62,7 @@ export default function ChatPage() {
   const { startBgm } = useBgm()
 
   const quickReplies = ['今日しんどかった', 'ただ聞いてほしい', '子どものこと', '旦那のこと', 'ママ友のこと', '困っていること']
-  const showGuchiFooterButton = nicknamePhase === 'done' && !guchiDone && !loadingSummary && !loading
+  const showGuchiFooterButton = nicknamePhase === 'done' && !guchiDone && !loadingSummary && !loading && chatMode === 'guchi'
 
   // キャラクターアバター（/public/characters/ に画像を配置すること）
   const avatarHasImage = character?.avatar && character.avatar !== ''
@@ -421,9 +421,10 @@ export default function ChatPage() {
           journalContext: journalContextRef.current || undefined,
           // 現在のメッセージはAPIが別途 message パラメータで受け取るため
           // conversationHistory には「送信前」の履歴（=messages）のみを渡す
-          conversationHistory: messages.map(m => ({
-            role: m.role, content: m.content,
-          })),
+          // 「（スキップ）」はUI非表示だがAIには見せない（混乱防止）
+          conversationHistory: messages
+            .filter(m => m.content !== '（スキップ）')
+            .map(m => ({ role: m.role, content: m.content })),
         }),
       })
       const data = await res.json()
