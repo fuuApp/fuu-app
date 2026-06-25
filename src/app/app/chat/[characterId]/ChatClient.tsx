@@ -62,7 +62,9 @@ export default function ChatPage() {
   const { startBgm } = useBgm()
 
   const quickReplies = ['今日しんどかった', 'ただ聞いてほしい', '子どものこと', '旦那のこと', 'ママ友のこと', '困っていること']
-  const showGuchiFooterButton = nicknamePhase === 'done' && !guchiDone && !loadingSummary && !loading && chatMode === 'guchi'
+  // ユーザー発言が1件以上ある場合のみ表示（スキップは除く）
+  const userMessageCount = messages.filter(m => m.role === 'user' && m.content !== '（スキップ）').length
+  const showGuchiFooterButton = nicknamePhase === 'done' && !guchiDone && !loadingSummary && !loading && chatMode === 'guchi' && userMessageCount > 0
 
   // キャラクターアバター（/public/characters/ に画像を配置すること）
   const avatarHasImage = character?.avatar && character.avatar !== ''
@@ -483,8 +485,8 @@ export default function ChatPage() {
 
   const handleGuchi = async () => {
     setLoadingSummary(true)
-    // ユーザー発言のみ抽出（AIの発言をテキストに混ぜるとキャラが混乱する）
-    const userMessages = messages.filter(m => m.role === 'user').map(m => m.content).join('\n')
+    // ユーザー発言のみ抽出（AIの発言・スキップは除外）
+    const userMessages = messages.filter(m => m.role === 'user' && m.content !== '（スキップ）').map(m => m.content).join('\n')
     // 前回の気持ちの箱がある場合は補足として渡す
     const prevContext = journalContextRef.current
       ? `\n\n【前回の気持ちの箱（参考）】\n${journalContextRef.current}`
