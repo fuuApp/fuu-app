@@ -393,7 +393,7 @@ export default function ChatPage() {
 
   const handleSend = async (messageText?: string) => {
     const userMessage = (messageText ?? input).trim()
-    if (!userMessage || loading || !journalLoaded) return
+    if (!userMessage || loading || loadingSummary || !journalLoaded) return
     setInput('')
     setShowQuickReplies(false)
     setLoading(true)
