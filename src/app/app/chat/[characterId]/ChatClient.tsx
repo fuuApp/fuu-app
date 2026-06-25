@@ -660,7 +660,7 @@ export default function ChatPage() {
         </div>
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
           {nickname && (
-            <div style={{ fontSize: 12, color: '#bbb' }}>{nickname}</div>
+            <div style={{ fontSize: 12, color: '#888' }}>{nickname}</div>
           )}
           {/* 残り会話回数バッジ */}
           {remaining !== null && (
