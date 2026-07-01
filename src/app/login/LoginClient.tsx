@@ -139,9 +139,9 @@ export default function LoginClient({ nextPath, authError }: Props) {
             </div>
             <form onSubmit={handleVerifyOtp}>
               <input
-                type="text" inputMode="numeric" pattern="[0-9]*" maxLength={8}
+                type="text" inputMode="numeric" pattern="[0-9]*" maxLength={6}
                 value={otp} onChange={e => { setOtp(e.target.value.replace(/\D/g, '')); setError('') }}
-                placeholder="00000000" autoFocus
+                placeholder="000000" autoFocus
                 style={{ width: '100%', padding: '18px 16px', borderRadius: 14, border: error ? '1.5px solid #E91E63' : '1.5px solid #F48FB1', fontSize: 28, fontWeight: 700, letterSpacing: 10, textAlign: 'center', outline: 'none', background: '#fdf4f7', marginBottom: 4, boxSizing: 'border-box', fontFamily: 'monospace' }}
               />
               {error && <p style={{ fontSize: 12, color: '#E91E63', marginBottom: 8, marginTop: 4 }}>⚠️ {error}</p>}
