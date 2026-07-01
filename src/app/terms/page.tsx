@@ -82,7 +82,7 @@ export default function TermsPage() {
 
         <div style={{ marginTop: 32, padding: '16px', background: '#fff', borderRadius: 12, textAlign: 'center' }}>
           <div style={{ fontSize: 12, color: '#888' }}>お問い合わせ：fuu.support@gmail.com</div>
-          <div style={{ fontSize: 10, color: '#aaa', marginTop: 6 }}>OGAWAVE（個人事業主：小川博吉）</div>
+          <div style={{ fontSize: 10, color: '#aaa', marginTop: 6 }}>OGAWAVE（小川博吉）</div>
         </div>
       </div>
     </main>
