@@ -316,10 +316,32 @@ function isEmpathyConfirmation(message: string): boolean {
   return empathyPatterns.some(p => p.test(message))
 }
 
+// ─── 純粋な感情表現のみ（解決志向なし）────────────────────────────
+// 「精神的につらい」「しんどい」「疲れた」など、感情を吐き出しているだけで
+// 解決策を求めていない表現。autoHybridを絶対に発動させない。
+function isPureEmotionalVenting(message: string): boolean {
+  const t = message.trim()
+  // ？がついている場合は感情表現でも相談意図がある可能性があるので除外
+  if (/[？?]/.test(t)) return false
+  const patterns = [
+    // 感情形容詞で終わる（prefix付きも含む）
+    /^(もう|なんか|すごく|本当に|ほんと|ちょっと|かなり|めっちゃ|精神的に|体が|心が|体も心も|なんか|だいぶ|かなり|もう本当に).{0,15}(つらい|しんどい|疲れた|つかれた|きつい|苦しい|悲しい|しんどすぎる|つらすぎる|疲れすぎ|ボロボロ|限界|ダメ|ムリ|無理)$/,
+    // 感情のみ（接頭語なし）
+    /^(つらい|しんどい|疲れた|つかれた|きつい|苦しい|悲しい|しんどすぎる|つらすぎる|疲れすぎ|ボロボロ|限界|もう限界|ダメかも|ムリかも|辛い|辛すぎる)$/,
+    // 「〜がつらい」「〜がしんどい」など状況説明＋感情で終わる
+    /^.{2,30}(がつらい|がしんどい|が疲れた|がきつい|が苦しい|が悲しい|がしんどすぎる|がつらすぎる|で疲れた|でしんどい|でつらい|できつい)$/,
+    // 「もう無理」系
+    /^(もう無理|もうムリ|もうだめ|もうダメ|もうやだ|もう嫌だ|もう嫌|もうやだー|もう疲れた)$/,
+  ]
+  return patterns.some(p => p.test(t))
+}
+
 // ─── 解決志向キーワード検出（愚痴モード中に相談への移行を検知）───
 function detectSolutionIntent(message: string): boolean {
   // 共感確認パターンに該当する場合は相談検知しない
   if (isEmpathyConfirmation(message)) return false
+  // 純粋な感情表現の場合は相談検知しない
+  if (isPureEmotionalVenting(message)) return false
 
   // 明示的な解決志向キーワード
   const keywords = [
