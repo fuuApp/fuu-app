@@ -39,13 +39,15 @@ export async function middleware(req: NextRequest) {
     }
   )
 
+  // getUser() はSupabaseサーバーに都度確認するため、削除済みユーザーを正しく弾く
+  // （getSession() はJWTキャッシュを参照するため退会後もアクセス可能になるバグが発生する）
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    data: { user },
+  } = await supabase.auth.getUser()
 
   // /app/* へのアクセス保護
   if (pathname.startsWith('/app')) {
-    if (!session) {
+    if (!user) {
       const loginUrl = req.nextUrl.clone()
       loginUrl.pathname = '/signin'
       loginUrl.searchParams.set('next', pathname)
@@ -54,7 +56,7 @@ export async function middleware(req: NextRequest) {
   }
 
   // ログイン済みユーザーが /signin にアクセスした場合
-  if (pathname === '/signin' && session) {
+  if (pathname === '/signin' && user) {
     const appUrl = req.nextUrl.clone()
     appUrl.pathname = '/app'
     appUrl.search = ''

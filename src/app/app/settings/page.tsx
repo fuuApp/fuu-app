@@ -232,6 +232,8 @@ export default function SettingsPage() {
         headers: { 'Authorization': `Bearer ${session.access_token}` },
       })
       if (!res.ok) { const d = await res.json(); setDeleteError(d.error ?? '退会に失敗しました'); setIsDeleting(false); return }
+      // セッションクッキーを削除してから遷移（削除後もアクセス可能になるバグ防止）
+      try { await supabase.auth.signOut() } catch {}
       localStorage.clear(); sessionStorage.clear(); router.replace('/')
     } catch { setDeleteError('通信エラーが発生しました。しばらくしてからお試しください。'); setIsDeleting(false) }
   }
