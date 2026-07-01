@@ -263,7 +263,12 @@ const CRISIS_KEYWORDS = [
   '死にたい', '消えたい', '消えてしまいたい', '死んでしまいたい',
   '死にたくなった', '生きていたくない', '生きてたくない', '自分を傷つけたい',
   '消えてしまおう', '死のうかな', '死ぬしかない',
+  'いなくなりたい', 'いなくなってしまいたい', 'もう消えたい', 'もう死にたい',
+  '消えてしまいたい', '死んでしまいたい', '存在消したい',
 ]
+const HOTLINE_MARKER = '0120-279-338'
+const HOTLINE_APPEND = '\n\nつらいとき、話を聞いてくれる場所として、よりそいホットライン（0120-279-338、24時間・無料）もあるよ。今どんな気持ちか、もう少し話してくれる？'
+
 function detectCrisis(msg: string): boolean {
   return CRISIS_KEYWORDS.some(kw => msg.includes(kw))
 }
@@ -572,9 +577,14 @@ ${modeInstruction}`
       ],
     })
 
-    const aiMessage = response.content[0].type === 'text'
+    let aiMessage = response.content[0].type === 'text'
       ? response.content[0].text
       : 'ごめんね、うまく返事できなかった。もう一度話してくれる？'
+
+    // クライシス時：ホットラインが含まれていない場合は強制付与（LLMが省略した場合のフォールバック）
+    if (isCrisis && !aiMessage.includes(HOTLINE_MARKER)) {
+      aiMessage += HOTLINE_APPEND
+    }
 
     return NextResponse.json({
       message: aiMessage,
