@@ -39,7 +39,10 @@ export default function TokushoPage() {
                 }}>
                   {label}
                 </td>
-                <td style={{ padding: '12px 0', verticalAlign: 'top', whiteSpace: 'pre-line' }}>
+                <td style={{
+                  padding: '12px 0', verticalAlign: 'top', whiteSpace: 'pre-line',
+                  ...(label === '運営責任者' ? { fontSize: 10, color: '#aaa' } : {}),
+                }}>
                   {value}
                 </td>
               </tr>

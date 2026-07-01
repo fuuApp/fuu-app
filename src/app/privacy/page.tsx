@@ -10,7 +10,7 @@ export default function PrivacyPage() {
 
       <div style={{ padding: '24px 20px', fontSize: 13, color: '#333', lineHeight: 1.9 }}>
         <p style={{ fontSize: 12, color: '#888', marginBottom: 20 }}>
-          制定日：2026年6月　最終更新：2026年6月
+          制定日：2026年7月　最終更新：2026年7月
         </p>
 
         <p style={{ marginBottom: 20 }}>
@@ -94,7 +94,7 @@ export default function PrivacyPage() {
 
         <div style={{ marginTop: 32, padding: '16px', background: '#fff', borderRadius: 12, textAlign: 'center' }}>
           <div style={{ fontSize: 12, color: '#888' }}>お問い合わせ：fuu.support@gmail.com</div>
-          <div style={{ fontSize: 7, color: '#ddd', marginTop: 6 }}>OGAWAVE（個人事業主：小川博吉）</div>
+          <div style={{ fontSize: 10, color: '#aaa', marginTop: 6 }}>OGAWAVE（個人事業主：小川博吉）</div>
         </div>
       </div>
     </main>
