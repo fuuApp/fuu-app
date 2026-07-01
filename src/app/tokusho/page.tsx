@@ -15,10 +15,8 @@ export default function TokushoPage() {
             {[
               ['販売事業者', 'OGAWAVE'],
               ['所在地', '〒221-0056\n神奈川県横浜市神奈川区金港町5-14 クアドリフォリオ8階'],
-              ['電話番号', '電話番号は請求があり次第、遅滞なく開示いたします\nお問い合わせ：fuu.support@gmail.com'],
               ['メールアドレス', 'fuu.support@gmail.com'],
               ['サービス名', 'fuu ふぅ（育児ママのためのAI共感アプリ）'],
-              ['URL', 'https://fuu-app.vercel.app'],
               ['販売価格', 'スタンダードプラン：¥300/月\nプレミアムプラン：¥980/月\nチケット：¥300/日'],
               ['支払い方法', 'クレジットカード（Visa・Mastercard・American Express・JCB）\nApple Pay・Google Pay'],
               ['支払い時期', '月額プラン：登録月より毎月自動更新\nチケット：購入時に即時決済'],
@@ -27,6 +25,7 @@ export default function TokushoPage() {
               ['返金ポリシー', '原則として購入後の返金は行いません\n※チケットの例外については上記キャンセル方法を参照'],
               ['動作環境', 'iOS 15以上 / Android 9以上\nGoogle Chrome・Safari等モダンブラウザ'],
               ['特記事項', '本サービスのAIキャラクターは架空の人物です。実在の人物ではありません。\n医療・法律・金融の専門的アドバイスを提供するものではありません。'],
+              ['電話番号', '電話番号は請求があり次第、遅滞なく開示いたします\nお問い合わせ：fuu.support@gmail.com'],
               ['運営責任者', '小川博吉'],
             ].map(([label, value], i) => (
               <tr key={i} style={{ borderBottom: '1px solid #FCE4EC' }}>
@@ -40,10 +39,7 @@ export default function TokushoPage() {
                 }}>
                   {label}
                 </td>
-                <td style={{
-                  padding: '12px 0', verticalAlign: 'top', whiteSpace: 'pre-line',
-                  ...(label === '運営責任者' ? { fontSize: 7, color: '#f0e8eb' } : {}),
-                }}>
+                <td style={{ padding: '12px 0', verticalAlign: 'top', whiteSpace: 'pre-line' }}>
                   {value}
                 </td>
               </tr>
