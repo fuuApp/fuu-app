@@ -46,6 +46,7 @@ export default function ChatPage() {
   const [isListening, setIsListening] = useState(false)
   const [sttSupported, setSttSupported] = useState(false)
   const [isPremium, setIsPremium] = useState(false)
+  const [userPlan, setUserPlan] = useState<'trial' | 'standard' | 'premium'>('trial')
 
   // 残り会話回数
   const [remaining, setRemaining] = useState<number | null>(null)
@@ -303,6 +304,8 @@ export default function ChatPage() {
             .eq('user_id', user.id)
             .single()
           setIsPremium(profile?.plan === 'premium')
+          const p = profile?.plan ?? 'trial'
+          setUserPlan(p === 'premium' ? 'premium' : p === 'standard' ? 'standard' : 'trial')
         }
       } catch {
         // 取得失敗時はSTT非表示のまま
@@ -596,12 +599,18 @@ export default function ChatPage() {
         }}>
           <div style={{ fontSize: 48, marginBottom: 16 }}>{isTrialExpired ? '🌸' : '💬'}</div>
           <h2 style={{ fontSize: 18, fontWeight: 700, color: '#333', marginBottom: 12 }}>
-            {isTrialExpired ? '無料トライアルが終了しました' : '今月の会話回数に達しました'}
+            {isTrialExpired
+              ? '無料トライアルが終了しました'
+              : userPlan === 'trial'
+              ? '無料プランの会話回数に達しました'
+              : '今月の会話回数に達しました'}
           </h2>
           <p style={{ fontSize: 13, color: '#888', lineHeight: 1.8, marginBottom: 24 }}>
             {isTrialExpired
               ? 'ふぅとの会話を続けるにはプランを選んでください。いつでも解約できます。'
-              : '今月の会話上限に達しました。プランのアップグレードか1日使い放題チケット（¥300）をどうぞ。'}
+              : userPlan === 'trial'
+              ? '無料プランの会話上限に達しました。プランに登録して会話を続けましょう。'
+              : '今月の会話上限に達しました。1日使い放題チケット（¥300）をどうぞ。'}
           </p>
           <button
             onClick={() => router.push('/app/plans')}
