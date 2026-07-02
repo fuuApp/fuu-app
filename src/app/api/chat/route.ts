@@ -634,6 +634,11 @@ Step3：「今どんな気持ちか、もう少し話してくれる？」で締
 キャラクターの口調は維持しながら、上記Stepを必ず実行する。
 ` : ''
 
+    // ── 全キャラ共通会話ルール（常時注入） ──
+    const conversationRulesBlock = `【会話ルール・全モード共通】
+・1ターンに質問は1つだけ。複数の質問を同時にしない（例：「何時間おき？今何ヶ月？」はNG）
+・愚痴モード（guchi）では「何か工夫してることある？」「どうしたらいい？」など解決策・対処法を聞かない。感情の受け止めに徹する`
+
     // ── 自己情報捏造禁止ブロック（常時注入） ──
     const noSelfInventionBlock = `【自分についての質問】
 ユーザーから「何歳？」「何時に寝てるの？」「どこ住んでるの？」など自分自身のことを聞かれた場合：
@@ -657,6 +662,7 @@ Step3：「今どんな気持ちか、もう少し話してくれる？」で締
     const dynamicBlock = `【今日の日付】${todayLabel}
 
 ${nameInstruction}${journalInstruction}
+${conversationRulesBlock}
 ${noSelfInventionBlock}
 ${noCrisisProbeBlock}
 ${crisisBlock}
