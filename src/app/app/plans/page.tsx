@@ -321,7 +321,7 @@ function PlansContent() {
           <div style={{ fontSize: 12, color: '#E91E63', fontWeight: 700, marginBottom: 6 }}>🎁 無料トライアル（10日間）でできること</div>
           <div style={{ fontSize: 12, color: '#666', lineHeight: 1.8 }}>
             ・あおい・さくらと70会話まで無料でお話できます<br />
-            ・BGM試聴（フル利用は有料プランから）<br />
+            ・BGMフル利用（全曲試聴・チャット中再生）<br />
             ・トライアル終了後は自動課金されません
           </div>
         </div>
