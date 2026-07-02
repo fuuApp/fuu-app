@@ -120,22 +120,22 @@ function getResponseGuide(messageLength: number, mode: string): { instruction: s
   if (messageLength <= 30) {
     return {
       instruction: `【今回の返答スタイル】相手のメッセージが短い。2〜3文でテンポよく返す。`,
-      maxTokens: 200,
+      maxTokens: 450,
     }
   } else if (messageLength <= 100) {
     return {
       instruction: `【今回の返答スタイル】相手のメッセージは中程度。3〜5文で、内容にしっかり反応しながら返す。`,
-      maxTokens: 380,
+      maxTokens: 600,
     }
   } else if (messageLength <= 250) {
     return {
       instruction: `【今回の返答スタイル】相手が長めに話してくれた。同じくらいのボリュームで、話してくれた内容を全部受け止めて返す。箇条書き不使用。自然な会話文で。`,
-      maxTokens: 650,
+      maxTokens: 900,
     }
   } else {
     return {
       instruction: `【今回の返答スタイル】相手がたくさん話してくれた。それと同じかそれ以上の量で、一つひとつの気持ちをちゃんと受け止めながら返す。「ちゃんと読んでくれてる」と伝わるように。箇条書き不使用。`,
-      maxTokens: 1000,
+      maxTokens: 1200,
     }
   }
 }
