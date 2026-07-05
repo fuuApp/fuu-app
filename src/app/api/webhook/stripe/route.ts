@@ -114,11 +114,14 @@ export async function POST(req: NextRequest) {
         if (session.mode === 'subscription') {
           // サブスクリプション決済完了：stripe_customer_id を profiles に保存
           // （これを先にやることで subscription.created/updated でユーザー特定できる）
+          // プラン変更・新規契約時は monthly_chat_count をリセットして新しいプランの上限から始める
           const userId = session.metadata?.userId ?? session.metadata?.user_id
           const customerId = session.customer as string
           if (userId && customerId) {
             await supabase.from('profiles').update({
               stripe_customer_id: customerId,
+              monthly_chat_count: 0,
+              monthly_chat_reset_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
             }).eq('user_id', userId)
           }
