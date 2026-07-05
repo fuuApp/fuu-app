@@ -25,6 +25,8 @@ export default function ChatPage() {
   const [showQuickReplies, setShowQuickReplies] = useState(false)
   const [guchiDone, setGuchiDone] = useState(false)
   const [guchiSummary, setGuchiSummary] = useState('')
+  const [soudanDone, setSoudanDone] = useState(false)
+  const [soudanSummary, setSoudanSummary] = useState('')
   const [loadingSummary, setLoadingSummary] = useState(false)
 
   const [nickname, setNickname] = useState('')
@@ -66,6 +68,7 @@ export default function ChatPage() {
   // ユーザー発言が1件以上ある場合のみ表示（スキップは除く）
   const userMessageCount = messages.filter(m => m.role === 'user' && m.content !== '（スキップ）').length
   const showGuchiFooterButton = nicknamePhase === 'done' && !guchiDone && !loadingSummary && !loading && chatMode === 'guchi' && userMessageCount > 0
+  const showSoudanFooterButton = nicknamePhase === 'done' && !soudanDone && !loadingSummary && !loading && chatMode === 'soudan' && userMessageCount > 0
 
   // キャラクターアバター（/public/characters/ に画像を配置すること）
   const avatarHasImage = character?.avatar && character.avatar !== ''
@@ -555,6 +558,49 @@ export default function ChatPage() {
     }
   }
 
+  const handleSoudan = async () => {
+    setLoadingSummary(true)
+    const userMessages = messages.filter(m => m.role === 'user' && m.content !== '（スキップ）').map(m => m.content).join('\n')
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          characterId,
+          isGuchiSummary: true,
+          message: `ユーザーが今日相談してくれた内容を3つのポイントで整理してください。形式：\n📝 [ポイント1]\n📝 [ポイント2]\n📝 [ポイント3]\n\nそして最後に一言で締めてください。全体100文字以内。\n\n【ユーザーが相談した内容】\n${userMessages}`,
+          conversationHistory: [],
+        }),
+      })
+      const data = await res.json()
+      const summary = res.ok ? data.message : '今日はいっぱい相談してくれてありがとう。また話しかけてね。'
+      setSoudanSummary(summary)
+      setSoudanDone(true)
+
+      const today = getTodayJST()
+      try {
+        sessionStorage.setItem(`fuu_soudan_${today}`, JSON.stringify({ date: today, reframed: summary }))
+      } catch { /* ignore */ }
+
+      try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          await supabase.from('guchi_journals').upsert(
+            { user_id: user.id, date: today, reframed: summary, original_content: '', character_id: characterId },
+            { onConflict: 'user_id,date,character_id' }
+          )
+        }
+      } catch { /* ignore */ }
+    } catch {
+      const fallback = '今日はいっぱい相談してくれてありがとう。また話しかけてね。'
+      setSoudanSummary(fallback)
+      setSoudanDone(true)
+    } finally {
+      setLoadingSummary(false)
+    }
+  }
+
   // ── 音声テキスト入力（STT）──
   const handleMicTap = () => {
     const rec = recognitionRef.current
@@ -818,6 +864,63 @@ export default function ChatPage() {
           )
         })()}
 
+        {/* 相談まとめ結果 */}
+        {soudanDone && soudanSummary && (() => {
+          const lines = soudanSummary.split('\n').map(l => l.trim()).filter(Boolean)
+          const labelLines = lines.filter(l => l.startsWith('📝'))
+          const closingLines = lines.filter(l => !l.startsWith('📝'))
+          const labels = labelLines.map(l => l.replace(/^📝\s*/, ''))
+          const closing = closingLines.join(' ')
+          return (
+          <div style={{
+            margin: '16px 0', background: 'linear-gradient(135deg,#F3E5F5,#EDE7F6)',
+            borderRadius: 20, padding: '18px 20px',
+            border: '1.5px solid #CE93D8', boxShadow: '0 2px 12px rgba(123,31,162,0.1)',
+          }}>
+            <div style={{ fontSize: 13, color: '#7B1FA2', fontWeight: 700, marginBottom: 12 }}>
+              💡 今日の相談、まとめたよ
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
+              {labels.map((label, i) => (
+                <span key={i} style={{
+                  background: '#fff', border: '1.5px solid #CE93D8',
+                  borderRadius: 20, padding: '6px 14px',
+                  fontSize: 13, color: '#6A1B9A',
+                  display: 'inline-block', userSelect: 'none',
+                }}>
+                  {label}
+                </span>
+              ))}
+            </div>
+            {closing && (
+              <div style={{ fontSize: 13, color: '#555', lineHeight: 1.7, borderTop: '1px solid #CE93D8', paddingTop: 12 }}>
+                {closing}
+              </div>
+            )}
+            <button onClick={() => {
+              setSoudanDone(false); setSoudanSummary('')
+              const again: Record<string, string> = {
+                aoi: 'またいつでも話しかけてね😊', sakura: 'またゆっくり話しましょう。',
+                rika: 'またいつでも来なよ！', natsuko: 'またね〜。ゆっくり休んでね。',
+                kenji: 'また話しかけてね。', hiroshi: '...また話しかけてくれ。',
+              }
+              setMessages([{
+                id: Date.now().toString(), conversationId: 'local', role: 'assistant',
+                content: again[characterId] ?? 'またね！',
+                createdAt: new Date().toISOString(),
+              }])
+              setShowSoudanReplies(true)
+            }} style={{
+              marginTop: 12, background: 'none', border: '1px solid #CE93D8',
+              borderRadius: 16, padding: '6px 16px', fontSize: 12,
+              color: '#7B1FA2', cursor: 'pointer', fontFamily: 'inherit',
+            }}>
+              もう一度相談する
+            </button>
+          </div>
+          )
+        })()}
+
         <div ref={bottomRef} />
       </div>
 
@@ -1070,7 +1173,7 @@ export default function ChatPage() {
             }}>↑</button>
           </div>
 
-          {/* そろそろ終わりにするボタン */}
+          {/* そろそろ終わりにするボタン（愚痴モード） */}
           {showGuchiFooterButton && (
             <div style={{ textAlign: 'center', paddingBottom: 10 }}>
               <button onClick={handleGuchi} style={{
@@ -1083,6 +1186,22 @@ export default function ChatPage() {
                 onMouseLeave={e => { e.currentTarget.style.color = '#bbb' }}
               >
                 🧹 そろそろ終わりにする
+              </button>
+            </div>
+          )}
+          {/* そろそろ終わりにするボタン（相談モード） */}
+          {showSoudanFooterButton && (
+            <div style={{ textAlign: 'center', paddingBottom: 10 }}>
+              <button onClick={handleSoudan} style={{
+                background: 'none', border: 'none',
+                fontSize: 12, color: '#bbb', cursor: 'pointer',
+                fontFamily: 'inherit', padding: '2px 8px',
+                textDecoration: 'underline', textDecorationColor: '#d0b0e0',
+              }}
+                onMouseEnter={e => { e.currentTarget.style.color = '#7B1FA2' }}
+                onMouseLeave={e => { e.currentTarget.style.color = '#bbb' }}
+              >
+                💡 そろそろ終わりにする
               </button>
             </div>
           )}
