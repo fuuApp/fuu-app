@@ -384,6 +384,23 @@ function isDeepDiveRequest(message: string): boolean {
   )
 }
 
+// ─── 愚痴聞きモード専用プロンプト ───────────────────────────────
+const GUCHI_PROMPT = `
+【愚痴聞きモード・絶対ルール】
+現在は「愚痴聞きモード」です。ユーザーは解決策を求めていません。ただ聞いてほしいのです。
+
+【絶対禁止】
+・解決策・アドバイス・提案・対処法を出すことは絶対禁止
+・「こういう方法もあるかな」「少し考えてみたんだけど」など提案の前置きも禁止
+・①②③などリスト形式で対策を並べることは禁止
+・「〜してみては？」「〜すると良いかも」など助言表現は禁止
+
+【必ずやること】
+・感情をそのまま受け止める（「それはしんどいね」「消耗するよね」「ほんとそれは辛いな」など）
+・もっと話を引き出す（「どんな感じ？」「それでどうなったの？」など1つだけ聞く）
+・共感・傾聴のみ。解決は求められた時だけ。
+`
+
 // ─── 相談モード：初回（タイトルのみ・簡潔版）───
 const SOUDAN_BRIEF_PROMPT = `
 【相談モード・簡潔提案】
@@ -585,6 +602,7 @@ export async function POST(req: NextRequest) {
       effectiveMode === 'hybrid_deepdive' ? SOUDAN_DEEPDIVE_PROMPT :
       effectiveMode === 'soudan'          ? SOUDAN_BRIEF_PROMPT : // 後方互換
       effectiveMode === 'hybrid'          ? HYBRID_BRIEF_PROMPT : // 後方互換
+      effectiveMode === 'guchi'           ? GUCHI_PROMPT + '\n' + instruction :
       instruction
     // 過去の気持ちの箱があれば文脈として差し込む
     const isFollowUp = /つづき|続き|この前|前回|また来た|また話|さっきの/.test(message)
