@@ -98,19 +98,32 @@ export default function JournalPage() {
             <button onClick={()=>router.push('/app')} style={{ background:'linear-gradient(135deg,#E91E63,#C2185B)',border:'none',borderRadius:24,padding:'12px 28px',fontSize:14,color:'#fff',cursor:'pointer',fontFamily:'inherit',fontWeight:700 }}>話しに行く →</button>
           </div>
         )}
-        {!loading && journals.map((journal,index) => (
-          <div key={journal.id} style={{ background:'#fff',borderRadius:18,marginBottom:12,boxShadow:'0 2px 8px rgba(233,30,99,0.07)',overflow:'hidden' }}>
-            <div style={{ padding:'14px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',borderBottom:expandedId===journal.id?'1px solid #FCE4EC':'none' }}>
+        {!loading && journals.map((journal,index) => {
+          const isSoudan = journal.reframed.includes('📝')
+          const accent = isSoudan ? '#7B1FA2' : '#E91E63'
+          const accentLight = isSoudan ? '#CE93D8' : '#F48FB1'
+          const bgLight = isSoudan ? '#F3E5F5' : '#FCE4EC'
+          const bgCard = isSoudan ? '#FAF5FF' : '#FFF0F5'
+          const icon = isSoudan ? '💡' : '✨'
+          const label = isSoudan ? `${formatDate(journal.date)}の相談まとめ` : `${formatDate(journal.date)}の気持ちの箱`
+          const charBg = isSoudan ? '#EDE7F6' : '#FCE4EC'
+          const charColor = isSoudan ? '#7B1FA2' : '#E91E63'
+          const iconBg = index === 0
+            ? isSoudan ? 'linear-gradient(135deg,#7B1FA2,#CE93D8)' : 'linear-gradient(135deg,#E91E63,#F48FB1)'
+            : bgLight
+          return (
+          <div key={journal.id} style={{ background:'#fff',borderRadius:18,marginBottom:12,boxShadow:`0 2px 8px rgba(${isSoudan?'123,31,162':'233,30,99'},0.07)`,overflow:'hidden' }}>
+            <div style={{ padding:'14px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',borderBottom:expandedId===journal.id?`1px solid ${bgLight}`:'none' }}>
               <div
                 onClick={()=>setExpandedId(expandedId===journal.id?null:journal.id)}
                 style={{ display:'flex',alignItems:'center',gap:10,flex:1,cursor:'pointer' }}
               >
-                <div style={{ width:36,height:36,borderRadius:10,flexShrink:0,background:index===0?'linear-gradient(135deg,#E91E63,#F48FB1)':'#FCE4EC',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18 }}>✨</div>
+                <div style={{ width:36,height:36,borderRadius:10,flexShrink:0,background:iconBg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18 }}>{icon}</div>
                 <div>
                   <div style={{ display:'flex',alignItems:'center',gap:6,flexWrap:'wrap' }}>
-                    <div style={{ fontSize:14,fontWeight:700,color:'#333' }}>{formatDate(journal.date)}の気持ちの箱</div>
+                    <div style={{ fontSize:14,fontWeight:700,color:'#333' }}>{label}</div>
                     {journal.characterId && journal.characterId !== 'unknown' && (
-                      <span style={{ fontSize:11,background:'#FCE4EC',color:'#E91E63',borderRadius:10,padding:'1px 8px',fontWeight:600 }}>
+                      <span style={{ fontSize:11,background:charBg,color:charColor,borderRadius:10,padding:'1px 8px',fontWeight:600 }}>
                         {charNames[journal.characterId] ?? journal.characterId}
                       </span>
                     )}
@@ -119,7 +132,6 @@ export default function JournalPage() {
                 </div>
               </div>
               <div style={{ display:'flex',alignItems:'center',gap:8 }}>
-                {/* 削除ボタン */}
                 <button
                   onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(journal.id) }}
                   style={{ background:'none',border:'none',cursor:'pointer',padding:6,color:'#ccc',fontSize:16,lineHeight:1,borderRadius:8 }}
@@ -142,13 +154,14 @@ export default function JournalPage() {
             )}
             {expandedId === journal.id && (
               <div style={{ padding:16 }}>
-                <div style={{ fontSize:14,color:'#555',lineHeight:1.8,background:'#FFF0F5',borderRadius:12,padding:14,borderLeft:'3px solid #E91E63' }}>
+                <div style={{ fontSize:14,color:'#555',lineHeight:1.8,background:bgCard,borderRadius:12,padding:14,borderLeft:`3px solid ${accent}` }}>
                   {journal.reframed}
                 </div>
               </div>
             )}
           </div>
-        ))}
+          )
+        })}
         <div style={{ height:32 }} />
       </div>
 
