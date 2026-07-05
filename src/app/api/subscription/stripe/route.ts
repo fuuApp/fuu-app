@@ -42,9 +42,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: session.url })
   } catch (error: any) {
     console.error('Stripe checkout error:', error)
-    const msg = error?.message ?? '不明なエラー'
+    const detail = {
+      message: error?.message,
+      type: error?.type,
+      code: error?.code,
+      statusCode: error?.statusCode,
+      raw: error?.raw,
+    }
     return NextResponse.json(
-      { error: `[Stripe] ${msg}` },
+      { error: `[Stripe] ${error?.message ?? '不明なエラー'}`, detail },
       { status: 500 }
     )
   }
