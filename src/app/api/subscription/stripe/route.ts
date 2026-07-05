@@ -38,10 +38,11 @@ export async function POST(req: NextRequest) {
     })
 
     return NextResponse.json({ url: session.url })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Stripe checkout error:', error)
+    const msg = error?.message ?? '不明なエラー'
     return NextResponse.json(
-      { error: '決済の初期化に失敗しました。しばらく待ってから再試行してください。' },
+      { error: `[Stripe] ${msg}` },
       { status: 500 }
     )
   }
