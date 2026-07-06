@@ -73,6 +73,7 @@ function PlansContent() {
   const [availableTickets, setAvailableTickets] = useState(0)
   const [userId, setUserId] = useState<string>('')
   const [userEmail, setUserEmail] = useState<string>('')
+  const [isTicketJustPurchased, setIsTicketJustPurchased] = useState(false)
 
   // ── プラン・チケット状態をSupabaseから取得する共通関数 ──────────────
   // 初回マウント時 + ネイティブアプリでSafari/Chrome決済後にアプリ復帰した際の
@@ -151,25 +152,30 @@ function PlansContent() {
       router.replace('/app/plans')
     } else if (ticketSuccess === 'true') {
       router.replace('/app/plans')
-      setToastMessage({ type: 'success', text: '🎫 チケットを購入しました！有効化しています…' })
-      // webhookの処理遅延を考慮して3秒後に自動有効化
-      setTimeout(async () => {
-        try {
-          const res = await fetch('/api/subscription/activate-ticket', { method: 'POST' })
-          const data = await res.json()
-          if (res.ok) {
-            setTicketActiveUntil(data.activeUntil)
-            setAvailableTickets(0)
-            setToastMessage({ type: 'success', text: '🎫 チケットを有効化しました！24時間使い放題です。' })
-          } else {
-            // webhookが間に合わなかった場合：状態を再取得してUIを更新
-            await fetchPlanStatus()
-            setToastMessage({ type: 'success', text: '🎫 チケットを購入しました！画面下の「購入済みチケットを使う」ボタンで有効化してください。' })
-          }
-        } catch {
-          setToastMessage({ type: 'success', text: '🎫 チケットを購入しました！画面下の「購入済みチケットを使う」ボタンで有効化してください。' })
+      setIsTicketJustPurchased(true)
+      setToastMessage({ type: 'success', text: '🎫 チケットを購入しました！' })
+      // webhookの処理を待ちながらactivate-ticketをリトライ（最大4回、間隔を広げながら）
+      const tryActivate = async () => {
+        const delays = [5000, 8000, 12000, 15000]
+        for (const delay of delays) {
+          await new Promise(r => setTimeout(r, delay))
+          try {
+            const res = await fetch('/api/subscription/activate-ticket', { method: 'POST' })
+            const data = await res.json()
+            if (res.ok) {
+              setTicketActiveUntil(data.activeUntil)
+              setAvailableTickets(0)
+              setIsTicketJustPurchased(false)
+              setToastMessage({ type: 'success', text: '🎫 チケットを有効化しました！24時間使い放題です。' })
+              return
+            }
+          } catch { /* リトライ続行 */ }
         }
-      }, 3000)
+        // 全リトライ失敗：UIを更新してユーザーに手動有効化を促す
+        await fetchPlanStatus()
+        setIsTicketJustPurchased(false)
+      }
+      tryActivate()
     } else if (canceled === 'true') {
       setToastMessage({ type: 'error', text: '決済をキャンセルしました。いつでも再開できます。' })
       router.replace('/app/plans')
@@ -474,38 +480,55 @@ function PlansContent() {
               話したい日に、好きなだけ話せる1日券。
             </div>
 
-            {/* チケット有効中バナー */}
-            {ticketActiveUntil && new Date(ticketActiveUntil) > new Date() && (
+            {/* チケット有効中バナー OR 購入済みチケット有効化エリア */}
+            {ticketActiveUntil && new Date(ticketActiveUntil) > new Date() ? (
+              // 有効中：緑バナーのみ表示
               <div style={{
                 background: 'linear-gradient(135deg,#E8F5E9,#C8E6C9)',
                 border: '1.5px solid #66BB6A',
-                borderRadius: 12, padding: '10px 14px',
+                borderRadius: 12, padding: '12px 14px',
                 marginBottom: 12, fontSize: 12, color: '#2E7D32', lineHeight: 1.7,
               }}>
                 ✅ チケット有効中！<br />
                 <strong>{new Date(ticketActiveUntil).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</strong> まで使い放題
               </div>
-            )}
-
-            {/* 購入済みチケット有効化ボタン */}
-            {availableTickets > 0 && (
-              <button
-                onClick={handleActivateTicket}
-                disabled={loadingActivate || (!!ticketActiveUntil && new Date(ticketActiveUntil) > new Date())}
-                style={{
-                  width: '100%', padding: '13px',
-                  background: (loadingActivate || (!!ticketActiveUntil && new Date(ticketActiveUntil) > new Date()))
-                    ? '#E0E0E0'
-                    : 'linear-gradient(135deg,#43A047,#2E7D32)',
-                  color: '#fff', border: 'none', borderRadius: 50,
-                  fontSize: 14, fontWeight: 700,
-                  cursor: 'pointer', fontFamily: 'inherit',
-                  marginBottom: 8,
-                }}
-              >
-                {loadingActivate ? '有効化中...' : `🎫 購入済みチケットを使う（残${availableTickets}枚）`}
-              </button>
-            )}
+            ) : (availableTickets > 0 || isTicketJustPurchased) ? (
+              // 購入済みチケットあり or 購入直後：緑エリアにactivateボタン
+              <div style={{
+                background: 'linear-gradient(135deg,#E8F5E9,#C8E6C9)',
+                border: '1.5px solid #66BB6A',
+                borderRadius: 12, padding: '12px 14px',
+                marginBottom: 12,
+              }}>
+                {isTicketJustPurchased && availableTickets === 0 ? (
+                  <div style={{ fontSize: 12, color: '#2E7D32', marginBottom: 10, lineHeight: 1.6 }}>
+                    🎫 チケットを購入しました！<br />自動有効化を試みています…（最大40秒ほどかかる場合があります）
+                  </div>
+                ) : (
+                  <div style={{ fontSize: 12, color: '#2E7D32', marginBottom: 10 }}>
+                    🎫 購入済みチケット {availableTickets}枚 — 今すぐ使えます
+                  </div>
+                )}
+                <button
+                  onClick={handleActivateTicket}
+                  disabled={loadingActivate || (isTicketJustPurchased && availableTickets === 0)}
+                  style={{
+                    width: '100%', padding: '13px',
+                    background: (loadingActivate || (isTicketJustPurchased && availableTickets === 0))
+                      ? '#A5D6A7'
+                      : 'linear-gradient(135deg,#43A047,#2E7D32)',
+                    color: '#fff', border: 'none', borderRadius: 50,
+                    fontSize: 14, fontWeight: 700,
+                    cursor: (loadingActivate || (isTicketJustPurchased && availableTickets === 0)) ? 'not-allowed' : 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  {loadingActivate ? '有効化中...'
+                    : (isTicketJustPurchased && availableTickets === 0) ? '確認中...'
+                    : `今すぐ使う（残${availableTickets}枚）`}
+                </button>
+              </div>
+            ) : null}
 
             <button
               onClick={handleTicket}

@@ -134,10 +134,13 @@ export async function POST(req: NextRequest) {
           // ¥0クーポン使用時はpayment_intentがnullになる場合があるため
           // stripe_payment_intent_idはsession.idで代替（nullのまま入れると制約違反の可能性）
           const paymentIntentId = session.payment_intent ?? `cs_${session.id}`
+          // expires_at: 購入から30日後（設定しないとactivate-ticketの.gt('expires_at')クエリにヒットしない）
+          const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
           await supabase.from('tickets').insert({
             user_id: userId,
             quantity,
             stripe_payment_intent_id: paymentIntentId,
+            expires_at: expiresAt,
             purchased_at: new Date().toISOString(),
           })
         }
