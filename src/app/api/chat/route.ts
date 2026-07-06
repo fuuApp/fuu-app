@@ -366,28 +366,6 @@ function detectSolutionIntent(message: string): boolean {
   return solutionQuestionPatterns.some(pattern => pattern.test(message))
 }
 
-// ── 「〜と言ってください」系の指示をAIに渡す前に除去 ──────────────
-// AIがそもそも指示を見ないので、自然に前半内容だけに反応できる
-function preprocessMessage(message: string): string {
-  // 「ください」「くれ」がある明確な指示形のみ除去。
-  // 「大丈夫って言って」「頑張ってるって言って」など感情求めの自然な表現は除去しない。
-  const patterns = [
-    /^(.+?)、?と言ってください[！!]?$/,
-    /^(.+?)、?って言ってください[！!]?$/,
-    /^(.+?)、?と言ってくれ[！!]?$/,
-    /^(.+?)、?って言ってくれ[！!]?$/,
-    /^(.+?)、?と言ってみてください[！!]?$/,
-    /^(.+?)、?って言ってみてください[！!]?$/,
-  ]
-  for (const pattern of patterns) {
-    const match = message.trim().match(pattern)
-    if (match && match[1].trim().length > 0) {
-      return match[1].trim()
-    }
-  }
-  return message
-}
-
 // ─── ユーザーが番号を選んだか検知 ───
 function isDeepDiveRequest(message: string): boolean {
   const t = message.trim()
@@ -592,9 +570,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { nickname } = body
-    // 「〜と言ってください」系を前処理で除去してAIには前半内容だけ渡す
-    const processedMessage = preprocessMessage(message)
-    const { instruction, maxTokens } = getResponseGuide(processedMessage.length, mode)
+    const { instruction, maxTokens } = getResponseGuide(message.length, mode)
 
     // 今日の日付・曜日（AIが文脈を理解するために使用）
     const todayLabel = new Date().toLocaleDateString('ja-JP', {
@@ -607,14 +583,14 @@ export async function POST(req: NextRequest) {
       : `【ユーザーへの呼びかけ】相手のニックネームは未設定です。「あなた」と呼ぶか、呼びかけを省いてください。`
 
     // クライシス検知（自死・自傷キーワード）
-    const isEmergency = detectEmergency(processedMessage)
-    const isCrisis = isEmergency || detectCrisis(processedMessage)
+    const isEmergency = detectEmergency(message)
+    const isCrisis = isEmergency || detectCrisis(message)
 
     // 愚痴モード中に解決志向を検知 → 自動ハイブリッド切り替え
-    const autoHybrid = !isCrisis && mode === 'guchi' && detectSolutionIntent(processedMessage)
+    const autoHybrid = !isCrisis && mode === 'guchi' && detectSolutionIntent(message)
 
     // 深掘りリクエスト（①②③を選んだ）か判定
-    const deepDive = (mode === 'soudan' || mode === 'hybrid') && isDeepDiveRequest(processedMessage)
+    const deepDive = (mode === 'soudan' || mode === 'hybrid') && isDeepDiveRequest(message)
 
     // effectiveMode を決定
     const effectiveMode =
@@ -752,7 +728,7 @@ ${modeInstruction}`
       ] as Parameters<typeof anthropic.messages.create>[0]['system'],
       messages: [
         ...history,
-        { role: 'user', content: processedMessage },
+        { role: 'user', content: message },
       ],
     })
 
