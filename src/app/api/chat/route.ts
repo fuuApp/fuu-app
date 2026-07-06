@@ -384,6 +384,16 @@ function isDeepDiveRequest(message: string): boolean {
   )
 }
 
+// ─── メッセージ前処理：「と言ってください」系の指示形式を除去 ───
+function preprocessMessage(message: string): string {
+  return message
+    .replace(/[、，,]?\s*と言ってください$/g, '')
+    .replace(/[、，,]?\s*って言ってください$/g, '')
+    .replace(/[、，,]?\s*と言ってみてください$/g, '')
+    .replace(/[、，,]?\s*って言ってみてください$/g, '')
+    .trim()
+}
+
 // ─── 愚痴聞きモード専用プロンプト ───────────────────────────────
 const GUCHI_PROMPT = `
 【愚痴聞きモード・絶対ルール】
@@ -507,12 +517,17 @@ async function checkCharacterAccess(
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { characterId, message, conversationHistory } = body
+    const { characterId, conversationHistory } = body
     const mode: string = body.mode ?? 'guchi' // 'guchi' | 'soudan' | 'hybrid'
     const journalContext: string | undefined = body.journalContext
 
     // isGuchiSummaryを先に取り出す（長さチェックをスキップするため）
     const isGuchiSummary: boolean = body.isGuchiSummary ?? false
+
+    // 「と言ってください」系の指示形式を前処理で除去（isGuchiSummary時はスキップ）
+    const message: string = isGuchiSummary
+      ? (body.message ?? '')
+      : preprocessMessage(body.message ?? '')
 
     if (!message?.trim()) {
       return NextResponse.json({ error: 'メッセージが空です' }, { status: 400 })
