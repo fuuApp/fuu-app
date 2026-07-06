@@ -150,8 +150,26 @@ function PlansContent() {
       setToastMessage({ type: 'success', text: '🎉 ご登録ありがとうございます！プランが有効になりました。' })
       router.replace('/app/plans')
     } else if (ticketSuccess === 'true') {
-      setToastMessage({ type: 'success', text: '🎫 チケットを購入しました！今日1日使い放題です。' })
       router.replace('/app/plans')
+      setToastMessage({ type: 'success', text: '🎫 チケットを購入しました！有効化しています…' })
+      // webhookの処理遅延を考慮して3秒後に自動有効化
+      setTimeout(async () => {
+        try {
+          const res = await fetch('/api/subscription/activate-ticket', { method: 'POST' })
+          const data = await res.json()
+          if (res.ok) {
+            setTicketActiveUntil(data.activeUntil)
+            setAvailableTickets(0)
+            setToastMessage({ type: 'success', text: '🎫 チケットを有効化しました！24時間使い放題です。' })
+          } else {
+            // webhookが間に合わなかった場合：状態を再取得してUIを更新
+            await fetchPlanStatus()
+            setToastMessage({ type: 'success', text: '🎫 チケットを購入しました！画面下の「購入済みチケットを使う」ボタンで有効化してください。' })
+          }
+        } catch {
+          setToastMessage({ type: 'success', text: '🎫 チケットを購入しました！画面下の「購入済みチケットを使う」ボタンで有効化してください。' })
+        }
+      }, 3000)
     } else if (canceled === 'true') {
       setToastMessage({ type: 'error', text: '決済をキャンセルしました。いつでも再開できます。' })
       router.replace('/app/plans')

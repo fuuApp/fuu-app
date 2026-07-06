@@ -131,10 +131,13 @@ export async function POST(req: NextRequest) {
           const userId = session.metadata.user_id ?? session.metadata.userId
           const quantity = parseInt(session.metadata.quantity ?? '1')
 
+          // ¥0クーポン使用時はpayment_intentがnullになる場合があるため
+          // stripe_payment_intent_idはsession.idで代替（nullのまま入れると制約違反の可能性）
+          const paymentIntentId = session.payment_intent ?? `cs_${session.id}`
           await supabase.from('tickets').insert({
             user_id: userId,
             quantity,
-            stripe_payment_intent_id: session.payment_intent,
+            stripe_payment_intent_id: paymentIntentId,
             purchased_at: new Date().toISOString(),
           })
         }
