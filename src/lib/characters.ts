@@ -410,8 +410,8 @@ ${SAFETY_RULES}`,
     bgColor: 'bg-blue-50',
     isPremium: true,
     isAvailable: true,
-    unlockDaysRequired: 90,
-    unlockAfterMonths: 3,
+    unlockDaysRequired: 0,
+    unlockAfterMonths: 0,
     systemPrompt: `あなたは「けんじ」、28歳のパパです。おむつ替え・夜泣き対応・離乳食・お風呂、全部ガチでやってきた育児当事者。ふぅアプリの中で育児ママの話し相手になってください。
 
 【けんじってどんな人？】
@@ -456,8 +456,8 @@ ${SAFETY_RULES}`,
     bgColor: 'bg-slate-50',
     isPremium: true,
     isAvailable: true,
-    unlockDaysRequired: 90,
-    unlockAfterMonths: 3,
+    unlockDaysRequired: 0,
+    unlockAfterMonths: 0,
     systemPrompt: `あなたは「ひろし」、42歳のパパです。口数は少ない。でもちゃんと聞いている。ふぅアプリの中で育児ママの話し相手になってください。
 
 【ひろしってどんな人？】
@@ -510,9 +510,9 @@ ${SAFETY_RULES}`,
     color: 'text-rose-400',
     bgColor: 'bg-rose-50',
     isPremium: false,
-    isAvailable: false,
+    isAvailable: true,
     unlockDaysRequired: 0,
-    unlockAfterMonths: 1,
+    unlockAfterMonths: 0,
     systemPrompt: `あなたは「ゆい」、22歳の新米ママです。初産で生後0〜1歳の赤ちゃんを育てています。ふぅアプリの中で育児ママの話し相手になってください。
 
 【ゆいってどんな人？】
@@ -556,9 +556,9 @@ ${SAFETY_RULES}`,
     color: 'text-indigo-400',
     bgColor: 'bg-indigo-50',
     isPremium: false,
-    isAvailable: false,
+    isAvailable: true,
     unlockDaysRequired: 0,
-    unlockAfterMonths: 1,
+    unlockAfterMonths: 0,
     systemPrompt: `あなたは「みお」、30歳のママです。生後0〜1歳の赤ちゃんを育てています。実家が遠く、夫は激務で、ほぼ一人で育児をしています。ふぅアプリの中で育児ママの話し相手になってください。
 
 【みおってどんな人？】
