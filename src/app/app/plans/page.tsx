@@ -255,7 +255,19 @@ function PlansContent() {
         throw new Error(data.error ?? '決済の準備に失敗しました')
       }
 
-      if (data.url) {
+      if (data.alreadyOnPlan) {
+        setToastMessage({ type: 'success', text: '既にこのプランです。' })
+      } else if (data.updated) {
+        // アップグレード完了（即時反映）
+        setToastMessage({ type: 'success', text: '🎉 プランをアップグレードしました！' })
+        await fetchPlanStatus()
+      } else if (data.scheduled) {
+        // ダウングレード予約完了（期末反映）
+        const date = data.effectiveDate
+          ? new Date(data.effectiveDate).toLocaleDateString('ja-JP', { month: 'long', day: 'numeric' })
+          : '次の更新日'
+        setToastMessage({ type: 'success', text: `📅 ${date}からスタンダードプランに切り替わります。それまで引き続きプレミアムをご利用いただけます。` })
+      } else if (data.url) {
         // iOS/Android ネイティブ: Browser.open() で Safari/Chrome（外部ブラウザ）を起動
         // Web: 同タブ遷移（通常の Stripe Checkout）
         await openStripeCheckout(data.url)

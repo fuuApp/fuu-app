@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
+import { createAdminClient } from '@/lib/supabase'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-04-10',
@@ -10,6 +11,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 const PRICE_MAP: Record<string, string> = {
   standard: process.env.STRIPE_PRICE_STANDARD!,
   premium:  process.env.STRIPE_PRICE_PREMIUM!,
+}
+
+// プランの月額金額（アップグレード・ダウングレード判定用）
+const PLAN_AMOUNTS: Record<string, number> = {
+  standard: 300,
+  premium:  980,
 }
 
 export async function POST(req: NextRequest) {
@@ -23,15 +30,95 @@ export async function POST(req: NextRequest) {
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://fuu-app.vercel.app'
 
+    // ── 既存の顧客・サブスク情報を取得 ──────────────────────
+    const supabase = createAdminClient()
+    let existingCustomerId: string | null = null
+    let existingSubscriptionId: string | null = null
+
+    if (userId) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('stripe_customer_id')
+        .eq('user_id', userId)
+        .single()
+
+      existingCustomerId = profile?.stripe_customer_id ?? null
+
+      if (existingCustomerId) {
+        const { data: sub } = await supabase
+          .from('subscriptions')
+          .select('stripe_subscription_id')
+          .eq('user_id', userId)
+          .in('status', ['active', 'trialing'])
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .single()
+
+        existingSubscriptionId = sub?.stripe_subscription_id ?? null
+      }
+    }
+
+    // ── プラン変更（既存サブスクあり） ───────────────────────
+    if (existingSubscriptionId) {
+      const currentSub = await stripe.subscriptions.retrieve(existingSubscriptionId)
+      const currentPriceId = currentSub.items.data[0]?.price.id
+
+      // すでに同じプランなら何もしない
+      if (currentPriceId === priceId) {
+        return NextResponse.json({ alreadyOnPlan: true })
+      }
+
+      const currentPlanName = Object.keys(PRICE_MAP).find(p => PRICE_MAP[p] === currentPriceId) ?? 'standard'
+      const isDowngrade = (PLAN_AMOUNTS[currentPlanName] ?? 0) > (PLAN_AMOUNTS[plan] ?? 0)
+
+      if (isDowngrade) {
+        // ── ダウングレード：期末適用（subscription schedule） ──
+        // 現在の課金期間終了まではプレミアム継続、翌月からスタンダードに移行
+        const schedule = await stripe.subscriptionSchedules.create({
+          from_subscription: existingSubscriptionId,
+        })
+        await stripe.subscriptionSchedules.update(schedule.id, {
+          end_behavior: 'release', // スケジュール終了後は通常のサブスクとして継続
+          phases: [
+            {
+              // フェーズ1：現在のプランを課金期間終了まで維持
+              items: [{ price: currentPriceId, quantity: 1 }],
+              end_date: currentSub.current_period_end,
+              proration_behavior: 'none',
+            },
+            {
+              // フェーズ2：次の課金期間からダウングレード後のプランを適用
+              items: [{ price: priceId, quantity: 1 }],
+              proration_behavior: 'none',
+            },
+          ],
+        })
+
+        const effectiveDate = new Date(currentSub.current_period_end * 1000).toISOString()
+        return NextResponse.json({ scheduled: true, effectiveDate })
+      } else {
+        // ── アップグレード：即時適用（日割り精算あり） ──────────
+        await stripe.subscriptions.update(existingSubscriptionId, {
+          items: [{ id: currentSub.items.data[0].id, price: priceId }],
+          proration_behavior: 'create_prorations',
+          metadata: { userId: userId ?? '', plan },
+        })
+        return NextResponse.json({ updated: true })
+      }
+    }
+
+    // ── 新規チェックアウト（既存顧客IDがあれば再利用） ────────
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
-      // payment_method_types を省略することで Stripe が自動的に最適な支払い方法を選択
-      // → JCB・Apple Pay・Google Pay・Link が Stripe ダッシュボードの設定に基づいて有効化される
-      allow_promotion_codes: true, // プロモーションコード（割引クーポン）入力欄を表示
+      allow_promotion_codes: true,
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${baseUrl}/app/plans?success=true`,
       cancel_url:  `${baseUrl}/app/plans?canceled=true`,
-      customer_email: email ?? undefined,
+      // 既存顧客IDがあれば customer を指定（重複顧客防止）
+      ...(existingCustomerId
+        ? { customer: existingCustomerId }
+        : { customer_email: email ?? undefined }
+      ),
       metadata: { userId: userId ?? '', plan },
       subscription_data: {
         metadata: { userId: userId ?? '', plan },
