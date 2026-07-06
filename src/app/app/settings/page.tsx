@@ -24,22 +24,26 @@ function DeleteAccountModal({ onConfirm, onCancel, isDeleting, isTrial }: {
         <div style={{ fontSize:32,textAlign:'center',marginBottom:12 }}>⚠️</div>
         <div style={{ fontWeight:700,fontSize:17,color:'#333',textAlign:'center',marginBottom:16 }}>退会の前に必ずご確認ください</div>
 
-        {/* 有料プランのみ: サブスクキャンセル案内 */}
+        {/* 解約 vs 退会 の違い */}
         {!isTrial && (
-          <div style={{ background:'#FFF3E0',border:'1px solid #FFB74D',borderRadius:14,padding:'14px 16px',marginBottom:14 }}>
-            <div style={{ fontWeight:700,fontSize:13,color:'#E65100',marginBottom:8 }}>📌 STEP 1：サブスクリプションを先にキャンセル</div>
-            <div style={{ fontSize:12,color:'#555',lineHeight:1.8 }}>
-              月額プラン（スタンダード・プレミアム）をご利用中の場合、<strong>退会前に必ずサブスクリプションをキャンセル</strong>してください。<br /><br />
-              退会後もサブスクリプションは自動継続されます。キャンセルしないと引き落としが続きます。
-            </div>
-            <div style={{ marginTop:10,background:'#fff',borderRadius:10,padding:'10px 12px',border:'1px solid #FFD180' }}>
-              <div style={{ fontSize:11,color:'#F57F17',fontWeight:700,marginBottom:6 }}>▼ キャンセル手順（Stripe）</div>
-              <div style={{ fontSize:11,color:'#555',lineHeight:1.9 }}>
-                1. <a href="https://billing.stripe.com/p/login" target="_blank" rel="noreferrer" style={{ color:'#E91E63',fontWeight:700 }}>billing.stripe.com</a> にアクセス<br />
-                2. ご登録のメールアドレスでログイン<br />
-                3.「サブスクリプション」→「キャンセル」をタップ<br />
-                4. キャンセル完了のメールを確認<br />
-                5. キャンセル後にこの退会手続きへ進む
+          <div style={{ background:'#E3F2FD',border:'1px solid #90CAF9',borderRadius:14,padding:'14px 16px',marginBottom:14 }}>
+            <div style={{ fontWeight:700,fontSize:13,color:'#1565C0',marginBottom:10 }}>💡 「解約」と「退会」の違い</div>
+            <div style={{ display:'flex',flexDirection:'column',gap:8 }}>
+              <div style={{ background:'#fff',borderRadius:10,padding:'10px 12px',border:'1px solid #BBDEFB' }}>
+                <div style={{ fontSize:12,fontWeight:700,color:'#1976D2',marginBottom:3 }}>解約する（プラン画面から）</div>
+                <div style={{ fontSize:12,color:'#555',lineHeight:1.7 }}>
+                  月額サブスクをキャンセルするだけ。<br />
+                  <strong>次回更新日まで引き続き利用できます。</strong><br />
+                  アカウント・会話履歴はそのまま残ります。
+                </div>
+              </div>
+              <div style={{ background:'#fff',borderRadius:10,padding:'10px 12px',border:'1px solid #BBDEFB' }}>
+                <div style={{ fontSize:12,fontWeight:700,color:'#C62828',marginBottom:3 }}>退会する（この画面）</div>
+                <div style={{ fontSize:12,color:'#555',lineHeight:1.7 }}>
+                  アカウントを完全削除します。<br />
+                  <strong>サブスクも自動で即時キャンセルされます。</strong><br />
+                  会話履歴・設定情報はすべて削除され、復元できません。
+                </div>
               </div>
             </div>
           </div>
@@ -47,20 +51,20 @@ function DeleteAccountModal({ onConfirm, onCancel, isDeleting, isTrial }: {
 
         {/* 削除されるデータ */}
         <div style={{ background:'#FFF8E1',border:'1px solid #FFD54F',borderRadius:14,padding:'14px 16px',marginBottom:14 }}>
-          <div style={{ fontWeight:700,fontSize:13,color:'#F57F17',marginBottom:8 }}>📌 {isTrial ? 'STEP 1' : 'STEP 2'}：削除されるデータを確認</div>
+          <div style={{ fontWeight:700,fontSize:13,color:'#F57F17',marginBottom:8 }}>📌 STEP {isTrial ? '1' : '2'}：削除されるデータを確認</div>
           <div style={{ fontSize:12,color:'#555',lineHeight:1.9 }}>
             退会すると以下のデータが<strong>完全に削除</strong>され、復元できません：<br />
             ・すべての会話履歴<br />
             ・気持ちの箱（愚痴の変換記録）<br />
             ・ニックネーム・設定情報<br />
             ・アカウント情報<br />
-            {!isTrial && <><br />※ サブスクリプション未キャンセルのまま退会した場合の返金はできかねます。</>}
+            {!isTrial && <><br />・月額サブスクリプション（即時キャンセル・返金なし）</>}
           </div>
         </div>
 
         {/* 確認入力 */}
         <div style={{ background:'#FFEBEE',border:'1px solid #FFCDD2',borderRadius:14,padding:'14px 16px',marginBottom:16 }}>
-          <div style={{ fontWeight:700,fontSize:13,color:'#C62828',marginBottom:8 }}>📌 {isTrial ? 'STEP 2' : 'STEP 3'}：退会を実行</div>
+          <div style={{ fontWeight:700,fontSize:13,color:'#C62828',marginBottom:8 }}>📌 STEP {isTrial ? '2' : '3'}：退会を実行</div>
           <div style={{ fontSize:12,color:'#888',marginBottom:8 }}>
             「<strong style={{ color:'#E57373' }}>退会する</strong>」と入力して退会ボタンを押してください
           </div>
