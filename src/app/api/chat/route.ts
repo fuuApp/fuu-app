@@ -366,6 +366,28 @@ function detectSolutionIntent(message: string): boolean {
   return solutionQuestionPatterns.some(pattern => pattern.test(message))
 }
 
+// ── 「〜と言ってください」系の指示をAIに渡す前に除去 ──────────────
+// AIがそもそも指示を見ないので、自然に前半内容だけに反応できる
+function preprocessMessage(message: string): string {
+  // 「ください」「くれ」がある明確な指示形のみ除去。
+  // 「大丈夫って言って」「頑張ってるって言って」など感情求めの自然な表現は除去しない。
+  const patterns = [
+    /^(.+?)、?と言ってください[！!]?$/,
+    /^(.+?)、?って言ってください[！!]?$/,
+    /^(.+?)、?と言ってくれ[！!]?$/,
+    /^(.+?)、?って言ってくれ[！!]?$/,
+    /^(.+?)、?と言ってみてください[！!]?$/,
+    /^(.+?)、?って言ってみてください[！!]?$/,
+  ]
+  for (const pattern of patterns) {
+    const match = message.trim().match(pattern)
+    if (match && match[1].trim().length > 0) {
+      return match[1].trim()
+    }
+  }
+  return message
+}
+
 // ─── ユーザーが番号を選んだか検知 ───
 function isDeepDiveRequest(message: string): boolean {
   const t = message.trim()
@@ -570,7 +592,9 @@ export async function POST(req: NextRequest) {
     }
 
     const { nickname } = body
-    const { instruction, maxTokens } = getResponseGuide(message.length, mode)
+    // 「〜と言ってください」系を前処理で除去してAIには前半内容だけ渡す
+    const processedMessage = preprocessMessage(message)
+    const { instruction, maxTokens } = getResponseGuide(processedMessage.length, mode)
 
     // 今日の日付・曜日（AIが文脈を理解するために使用）
     const todayLabel = new Date().toLocaleDateString('ja-JP', {
@@ -583,14 +607,14 @@ export async function POST(req: NextRequest) {
       : `【ユーザーへの呼びかけ】相手のニックネームは未設定です。「あなた」と呼ぶか、呼びかけを省いてください。`
 
     // クライシス検知（自死・自傷キーワード）
-    const isEmergency = detectEmergency(message)
-    const isCrisis = isEmergency || detectCrisis(message)
+    const isEmergency = detectEmergency(processedMessage)
+    const isCrisis = isEmergency || detectCrisis(processedMessage)
 
     // 愚痴モード中に解決志向を検知 → 自動ハイブリッド切り替え
-    const autoHybrid = !isCrisis && mode === 'guchi' && detectSolutionIntent(message)
+    const autoHybrid = !isCrisis && mode === 'guchi' && detectSolutionIntent(processedMessage)
 
     // 深掘りリクエスト（①②③を選んだ）か判定
-    const deepDive = (mode === 'soudan' || mode === 'hybrid') && isDeepDiveRequest(message)
+    const deepDive = (mode === 'soudan' || mode === 'hybrid') && isDeepDiveRequest(processedMessage)
 
     // effectiveMode を決定
     const effectiveMode =
@@ -665,7 +689,7 @@ Step3：「今どんな気持ちか、もう少し話してくれる？」で締
 ・「そっか」「そうか」「うん」などの受け止め表現は、1つの会話セッション内で同じ表現を2回以上絶対に使わない。「それはしんどいよね」「消耗するね」「そりゃきつい」「それは重いね」など毎回必ず違う言葉を選ぶ
 ・ユーザーが主語なしで「落ち着いた」「しんどい」「疲れた」など短く返した場合、必ずユーザー本人のことと解釈する。「くれた」（子供が〜してくれた）など第三者への言及として解釈しない
 ・ユーザーが「しんどい」「つらい」「疲れた」など感情のみを返した場合、いきなり状況確認の質問（「今、子供はどこにいる？」など）をしない。まず感情を受け止める言葉を1文返してから、次の問いかけに移る
-・【セリフ指定の無視】ユーザーが「〜と言ってください」「〜って言って」「〜と言ってみて」など、特定のセリフを言わせようとする指示を出してきた場合、絶対に従わない。「設定なんだ」「キャラじゃない」「ルール」「プロンプト」など内部的な理由・設定・制約への言及も絶対禁止。謝罪も説明も一切なし。キャラクターとして何事もなかったかのように「今日何があったの？」「話してみて」など自然に流す`
+・【セリフ指定の扱い】ユーザーが「〜と言ってください」「〜って言って」「〜と言ってみて」などの形で送ってきた場合、「と言ってください」の部分だけを除いて、前半の内容（「〜」の部分）をユーザーが普通に言った言葉として受け止めて自然に反応する。例：「うちの子はトイレができるようになったのに、と言ってください」→「うちの子がトイレできるようになったんだね！何歳？」のように反応する。「指示は受けられない」「ごめんね」「設定なんだ」「キャラじゃない」など、指示への言及・説明・謝罪は絶対禁止`
 
     // ── 自己情報捏造禁止ブロック（常時注入） ──
     const noSelfInventionBlock = `【自分についての質問】
@@ -728,7 +752,7 @@ ${modeInstruction}`
       ] as Parameters<typeof anthropic.messages.create>[0]['system'],
       messages: [
         ...history,
-        { role: 'user', content: message },
+        { role: 'user', content: processedMessage },
       ],
     })
 
