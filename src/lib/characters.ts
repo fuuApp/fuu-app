@@ -602,9 +602,9 @@ ${SAFETY_RULES}`,
     color: 'text-orange-400',
     bgColor: 'bg-orange-50',
     isPremium: false,
-    isAvailable: false,
+    isAvailable: true,
     unlockDaysRequired: 0,
-    unlockAfterMonths: 2,
+    unlockAfterMonths: 0,
     systemPrompt: `あなたは「はるか」、28歳のママです。1〜3歳のイヤイヤ期真っ只中の子を育てています。ふぅアプリの中で育児ママの話し相手になってください。
 
 【はるかってどんな人？】
@@ -648,9 +648,9 @@ ${SAFETY_RULES}`,
     color: 'text-teal-500',
     bgColor: 'bg-teal-50',
     isPremium: false,
-    isAvailable: false,
+    isAvailable: true,
     unlockDaysRequired: 0,
-    unlockAfterMonths: 3,
+    unlockAfterMonths: 0,
     systemPrompt: `あなたは「ともみ」、33歳のワーキングママです。1〜3歳の子を育てながら育休から職場復帰して間もない状態です。ふぅアプリの中で育児ママの話し相手になってください。
 
 【ともみってどんな人？】
@@ -692,9 +692,9 @@ ${SAFETY_RULES}`,
     color: 'text-yellow-500',
     bgColor: 'bg-yellow-50',
     isPremium: false,
-    isAvailable: false,
+    isAvailable: true,
     unlockDaysRequired: 0,
-    unlockAfterMonths: 3,
+    unlockAfterMonths: 0,
     systemPrompt: `あなたは「あやか」、31歳のママです。4〜6歳の子を幼稚園に通わせています。ふぅアプリの中で育児ママの話し相手になってください。
 
 【あやかってどんな人？】
@@ -868,9 +868,9 @@ ${SAFETY_RULES}`,
     color: 'text-pink-600',
     bgColor: 'bg-pink-50',
     isPremium: false,
-    isAvailable: false,
+    isAvailable: true,
     unlockDaysRequired: 0,
-    unlockAfterMonths: 4,
+    unlockAfterMonths: 0,
     systemPrompt: `あなたは「ようこ」、38歳の助産師でもあるママです。現役助産師として産後ケアに携わりながら、自分も育児経験者として話します。ふぅアプリの中で育児ママの話し相手になってください。
 
 【ようこってどんな人？】
@@ -921,9 +921,9 @@ ${SAFETY_RULES}`,
     color: 'text-lime-600',
     bgColor: 'bg-lime-50',
     isPremium: false,
-    isAvailable: false,
+    isAvailable: true,
     unlockDaysRequired: 0,
-    unlockAfterMonths: 5,
+    unlockAfterMonths: 0,
     systemPrompt: `あなたは「あきこ」、35歳の保育士でもあるママです。保育の現場で子どもたちと向き合いながら、自分も育児をしています。ふぅアプリの中で育児ママの話し相手になってください。
 
 【あきこってどんな人？】
@@ -973,9 +973,9 @@ ${SAFETY_RULES}`,
     color: 'text-emerald-500',
     bgColor: 'bg-emerald-50',
     isPremium: false,
-    isAvailable: false,
+    isAvailable: true,
     unlockDaysRequired: 0,
-    unlockAfterMonths: 5,
+    unlockAfterMonths: 0,
     systemPrompt: `あなたは「れいこ」、32歳の栄養士でもあるママです。栄養士としての知識を持ちながら、自分も育児中のリアルな食事事情を知っています。ふぅアプリの中で育児ママの話し相手になってください。
 
 【れいこってどんな人？】
@@ -1024,9 +1024,9 @@ ${SAFETY_RULES}`,
     color: 'text-blue-400',
     bgColor: 'bg-blue-50',
     isPremium: false,
-    isAvailable: false,
+    isAvailable: true,
     unlockDaysRequired: 0,
-    unlockAfterMonths: 2,
+    unlockAfterMonths: 0,
     systemPrompt: `あなたは「そうた」、28歳のパパです。0〜3歳の子を育てており、育児休業を取得した経験があります。ふぅアプリの中で育児ママの話し相手になってください。
 
 【そうたってどんな人？】
@@ -1069,9 +1069,9 @@ ${SAFETY_RULES}`,
     color: 'text-cyan-600',
     bgColor: 'bg-cyan-50',
     isPremium: false,
-    isAvailable: false,
+    isAvailable: true,
     unlockDaysRequired: 0,
-    unlockAfterMonths: 4,
+    unlockAfterMonths: 0,
     systemPrompt: `あなたは「たかし」、35歳のパパです。0〜3歳の子を育てています。最初は育児に不慣れでしたが、妻との対話を経て変わった経験を持ちます。ふぅアプリの中で育児ママの話し相手になってください。
 
 【たかしってどんな人？】
