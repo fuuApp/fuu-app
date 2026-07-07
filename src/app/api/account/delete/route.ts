@@ -47,21 +47,36 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'ユーザーが見つかりません' }, { status: 404 })
     }
 
-    // ── 3. Stripeサブスクを即時キャンセル（有料ユーザーのみ）──
-    if (profile.stripe_customer_id && profile.plan !== 'free' && profile.plan !== 'trial') {
-      try {
-        const subscriptions = await stripe.subscriptions.list({
-          customer: profile.stripe_customer_id,
-          status: 'active',
-          limit: 10,
-        })
-        for (const sub of subscriptions.data) {
-          await stripe.subscriptions.cancel(sub.id)
+    // ── 3. Stripeサブスクを即時キャンセル ──────────────────────
+    // メールアドレスで全顧客を横断検索してキャンセル。
+    // 重複顧客が発生していても取り残しが出ないようにする。
+    try {
+      const email = user.email
+      if (email) {
+        const customers = await stripe.customers.list({ email, limit: 10 })
+        for (const customer of customers.data) {
+          // active / trialing のサブスクをすべてキャンセル
+          const subs = await stripe.subscriptions.list({
+            customer: customer.id,
+            status: 'active',
+            limit: 10,
+          })
+          for (const sub of subs.data) {
+            await stripe.subscriptions.cancel(sub.id)
+          }
+          const trialSubs = await stripe.subscriptions.list({
+            customer: customer.id,
+            status: 'trialing',
+            limit: 10,
+          })
+          for (const sub of trialSubs.data) {
+            await stripe.subscriptions.cancel(sub.id)
+          }
         }
-      } catch (stripeErr) {
-        console.error('Stripe cancellation error:', stripeErr)
-        // Stripeエラーは記録するが退会処理は続行
       }
+    } catch (stripeErr) {
+      console.error('Stripe cancellation error:', stripeErr)
+      // Stripeエラーは記録するが退会処理は続行
     }
 
     // ── 4. profilesを論理削除（pg_cronが以降の段階削除を担当）──
