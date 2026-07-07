@@ -11,82 +11,153 @@ const TRIAL_START_KEY = 'fuu_trial_started_at'
 const TRIAL_DAYS = 10
 const BGM_KEY = 'fuu_bgm_enabled'
 
-function DeleteAccountModal({ onConfirm, onCancel, isDeleting, isTrial }: {
-  onConfirm: () => void; onCancel: () => void; isDeleting: boolean; isTrial: boolean
+type WithdrawalType = 'scheduled' | 'immediate'
+
+function DeleteAccountModal({ onImmediate, onScheduled, onCancel, isDeleting, isTrial, periodEndDate }: {
+  onImmediate: () => void
+  onScheduled: () => void
+  onCancel: () => void
+  isDeleting: boolean
+  isTrial: boolean
+  periodEndDate: string | null
 }) {
+  const [step, setStep] = useState<'choose' | 'confirm'>(isTrial ? 'confirm' : 'choose')
+  const [withdrawalType, setWithdrawalType] = useState<WithdrawalType>('immediate')
   const [confirmText, setConfirmText] = useState('')
   const REQUIRED = '退会する'
   const ready = confirmText === REQUIRED && !isDeleting
 
+  const periodEndFormatted = periodEndDate
+    ? new Date(periodEndDate).toLocaleDateString('ja-JP', { month: 'long', day: 'numeric' })
+    : '次回更新日'
+
+  const handleChoose = (type: WithdrawalType) => {
+    setWithdrawalType(type)
+    setStep('confirm')
+  }
+
+  const handleConfirm = () => {
+    withdrawalType === 'scheduled' ? onScheduled() : onImmediate()
+  }
+
   return (
     <div style={{ position:'fixed',inset:0,zIndex:100,background:'rgba(0,0,0,0.55)',display:'flex',alignItems:'flex-end',justifyContent:'center' }}>
       <div style={{ width:'100%',maxWidth:480,background:'#fff',borderRadius:'20px 20px 0 0',padding:'28px 24px 44px',boxShadow:'0 -4px 20px rgba(0,0,0,0.15)',maxHeight:'90dvh',overflowY:'auto' }}>
-        <div style={{ fontSize:32,textAlign:'center',marginBottom:12 }}>⚠️</div>
-        <div style={{ fontWeight:700,fontSize:17,color:'#333',textAlign:'center',marginBottom:16 }}>退会の前に必ずご確認ください</div>
 
-        {/* 解約 vs 退会 の違い */}
-        {!isTrial && (
-          <div style={{ background:'#E3F2FD',border:'1px solid #90CAF9',borderRadius:14,padding:'14px 16px',marginBottom:14 }}>
-            <div style={{ fontWeight:700,fontSize:13,color:'#1565C0',marginBottom:10 }}>💡 「解約」と「退会」の違い</div>
-            <div style={{ display:'flex',flexDirection:'column',gap:8 }}>
-              <div style={{ background:'#fff',borderRadius:10,padding:'10px 12px',border:'1px solid #BBDEFB' }}>
-                <div style={{ fontSize:12,fontWeight:700,color:'#1976D2',marginBottom:3 }}>解約する（プラン画面から）</div>
-                <div style={{ fontSize:12,color:'#555',lineHeight:1.7 }}>
-                  月額サブスクをキャンセルするだけ。<br />
-                  <strong>次回更新日まで引き続き利用できます。</strong><br />
-                  アカウント・会話履歴はそのまま残ります。
-                </div>
+        {/* ── STEP 1: 退会方法を選ぶ（有料プランのみ） ── */}
+        {step === 'choose' && (
+          <>
+            <div style={{ fontSize:28,textAlign:'center',marginBottom:10 }}>🚪</div>
+            <div style={{ fontWeight:700,fontSize:17,color:'#333',textAlign:'center',marginBottom:6 }}>退会方法を選んでください</div>
+            <div style={{ fontSize:12,color:'#aaa',textAlign:'center',marginBottom:20 }}>どちらの方法でも料金の返金はありません</div>
+
+            {/* カードA: 次回更新日まで使って退会 */}
+            <div style={{ background:'#F3F8FF',border:'2px solid #90CAF9',borderRadius:16,padding:'16px 18px',marginBottom:12 }}>
+              <div style={{ fontWeight:700,fontSize:14,color:'#1565C0',marginBottom:6 }}>
+                📅 {periodEndFormatted}まで使って退会
               </div>
-              <div style={{ background:'#fff',borderRadius:10,padding:'10px 12px',border:'1px solid #BBDEFB' }}>
-                <div style={{ fontSize:12,fontWeight:700,color:'#C62828',marginBottom:3 }}>退会する（この画面）</div>
-                <div style={{ fontSize:12,color:'#555',lineHeight:1.7 }}>
-                  アカウントを完全削除します。<br />
-                  <strong>サブスクも自動で即時キャンセルされます。</strong><br />
-                  会話履歴・設定情報はすべて削除され、復元できません。
-                </div>
+              <div style={{ fontSize:12,color:'#555',lineHeight:1.8,marginBottom:14 }}>
+                残りの期間は引き続きご利用いただけます。<br />
+                {periodEndFormatted}にアカウントが<strong>自動削除</strong>されます。
               </div>
+              <button
+                onClick={() => handleChoose('scheduled')}
+                style={{ width:'100%',padding:'11px',background:'linear-gradient(135deg,#1976D2,#1565C0)',color:'#fff',border:'none',borderRadius:50,fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:'inherit' }}
+              >
+                この方法で退会する →
+              </button>
             </div>
-          </div>
+
+            {/* カードB: 今すぐ退会 */}
+            <div style={{ background:'#FFF5F5',border:'2px solid #FFCDD2',borderRadius:16,padding:'16px 18px',marginBottom:20 }}>
+              <div style={{ fontWeight:700,fontSize:14,color:'#C62828',marginBottom:6 }}>
+                🚪 今すぐ退会する
+              </div>
+              <div style={{ fontSize:12,color:'#555',lineHeight:1.8,marginBottom:14 }}>
+                サブスクを即時キャンセルし、<br />
+                アカウントをすぐに削除します。
+              </div>
+              <button
+                onClick={() => handleChoose('immediate')}
+                style={{ width:'100%',padding:'11px',background:'linear-gradient(135deg,#E57373,#C62828)',color:'#fff',border:'none',borderRadius:50,fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:'inherit' }}
+              >
+                今すぐ退会する →
+              </button>
+            </div>
+
+            <button onClick={onCancel}
+              style={{ width:'100%',background:'#f5f5f5',border:'none',borderRadius:14,padding:'13px 0',fontSize:14,color:'#666',cursor:'pointer',fontFamily:'inherit' }}>
+              キャンセル
+            </button>
+          </>
         )}
 
-        {/* 削除されるデータ */}
-        <div style={{ background:'#FFF8E1',border:'1px solid #FFD54F',borderRadius:14,padding:'14px 16px',marginBottom:14 }}>
-          <div style={{ fontWeight:700,fontSize:13,color:'#F57F17',marginBottom:8 }}>📌 STEP {isTrial ? '1' : '2'}：削除されるデータを確認</div>
-          <div style={{ fontSize:12,color:'#555',lineHeight:1.9 }}>
-            退会すると以下のデータが<strong>完全に削除</strong>され、復元できません：<br />
-            ・すべての会話履歴<br />
-            ・気持ちの箱（愚痴の変換記録）<br />
-            ・ニックネーム・設定情報<br />
-            ・アカウント情報<br />
-            {!isTrial && <><br />・月額サブスクリプション（即時キャンセル・返金なし）</>}
-          </div>
-        </div>
+        {/* ── STEP 2: 確認・実行 ── */}
+        {step === 'confirm' && (
+          <>
+            <div style={{ fontSize:28,textAlign:'center',marginBottom:10 }}>⚠️</div>
+            <div style={{ fontWeight:700,fontSize:17,color:'#333',textAlign:'center',marginBottom:16 }}>退会の確認</div>
 
-        {/* 確認入力 */}
-        <div style={{ background:'#FFEBEE',border:'1px solid #FFCDD2',borderRadius:14,padding:'14px 16px',marginBottom:16 }}>
-          <div style={{ fontWeight:700,fontSize:13,color:'#C62828',marginBottom:8 }}>📌 STEP {isTrial ? '2' : '3'}：退会を実行</div>
-          <div style={{ fontSize:12,color:'#888',marginBottom:8 }}>
-            「<strong style={{ color:'#E57373' }}>退会する</strong>」と入力して退会ボタンを押してください
-          </div>
-          <input
-            value={confirmText}
-            onChange={e => setConfirmText(e.target.value)}
-            placeholder="退会する"
-            disabled={isDeleting}
-            style={{ width:'100%',border:'1.5px solid #FFCDD2',borderRadius:12,padding:'10px 14px',fontSize:14,outline:'none',background:isDeleting?'#fafafa':'#fff',fontFamily:'inherit',boxSizing:'border-box' }}
-          />
-        </div>
+            {/* 選択内容サマリー */}
+            {!isTrial && (
+              <div style={{
+                background: withdrawalType === 'scheduled' ? '#E3F2FD' : '#FFEBEE',
+                border: `1px solid ${withdrawalType === 'scheduled' ? '#90CAF9' : '#FFCDD2'}`,
+                borderRadius:12,padding:'12px 14px',marginBottom:14,fontSize:12,
+                color: withdrawalType === 'scheduled' ? '#1565C0' : '#C62828',
+                lineHeight:1.7,
+              }}>
+                {withdrawalType === 'scheduled'
+                  ? `📅 ${periodEndFormatted}にアカウントが自動削除されます。それまでは引き続きご利用いただけます。`
+                  : '🚪 退会ボタンを押すとすぐにアカウントが削除されます。'}
+              </div>
+            )}
 
-        <div style={{ display:'flex',gap:10 }}>
-          <button onClick={onCancel} disabled={isDeleting}
-            style={{ flex:1,background:'#f5f5f5',border:'none',borderRadius:14,padding:'13px 0',fontSize:14,color:'#666',cursor:'pointer',fontFamily:'inherit' }}>
-            キャンセル
-          </button>
-          <button onClick={onConfirm} disabled={!ready}
-            style={{ flex:1,background:ready?'#E57373':'#eee',border:'none',borderRadius:14,padding:'13px 0',fontSize:14,fontWeight:700,color:ready?'#fff':'#bbb',cursor:ready?'pointer':'not-allowed',fontFamily:'inherit',transition:'background 0.2s' }}>
-            {isDeleting ? '処理中...' : '退会する'}
-          </button>
-        </div>
+            {/* 削除されるデータ */}
+            <div style={{ background:'#FFF8E1',border:'1px solid #FFD54F',borderRadius:14,padding:'14px 16px',marginBottom:14 }}>
+              <div style={{ fontWeight:700,fontSize:13,color:'#F57F17',marginBottom:8 }}>削除されるデータ</div>
+              <div style={{ fontSize:12,color:'#555',lineHeight:1.9 }}>
+                ・すべての会話履歴<br />
+                ・気持ちの箱（愚痴の変換記録）<br />
+                ・ニックネーム・設定情報<br />
+                ・アカウント情報<br />
+                {(!isTrial && withdrawalType === 'immediate') && <>・月額サブスクリプション（即時キャンセル）</>}
+              </div>
+            </div>
+
+            {/* 確認入力 */}
+            <div style={{ background:'#FFEBEE',border:'1px solid #FFCDD2',borderRadius:14,padding:'14px 16px',marginBottom:16 }}>
+              <div style={{ fontSize:12,color:'#888',marginBottom:8 }}>
+                「<strong style={{ color:'#E57373' }}>退会する</strong>」と入力して{withdrawalType === 'scheduled' ? '退会を予約' : '退会'}してください
+              </div>
+              <input
+                value={confirmText}
+                onChange={e => setConfirmText(e.target.value)}
+                placeholder="退会する"
+                disabled={isDeleting}
+                style={{ width:'100%',border:'1.5px solid #FFCDD2',borderRadius:12,padding:'10px 14px',fontSize:14,outline:'none',background:isDeleting?'#fafafa':'#fff',fontFamily:'inherit',boxSizing:'border-box' }}
+              />
+            </div>
+
+            <div style={{ display:'flex',gap:10 }}>
+              <button
+                onClick={() => isTrial ? onCancel() : setStep('choose')}
+                disabled={isDeleting}
+                style={{ flex:1,background:'#f5f5f5',border:'none',borderRadius:14,padding:'13px 0',fontSize:14,color:'#666',cursor:'pointer',fontFamily:'inherit' }}
+              >
+                {isTrial ? 'キャンセル' : '← 戻る'}
+              </button>
+              <button
+                onClick={handleConfirm}
+                disabled={!ready}
+                style={{ flex:1,background:ready?'#E57373':'#eee',border:'none',borderRadius:14,padding:'13px 0',fontSize:14,fontWeight:700,color:ready?'#fff':'#bbb',cursor:ready?'pointer':'not-allowed',fontFamily:'inherit',transition:'background 0.2s' }}
+              >
+                {isDeleting ? '処理中...' : withdrawalType === 'scheduled' ? '退会を予約する' : '退会する'}
+              </button>
+            </div>
+          </>
+        )}
+
       </div>
     </div>
   )
@@ -119,6 +190,8 @@ export default function SettingsPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState('')
+  const [periodEndDate, setPeriodEndDate] = useState<string | null>(null)
+  const [withdrawToast, setWithdrawToast] = useState<string | null>(null)
   const [morningTime, setMorningTime] = useState('07:00')
   const [eveningTime, setEveningTime] = useState('21:00')
   const [notifEnabled, setNotifEnabled] = useState(false)
@@ -166,6 +239,16 @@ export default function SettingsPage() {
         if (profile.evening_time)          setEveningTime(profile.evening_time)
         if (profile.notification_character) setNotifCharacter(profile.notification_character)
         setNotifEnabled(profile.notification_enabled ?? false)
+        // サブスク期末日を取得
+        const { data: sub } = await supabase
+          .from('subscriptions')
+          .select('current_period_end')
+          .eq('user_id', user.id)
+          .in('status', ['active', 'trialing'])
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single()
+        if (sub?.current_period_end) setPeriodEndDate(sub.current_period_end)
       } catch {}
     })()
   }, [])
@@ -241,6 +324,25 @@ export default function SettingsPage() {
       localStorage.clear(); sessionStorage.clear(); router.replace('/')
     } catch { setDeleteError('通信エラーが発生しました。しばらくしてからお試しください。'); setIsDeleting(false) }
   }
+  const handleScheduledWithdraw = async () => {
+    setIsDeleting(true); setDeleteError('')
+    try {
+      const res = await fetch('/api/subscription/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pendingDeletion: true }),
+      })
+      if (!res.ok) { const d = await res.json(); setDeleteError(d.error ?? '退会予約に失敗しました'); setIsDeleting(false); return }
+      setShowDeleteModal(false)
+      const date = periodEndDate
+        ? new Date(periodEndDate).toLocaleDateString('ja-JP', { month: 'long', day: 'numeric' })
+        : '次回更新日'
+      setWithdrawToast(`📅 退会を予約しました。${date}までご利用いただけます。`)
+      setTimeout(() => setWithdrawToast(null), 5000)
+    } catch { setDeleteError('通信エラーが発生しました。'); }
+    setIsDeleting(false)
+  }
+
   const handleClearNickname = () => {
     localStorage.removeItem(NICKNAME_KEY); localStorage.removeItem(NICKNAME_SET_KEY)
     sessionStorage.removeItem(SESSION_CONFIRMED_KEY)
@@ -249,7 +351,21 @@ export default function SettingsPage() {
 
   return (
     <div style={{ maxWidth:480,margin:'0 auto',background:'#fdf4f7',minHeight:'100dvh' }}>
-      {showDeleteModal && <DeleteAccountModal onConfirm={handleDeleteAccount} onCancel={() => { setShowDeleteModal(false); setDeleteError('') }} isDeleting={isDeleting} isTrial={userPlan === 'trial'} />}
+      {showDeleteModal && (
+        <DeleteAccountModal
+          onImmediate={handleDeleteAccount}
+          onScheduled={handleScheduledWithdraw}
+          onCancel={() => { setShowDeleteModal(false); setDeleteError('') }}
+          isDeleting={isDeleting}
+          isTrial={userPlan === 'trial' || userPlan === 'canceled'}
+          periodEndDate={periodEndDate}
+        />
+      )}
+      {withdrawToast && (
+        <div style={{ position:'fixed',bottom:80,left:'50%',transform:'translateX(-50%)',background:'#1565C0',color:'#fff',borderRadius:16,padding:'12px 20px',fontSize:13,fontWeight:600,zIndex:200,whiteSpace:'nowrap',boxShadow:'0 4px 16px rgba(0,0,0,0.2)' }}>
+          {withdrawToast}
+        </div>
+      )}
 
       {/* ヘッダー */}
       <div style={{ background:'#fff',borderBottom:'1px solid #FCE4EC',padding:'14px 16px',display:'flex',alignItems:'center',gap:12,position:'sticky',top:0,zIndex:10 }}>

@@ -87,6 +87,24 @@ export async function POST(req: NextRequest) {
         const sub = event.data.object as Stripe.Subscription
         const customerId = sub.customer as string
 
+        // ── 退会予約の場合: アカウントを完全削除 ──────────────
+        if (sub.metadata?.pending_deletion === 'true' && sub.metadata?.userId) {
+          const userId = sub.metadata.userId
+          await supabase.from('subscriptions').update({
+            status: 'canceled',
+            updated_at: new Date().toISOString(),
+          }).eq('stripe_subscription_id', sub.id)
+          await supabase.from('profiles').update({
+            deleted_at: new Date().toISOString(),
+            plan: 'free',
+            stripe_customer_id: null,
+            updated_at: new Date().toISOString(),
+          }).eq('user_id', userId)
+          await supabase.auth.admin.deleteUser(userId)
+          break
+        }
+
+        // ── 通常の解約: plan を canceled に更新 ──────────────
         const { data: profile } = await supabase
           .from('profiles')
           .select('user_id')

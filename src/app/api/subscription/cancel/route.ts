@@ -1,8 +1,8 @@
 /**
  * サブスクリプション解約API
  * POST /api/subscription/cancel
- * - Stripeのサブスクリプションをcancel_at_period_end: trueでキャンセル
- * - 次回更新日まで利用可能、日割り返金なし
+ * - cancel_at_period_end: true でキャンセル（次回更新日まで利用可能）
+ * - pendingDeletion: true の場合、期末にアカウントも自動削除（退会予約）
  */
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
@@ -13,13 +13,19 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-04
 
 export async function POST(req: NextRequest) {
   try {
+    // pendingDeletion: 退会予約フラグ（期末にアカウントも削除）
+    let pendingDeletion = false
+    try {
+      const body = await req.json()
+      pendingDeletion = body?.pendingDeletion ?? false
+    } catch { /* body なし = 通常の解約 */ }
+
     const supabase = await createRouteHandlerClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
 
     const admin = createAdminClient()
 
-    // アクティブなサブスクリプションを取得
     const { data: sub } = await admin
       .from('subscriptions')
       .select('stripe_subscription_id, status')
@@ -33,14 +39,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'アクティブなサブスクリプションが見つかりません' }, { status: 404 })
     }
 
-    // Stripeでperiod_end時にキャンセル（即時解約ではない）
     const canceled = await stripe.subscriptions.update(sub.stripe_subscription_id, {
       cancel_at_period_end: true,
+      // pendingDeletion の場合、期末に webhook がアカウント削除を実行するためのフラグを設定
+      ...(pendingDeletion ? {
+        metadata: { pending_deletion: 'true', userId: user.id },
+      } : {}),
     })
-
-    // ※ subscriptionsテーブルのstatusはStripe側に合わせ 'active' のまま維持
-    // （cancel_at_period_end=true でも Stripe の status は 'active'）
-    // 期末に subscription.deleted が発火したタイミングで 'canceled' に更新される
 
     return NextResponse.json({
       success: true,
