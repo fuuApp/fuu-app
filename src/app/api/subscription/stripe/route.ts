@@ -110,6 +110,7 @@ export async function POST(req: NextRequest) {
     // ── 新規チェックアウト（既存顧客IDがあれば再利用） ────────
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
+      payment_method_types: ['card'],
       allow_promotion_codes: true,
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${baseUrl}/app/plans?success=true`,
