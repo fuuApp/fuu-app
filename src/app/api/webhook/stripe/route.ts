@@ -36,7 +36,29 @@ export async function POST(req: NextRequest) {
       case 'customer.subscription.updated': {
         const sub = event.data.object as Stripe.Subscription
         const customerId = sub.customer as string
-        const priceId = sub.items.data[0]?.price.id
+        let priceId = sub.items.data[0]?.price.id
+
+        // スケジュール管理下の場合、現フェーズのpriceで判断する
+        // （スケジュール設定時のwebhookでダウングレードされるのを防ぐ）
+        if (sub.schedule) {
+          try {
+            const scheduleId = typeof sub.schedule === 'string'
+              ? sub.schedule
+              : (sub.schedule as Stripe.SubscriptionSchedule).id
+            const schedule = await stripe.subscriptionSchedules.retrieve(scheduleId)
+            const now = Math.floor(Date.now() / 1000)
+            // 現在時刻が含まれるフェーズを探す（end_dateがnull/0は無期限）
+            const currentPhase = schedule.phases.find(p =>
+              p.start_date <= now && (!p.end_date || p.end_date > now)
+            )
+            const rawPrice = currentPhase?.items?.[0]?.price
+            if (rawPrice) {
+              const pId = typeof rawPrice === 'string' ? rawPrice : rawPrice.id
+              if (pId) priceId = pId
+            }
+          } catch { /* 取得失敗時はsub.itemsのpriceIdをそのまま使う */ }
+        }
+
         const plan = PLAN_PRICE_MAP[priceId] ?? 'standard'
 
         // まず stripe_customer_id でユーザーを特定
