@@ -62,6 +62,13 @@ export async function POST(req: NextRequest) {
             limit: 10,
           })
           for (const sub of subs.data) {
+            // スケジュール管理下（ダウングレード予約中など）なら先にリリース
+            if (sub.schedule) {
+              const schedId = typeof sub.schedule === 'string'
+                ? sub.schedule
+                : (sub.schedule as { id: string }).id
+              try { await stripe.subscriptionSchedules.release(schedId) } catch {}
+            }
             await stripe.subscriptions.cancel(sub.id)
           }
           const trialSubs = await stripe.subscriptions.list({
@@ -70,6 +77,12 @@ export async function POST(req: NextRequest) {
             limit: 10,
           })
           for (const sub of trialSubs.data) {
+            if (sub.schedule) {
+              const schedId = typeof sub.schedule === 'string'
+                ? sub.schedule
+                : (sub.schedule as { id: string }).id
+              try { await stripe.subscriptionSchedules.release(schedId) } catch {}
+            }
             await stripe.subscriptions.cancel(sub.id)
           }
         }

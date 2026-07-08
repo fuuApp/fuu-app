@@ -85,9 +85,17 @@ async function checkAndIncrementUsage(userId: string): Promise<
     }).eq('user_id', userId)
   }
 
-  // ── 上限チェック ──
+  // ── 上限チェック＆アトミックインクリメント ──
+  // .lt() フィルタをDB側で評価することで、同時リクエストによる上限超過を防止
   const limit = PLAN_LIMITS[profile.plan] ?? PLAN_LIMITS.free
-  if (currentCount >= limit) {
+  const { data: updated } = await supabase
+    .from('profiles')
+    .update({ monthly_chat_count: currentCount + 1 })
+    .eq('user_id', userId)
+    .lt('monthly_chat_count', limit)
+    .select('monthly_chat_count')
+
+  if (!updated || updated.length === 0) {
     return {
       allowed: false,
       reason: `今月の会話上限（${limit}通）に達しました。プランのアップグレードまたはチケットをお使いください。`,
@@ -95,12 +103,7 @@ async function checkAndIncrementUsage(userId: string): Promise<
     }
   }
 
-  // ── カウントインクリメント ──
-  await supabase.from('profiles').update({
-    monthly_chat_count: currentCount + 1,
-  }).eq('user_id', userId)
-
-  return { allowed: true, remaining: limit - currentCount - 1, ticketActive: false }
+  return { allowed: true, remaining: limit - updated[0].monthly_chat_count, ticketActive: false }
 }
 
 // 入力の長さに応じた返答スタイル指示と max_tokens を返す

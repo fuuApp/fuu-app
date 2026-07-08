@@ -48,11 +48,21 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // ── チケットを使用済みにする ──
-    await admin
+    // ── チケットをアトミックに使用済みにする（同時リクエスト対策）──
+    // .eq('used', available.used) で楽観的ロック：別リクエストが先に更新していれば 0件 が返る
+    const { data: ticketUpdated } = await admin
       .from('tickets')
       .update({ used: available.used + 1 })
       .eq('id', available.id)
+      .eq('used', available.used)
+      .select('id')
+
+    if (!ticketUpdated || ticketUpdated.length === 0) {
+      return NextResponse.json(
+        { error: '使用できるチケットがありません。チケットを購入してください。' },
+        { status: 400 }
+      )
+    }
 
     // ── 月間使用数をインクリメント ──
     await admin
