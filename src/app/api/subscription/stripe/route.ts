@@ -44,6 +44,14 @@ export async function POST(req: NextRequest) {
 
       existingCustomerId = profile?.stripe_customer_id ?? null
 
+      // stripe_customer_id がDBに未保存でもメールで顧客を検索（webhook遅延対策）
+      if (!existingCustomerId && email) {
+        const customers = await stripe.customers.list({ email, limit: 1 })
+        if (customers.data.length > 0) {
+          existingCustomerId = customers.data[0].id
+        }
+      }
+
       if (existingCustomerId) {
         // DBではなくStripe APIを直接確認（webhook遅延による取りこぼし防止）
         const stripeSubs = await stripe.subscriptions.list({
