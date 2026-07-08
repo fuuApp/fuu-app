@@ -91,10 +91,21 @@ export async function POST(req: NextRequest) {
       if (isDowngrade) {
         // ── ダウングレード：期末適用（subscription schedule） ──
         // 現在の課金期間終了まではプレミアム継続、翌月からスタンダードに移行
-        const schedule = await stripe.subscriptionSchedules.create({
-          from_subscription: existingSubscriptionId,
-        })
-        await stripe.subscriptionSchedules.update(schedule.id, {
+
+        // 既存のScheduleがあれば再利用、なければ新規作成
+        let scheduleId: string
+        if (currentSub.schedule) {
+          scheduleId = typeof currentSub.schedule === 'string'
+            ? currentSub.schedule
+            : (currentSub.schedule as { id: string }).id
+        } else {
+          const newSchedule = await stripe.subscriptionSchedules.create({
+            from_subscription: existingSubscriptionId,
+          })
+          scheduleId = newSchedule.id
+        }
+
+        await stripe.subscriptionSchedules.update(scheduleId, {
           end_behavior: 'release', // スケジュール終了後は通常のサブスクとして継続
           phases: [
             {
