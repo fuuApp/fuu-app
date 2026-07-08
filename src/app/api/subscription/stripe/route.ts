@@ -105,12 +105,18 @@ export async function POST(req: NextRequest) {
           from_subscription: existingSubscriptionId,
         })
 
+        // from_subscription で作成したScheduleの現フェーズのstart_dateを引き継ぐ
+        // （end_dateのアンカーとして必須）
+        const phaseStartDate = newSchedule.phases[0]?.start_date
+          ?? Math.floor(Date.now() / 1000)
+
         await stripe.subscriptionSchedules.update(newSchedule.id, {
           end_behavior: 'release', // スケジュール終了後は通常のサブスクとして継続
           phases: [
             {
               // フェーズ1：現在のプランを課金期間終了まで維持
               items: [{ price: currentPriceId, quantity: 1 }],
+              start_date: phaseStartDate,
               end_date: currentSub.current_period_end,
               proration_behavior: 'none',
             },
