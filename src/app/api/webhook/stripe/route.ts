@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
           break
         }
 
-        // ── 通常の解約: plan を canceled に更新 ──────────────
+        // ── 通常の解約: 他にアクティブなサブスクが残っているか確認してからplan更新 ──
         const { data: profile } = await supabase
           .from('profiles')
           .select('user_id')
@@ -112,10 +112,29 @@ export async function POST(req: NextRequest) {
           .single()
 
         if (profile) {
-          await supabase.from('profiles').update({
-            plan: 'canceled',
-            updated_at: new Date().toISOString(),
-          }).eq('user_id', profile.user_id)
+          // 削除されたサブスク以外にアクティブなサブスクが残っているか確認
+          const remainingSubs = await stripe.subscriptions.list({
+            customer: customerId,
+            status: 'active',
+            limit: 10,
+          })
+          const activeSubs = remainingSubs.data.filter(s => s.id !== sub.id)
+
+          if (activeSubs.length > 0) {
+            // 残っているサブスクのプランを反映（道連れcanceled防止）
+            const remainingPriceId = activeSubs[0].items.data[0]?.price.id
+            const remainingPlan = PLAN_PRICE_MAP[remainingPriceId] ?? 'standard'
+            await supabase.from('profiles').update({
+              plan: remainingPlan,
+              updated_at: new Date().toISOString(),
+            }).eq('user_id', profile.user_id)
+          } else {
+            // 他にアクティブなサブスクがない場合のみ canceled に
+            await supabase.from('profiles').update({
+              plan: 'canceled',
+              updated_at: new Date().toISOString(),
+            }).eq('user_id', profile.user_id)
+          }
 
           await supabase.from('subscriptions').update({
             status: 'canceled',
