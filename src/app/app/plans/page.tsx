@@ -72,6 +72,7 @@ function PlansContent() {
   const [userId, setUserId] = useState<string>('')
   const [userEmail, setUserEmail] = useState<string>('')
   const [isTicketJustPurchased, setIsTicketJustPurchased] = useState(false)
+  const [scheduledDowngradeAt, setScheduledDowngradeAt] = useState<string | null>(null)
 
   // ── プラン・チケット状態をSupabaseから取得する共通関数 ──────────────
   // 初回マウント時 + ネイティブアプリでSafari/Chrome決済後にアプリ復帰した際の
@@ -98,6 +99,15 @@ function PlansContent() {
         .gt('expires_at', now)
       const remaining = tickets?.reduce((sum, t) => sum + (t.quantity - t.used), 0) ?? 0
       setAvailableTickets(remaining)
+
+      // ダウングレード予約情報を取得（Stripe スケジュール確認）
+      try {
+        const schedRes = await fetch(`/api/subscription/schedule?userId=${resolvedUid}`)
+        if (schedRes.ok) {
+          const schedData = await schedRes.json()
+          setScheduledDowngradeAt(schedData.scheduledDowngradeAt ?? null)
+        }
+      } catch { /* スケジュール取得失敗時は無視 */ }
     } catch { /* 取得失敗時はそのまま */ }
   }
 
@@ -260,11 +270,8 @@ function PlansContent() {
         setToastMessage({ type: 'success', text: '🎉 プランをアップグレードしました！' })
         await fetchPlanStatus()
       } else if (data.scheduled) {
-        // ダウングレード予約完了（期末反映）
-        const date = data.effectiveDate
-          ? new Date(data.effectiveDate).toLocaleDateString('ja-JP', { month: 'long', day: 'numeric' })
-          : '次の更新日'
-        setToastMessage({ type: 'success', text: `📅 ${date}からスタンダードプランに切り替わります。それまで引き続きプレミアムをご利用いただけます。` })
+        // ダウングレード予約完了（期末反映）→ 常時バナーに切り替え
+        setScheduledDowngradeAt(data.effectiveDate ?? null)
       } else if (data.url) {
         // iOS/Android ネイティブ: Browser.open() で Safari/Chrome（外部ブラウザ）を起動
         // Web: 同タブ遷移（通常の Stripe Checkout）
@@ -308,6 +315,18 @@ function PlansContent() {
             lineHeight: 1.6,
           }}>
             {toastMessage.text}
+          </div>
+        )}
+
+        {/* ダウングレード予約バナー（常時表示） */}
+        {scheduledDowngradeAt && (
+          <div style={{
+            background: '#E8F5E9', border: '1px solid #A5D6A7',
+            borderRadius: 12, padding: '12px 16px',
+            fontSize: 13, color: '#2E7D32',
+            textAlign: 'center', lineHeight: 1.7,
+          }}>
+            📅 <strong>{new Date(scheduledDowngradeAt).toLocaleDateString('ja-JP', { month: 'long', day: 'numeric' })}</strong>からスタンダードプランに切り替わります。それまで引き続きプレミアムをご利用いただけます。
           </div>
         )}
 
