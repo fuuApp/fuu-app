@@ -42,10 +42,13 @@ export async function GET(req: NextRequest) {
     const schedule = await stripe.subscriptionSchedules.retrieve(scheduleId)
 
     // フェーズ1の終了日 = ダウングレード適用日
+    // 過去の日付の場合は null を返す（移行済みバナーの誤表示防止）
     const phase1End = schedule.phases[0]?.end_date
+    const now = Math.floor(Date.now() / 1000)
+    const isUpcoming = phase1End && phase1End > now
 
     return NextResponse.json({
-      scheduledDowngradeAt: phase1End
+      scheduledDowngradeAt: isUpcoming
         ? new Date(phase1End * 1000).toISOString()
         : null,
     })
