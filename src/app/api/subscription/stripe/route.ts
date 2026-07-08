@@ -45,16 +45,25 @@ export async function POST(req: NextRequest) {
       existingCustomerId = profile?.stripe_customer_id ?? null
 
       if (existingCustomerId) {
-        const { data: sub } = await supabase
-          .from('subscriptions')
-          .select('stripe_subscription_id')
-          .eq('user_id', userId)
-          .in('status', ['active', 'trialing'])
-          .order('updated_at', { ascending: false })
-          .limit(1)
-          .single()
-
-        existingSubscriptionId = sub?.stripe_subscription_id ?? null
+        // DBではなくStripe APIを直接確認（webhook遅延による取りこぼし防止）
+        const stripeSubs = await stripe.subscriptions.list({
+          customer: existingCustomerId,
+          status: 'active',
+          limit: 1,
+        })
+        if (stripeSubs.data.length > 0) {
+          existingSubscriptionId = stripeSubs.data[0].id
+        } else {
+          // active がなければ trialing も確認
+          const trialSubs = await stripe.subscriptions.list({
+            customer: existingCustomerId,
+            status: 'trialing',
+            limit: 1,
+          })
+          if (trialSubs.data.length > 0) {
+            existingSubscriptionId = trialSubs.data[0].id
+          }
+        }
       }
     }
 
