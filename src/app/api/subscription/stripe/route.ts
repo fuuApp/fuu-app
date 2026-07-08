@@ -132,6 +132,13 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ scheduled: true, effectiveDate })
       } else {
         // ── アップグレード：即時適用（日割り精算あり） ──────────
+        // スケジュール管理下（ダウングレード予約中 or フェーズ2稼働中）の場合は先にリリース
+        if (currentSub.schedule) {
+          const schedId = typeof currentSub.schedule === 'string'
+            ? currentSub.schedule
+            : (currentSub.schedule as { id: string }).id
+          await stripe.subscriptionSchedules.release(schedId)
+        }
         await stripe.subscriptions.update(existingSubscriptionId, {
           items: [{ id: currentSub.items.data[0].id, price: priceId }],
           proration_behavior: 'create_prorations',
