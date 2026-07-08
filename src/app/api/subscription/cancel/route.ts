@@ -39,6 +39,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'アクティブなサブスクリプションが見つかりません' }, { status: 404 })
     }
 
+    // スケジュール管理下（ダウングレード予約中）の場合は先にリリース
+    // （cancel_at_period_end はスケジュール管理下では直接設定不可）
+    const stripeSub = await stripe.subscriptions.retrieve(sub.stripe_subscription_id)
+    if (stripeSub.schedule) {
+      const schedId = typeof stripeSub.schedule === 'string'
+        ? stripeSub.schedule
+        : (stripeSub.schedule as { id: string }).id
+      await stripe.subscriptionSchedules.release(schedId)
+    }
+
     const canceled = await stripe.subscriptions.update(sub.stripe_subscription_id, {
       cancel_at_period_end: true,
       // pendingDeletion の場合、期末に webhook がアカウント削除を実行するためのフラグを設定
