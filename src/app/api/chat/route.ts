@@ -28,7 +28,7 @@ function isNewMonth(resetAt: string): boolean {
 }
 
 // ── 会話制限チェック＆カウントインクリメント ──────────────────
-async function checkAndIncrementUsage(userId: string): Promise<
+async function checkAndIncrementUsage(userId: string, userEmail?: string): Promise<
   { allowed: true; remaining: number; ticketActive: boolean } |
   { allowed: false; reason: string; code: string }
 > {
@@ -58,6 +58,55 @@ async function checkAndIncrementUsage(userId: string): Promise<
       allowed: false,
       reason: 'プランが終了しています。再度プランを選択してください。',
       code: 'PLAN_CANCELED',
+    }
+  }
+
+  // ── 退会済み同一メール再登録チェック ──
+  // 同じメールで過去に退会したアカウントがある場合、使用済み回数・トライアル期限を引き継ぐ。
+  // 旧アカウントがトライアル期限切れ or 使い切り済みの場合のみ弾く。
+  // 例）30回使って退会→再登録 → 新アカウントも30回から開始、残り40回使える
+  if ((profile.plan === 'free' || profile.plan === 'trial') && userEmail) {
+    const { data: pastAccount } = await supabase
+      .from('profiles')
+      .select('user_id, monthly_chat_count, trial_started_at')
+      .eq('email', userEmail)
+      .not('deleted_at', 'is', null)
+      .neq('user_id', userId)
+      .order('deleted_at', { ascending: false }) // 最新の退会アカウントを使う
+      .limit(1)
+      .maybeSingle()
+
+    if (pastAccount) {
+      const pastTrialStart = pastAccount.trial_started_at ? new Date(pastAccount.trial_started_at) : null
+      const pastTrialEnd = pastTrialStart
+        ? new Date(pastTrialStart.getTime() + 10 * 24 * 60 * 60 * 1000)
+        : null
+      const pastTrialExpired = !pastTrialEnd || pastTrialEnd < now
+      const pastCount = pastAccount.monthly_chat_count ?? 0
+      const freeLimit = PLAN_LIMITS['free'] ?? 70
+
+      if (pastTrialExpired || pastCount >= freeLimit) {
+        // 期限切れ or 使い切り → 弾く
+        return {
+          allowed: false,
+          reason: 'トライアル期間が終了しました。プランを選択してください。',
+          code: 'TRIAL_EXPIRED',
+        }
+      }
+
+      // 残りあり → 旧アカウントの使用数・トライアル開始日を新アカウントに引き継ぐ
+      if (pastCount > (profile.monthly_chat_count ?? 0)) {
+        await supabase
+          .from('profiles')
+          .update({
+            monthly_chat_count: pastCount,
+            trial_started_at: pastAccount.trial_started_at,
+          })
+          .eq('user_id', userId)
+        // 後続処理（月間上限チェック・トライアル期限チェック）に反映
+        profile.monthly_chat_count = pastCount
+        profile.trial_started_at = pastAccount.trial_started_at
+      }
     }
   }
 
@@ -578,7 +627,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ── 会話回数制限チェック（通常会話のみ）─────────────────────
-    const usageResult = await checkAndIncrementUsage(user.id)
+    const usageResult = await checkAndIncrementUsage(user.id, user.email ?? undefined)
     if (!usageResult.allowed) {
       return NextResponse.json(
         { error: usageResult.reason, code: usageResult.code },
