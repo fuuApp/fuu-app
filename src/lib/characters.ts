@@ -774,9 +774,9 @@ ${SAFETY_RULES}`,
     color: 'text-green-600',
     bgColor: 'bg-green-50',
     isPremium: true,
-    isAvailable: true,   // TEST_UNLOCK (元: false)
+    isAvailable: false,
     unlockDaysRequired: 0,
-    unlockAfterMonths: 0, // TEST_UNLOCK (元: 1)
+    unlockAfterMonths: 1,
     systemPrompt: `あなたは「のりこ」、38歳のママです。7〜11歳の小学生を育てています。ふぅアプリの中で育児ママの話し相手になってください。
 
 【のりこってどんな人？】
@@ -846,9 +846,9 @@ ${SAFETY_RULES}`,
     color: 'text-purple-500',
     bgColor: 'bg-purple-50',
     isPremium: true,
-    isAvailable: true,   // TEST_UNLOCK (元: false)
+    isAvailable: false,
     unlockDaysRequired: 0,
-    unlockAfterMonths: 0, // TEST_UNLOCK (元: 2)
+    unlockAfterMonths: 2,
     systemPrompt: `あなたは「かずこ」、43歳のママです。12〜15歳の思春期の子を育てています。ふぅアプリの中で育児ママの話し相手になってください。
 
 【かずこってどんな人？】
@@ -900,9 +900,9 @@ ${SAFETY_RULES}`,
     color: 'text-slate-500',
     bgColor: 'bg-slate-50',
     isPremium: true,
-    isAvailable: true,   // TEST_UNLOCK (元: false)
+    isAvailable: false,
     unlockDaysRequired: 0,
-    unlockAfterMonths: 0, // TEST_UNLOCK (元: 4)
+    unlockAfterMonths: 4,
     systemPrompt: `あなたは「みちこ」、47歳のママです。15〜18歳の高校生を育てています。ふぅアプリの中で育児ママの話し相手になってください。
 
 【みちこってどんな人？】
@@ -1200,9 +1200,9 @@ ${SAFETY_RULES}`,
     color: 'text-violet-500',
     bgColor: 'bg-violet-50',
     isPremium: true,
-    isAvailable: true,   // TEST_UNLOCK (元: false)
+    isAvailable: false,
     unlockDaysRequired: 0,
-    unlockAfterMonths: 0, // TEST_UNLOCK (元: 1)
+    unlockAfterMonths: 1,
     systemPrompt: `あなたは「だいすけ」、33歳のパパです。4〜6歳の子を保育園や幼稚園に通わせており、送迎を担当しています。ふぅアプリの中で育児ママの話し相手になってください。
 
 【だいすけってどんな人？】
@@ -1248,9 +1248,9 @@ ${SAFETY_RULES}`,
     color: 'text-sky-600',
     bgColor: 'bg-sky-50',
     isPremium: true,
-    isAvailable: true,   // TEST_UNLOCK (元: false)
+    isAvailable: false,
     unlockDaysRequired: 0,
-    unlockAfterMonths: 0, // TEST_UNLOCK (元: 3)
+    unlockAfterMonths: 3,
     systemPrompt: `あなたは「ゆうすけ」、41歳のパパです。7〜11歳の小学生を育てています。学校行事や習い事にも積極的に関わっています。ふぅアプリの中で育児ママの話し相手になってください。
 
 【ゆうすけってどんな人？】
@@ -1316,9 +1316,9 @@ ${SAFETY_RULES}`,
     color: 'text-stone-600',
     bgColor: 'bg-stone-50',
     isPremium: true,
-    isAvailable: true,   // TEST_UNLOCK (元: false)
+    isAvailable: false,
     unlockDaysRequired: 0,
-    unlockAfterMonths: 0, // TEST_UNLOCK (元: 5)
+    unlockAfterMonths: 5,
     systemPrompt: `あなたは「こうじ」、46歳のパパです。12〜15歳の思春期の子を育てています。ふぅアプリの中で育児ママの話し相手になってください。
 
 【こうじってどんな人？】
