@@ -40,14 +40,9 @@ export default function ChatPage() {
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const nicknameInputRef = useRef<HTMLInputElement>(null)
-  const recognitionRef = useRef<any>(null)
   // refで最新値を保持（handleSend時に非同期タイミングのズレを防ぐ）
   const journalContextRef = useRef<string>('')
 
-  // STT
-  const [isListening, setIsListening] = useState(false)
-  const [sttSupported, setSttSupported] = useState(false)
-  const [isPremium, setIsPremium] = useState(false)
   const [userPlan, setUserPlan] = useState<'trial' | 'standard' | 'premium'>('trial')
 
   // 残り会話回数
@@ -262,59 +257,6 @@ export default function ChatPage() {
       })()
     }
   }, [characterId, character])
-
-  // ── STT初期化（ページロード時に事前準備してタイムラグを最小化）──
-  useEffect(() => {
-    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
-    if (!SR) return
-    setSttSupported(true)
-
-    const rec = new SR()
-    rec.lang = 'ja-JP'
-    rec.continuous = true      // 話し続けても認識継続
-    rec.interimResults = true  // リアルタイムで途中結果を返す
-
-    rec.onresult = (e: any) => {
-      // interim（途中）＋ final（確定）を結合してinputに反映
-      let transcript = ''
-      for (let i = 0; i < e.results.length; i++) {
-        transcript += e.results[i][0].transcript
-      }
-      setInput(transcript)
-      // テキストエリアの高さを自動調整
-      if (inputRef.current) {
-        inputRef.current.style.height = 'auto'
-        inputRef.current.style.height = Math.min(inputRef.current.scrollHeight, 100) + 'px'
-      }
-    }
-    rec.onend = () => setIsListening(false)
-    rec.onerror = (e: any) => {
-      // 'aborted'は手動停止なので無視、それ以外はエラー扱い
-      if (e.error !== 'aborted') setIsListening(false)
-    }
-
-    recognitionRef.current = rec
-
-    // プラン確認：Supabase profiles から取得（localStorageは削除）
-    ;(async () => {
-      try {
-        const supabase = createClient()
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('plan')
-            .eq('user_id', user.id)
-            .single()
-          setIsPremium(profile?.plan === 'premium')
-          const p = profile?.plan ?? 'trial'
-          setUserPlan(p === 'premium' ? 'premium' : p === 'standard' ? 'standard' : 'trial')
-        }
-      } catch {
-        // 取得失敗時はSTT非表示のまま
-      }
-    })()
-  }, [])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -598,25 +540,6 @@ export default function ChatPage() {
       setSoudanDone(true)
     } finally {
       setLoadingSummary(false)
-    }
-  }
-
-  // ── 音声テキスト入力（STT）──
-  const handleMicTap = () => {
-    const rec = recognitionRef.current
-    if (!rec) return
-    if (isListening) {
-      // 停止：テキストはinputに残ったまま、ユーザーが手動で送信
-      rec.stop()
-      setIsListening(false)
-    } else {
-      // 開始：入力欄をクリアしてから録音スタート
-      setInput('')
-      if (inputRef.current) {
-        inputRef.current.style.height = 'auto'
-      }
-      setIsListening(true)
-      try { rec.start() } catch { setIsListening(false) }
     }
   }
 
@@ -1087,48 +1010,28 @@ export default function ChatPage() {
           background: '#fff', borderTop: '1px solid #FCE4EC',
           paddingBottom: 4, flexShrink: 0,
         }}>
-          {/* リスニング中インジケーター */}
-          {isListening && (
-            <div style={{
-              padding: '6px 16px 0',
-              display: 'flex', alignItems: 'center', gap: 6,
-              fontSize: 12, color: '#E91E63',
-            }}>
-              <div style={{
-                width: 8, height: 8, borderRadius: '50%', background: '#E91E63',
-                animation: 'pulse 1s ease-in-out infinite', flexShrink: 0,
-              }} />
-              聞いてるよ… 話し終わったら送信ボタンを押してね
-            </div>
-          )}
-
           {/* 入力行 */}
           <div style={{ padding: '10px 12px 6px', display: 'flex', gap: 8, alignItems: 'flex-end' }}>
             <textarea
               ref={inputRef}
               value={input}
               onChange={e => {
-                if (isListening) {
-                  recognitionRef.current?.stop()
-                  setIsListening(false)
-                }
                 setInput(e.target.value)
               }}
               onKeyDown={handleKeyDown}
               placeholder={
-                isListening ? '話してね…'
-                : chatMode === 'soudan' ? `${character.name}に相談する…`
+                chatMode === 'soudan' ? `${character.name}に相談する…`
                 : `${character.name}に話しかける…`
               }
               rows={1}
               style={{
                 flex: 1,
-                border: `1.5px solid ${isListening ? '#C2185B' : chatMode === 'soudan' ? '#CE93D8' : '#F48FB1'}`,
+                border: `1.5px solid ${chatMode === 'soudan' ? '#CE93D8' : '#F48FB1'}`,
                 borderRadius: 20,
                 padding: '10px 16px',
                 fontSize: 16, // ← iOSズーム防止（16px以上必須）
                 outline: 'none',
-                background: isListening ? '#FFF0F5' : chatMode === 'soudan' ? '#FAF5FF' : '#fdf4f7',
+                background: chatMode === 'soudan' ? '#FAF5FF' : '#fdf4f7',
                 resize: 'none', lineHeight: 1.5,
                 maxHeight: 100, overflowY: 'auto', fontFamily: 'inherit',
                 transition: 'border-color 0.2s, background 0.2s',
@@ -1139,29 +1042,6 @@ export default function ChatPage() {
                 el.style.height = Math.min(el.scrollHeight, 100) + 'px'
               }}
             />
-
-            {/* マイクボタン（プレミアムユーザーかつSTT対応ブラウザのみ表示） */}
-            {sttSupported && isPremium && (
-              <button
-                onClick={handleMicTap}
-                title={isListening ? '録音停止' : '音声入力'}
-                style={{
-                  width: 44, height: 44, borderRadius: '50%', border: 'none',
-                  background: isListening
-                    ? 'linear-gradient(135deg,#C2185B,#880E4F)'
-                    : '#FCE4EC',
-                  color: isListening ? '#fff' : '#E91E63',
-                  fontSize: 18,
-                  cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  flexShrink: 0,
-                  animation: isListening ? 'micPulse 1.5s ease-in-out infinite' : 'none',
-                  transition: 'background 0.2s',
-                }}
-              >
-                🎤
-              </button>
-            )}
 
             <button onClick={() => handleSend()} disabled={!input.trim() || loading || !journalLoaded} style={{
               width: 44, height: 44, borderRadius: '50%', border: 'none',
@@ -1212,14 +1092,6 @@ export default function ChatPage() {
         @keyframes bounce {
           0%, 60%, 100% { transform: translateY(0); }
           30% { transform: translateY(-6px); }
-        }
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.4; }
-        }
-        @keyframes micPulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(194,24,91,0.4); }
-          50% { box-shadow: 0 0 0 8px rgba(194,24,91,0); }
         }
       `}</style>
     </div>

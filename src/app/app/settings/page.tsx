@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { isNative } from '@/lib/platform'
 
 const NICKNAME_KEY = 'fuu_nickname'
 const NICKNAME_SET_KEY = 'fuu_nickname_set'
@@ -168,16 +167,6 @@ function calcTrialDaysLeftFromDate(trialStartedAt: string | null): number {
   return Math.max(0, TRIAL_DAYS - Math.floor((Date.now() - new Date(trialStartedAt).getTime()) / 86400000))
 }
 
-// キャラ選択肢（通知設定用）
-const NOTIF_CHARACTERS = [
-  { id: 'aoi',     label: 'あおい（新米ママ友）' },
-  { id: 'sakura',  label: 'さくら（先輩ママ）' },
-  { id: 'rika',    label: 'りか（毒舌姐さん）' },
-  { id: 'natsuko', label: 'なつこ（姉御肌）' },
-  { id: 'kenji',   label: 'けんじ（イクメンパパ）' },
-  { id: 'hiroshi', label: 'ひろし（渋めパパ）' },
-]
-
 export default function SettingsPage() {
   const router = useRouter()
   const [nickname, setNickname] = useState('')
@@ -192,39 +181,22 @@ export default function SettingsPage() {
   const [deleteError, setDeleteError] = useState('')
   const [periodEndDate, setPeriodEndDate] = useState<string | null>(null)
   const [withdrawToast, setWithdrawToast] = useState<string | null>(null)
-  const [morningTime, setMorningTime] = useState('07:00')
-  const [eveningTime, setEveningTime] = useState('21:00')
-  const [notifEnabled, setNotifEnabled] = useState(false)
-  const [notifCharacter, setNotifCharacter] = useState('aoi')
-  const [notifSaving, setNotifSaving] = useState(false)
-  const [notifSaved, setNotifSaved] = useState(false)
-  const [notifPermission, setNotifPermission] = useState<NotificationPermission>('default')
-  const [userId, setUserId] = useState<string | null>(null)
 
   useEffect(() => {
     const n = localStorage.getItem(NICKNAME_KEY) ?? ''
     setNickname(n); setNicknameInput(n)
     const bgm = localStorage.getItem(BGM_KEY)
     setBgmEnabled(bgm === null ? true : bgm === 'true')
-    // 通知権限の現在状態を取得（Web）
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      setNotifPermission(Notification.permission)
-    }
-    // Service Worker 登録（Web）
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {})
-    }
-    // Supabase からプラン・通知設定を取得
+    // Supabase からプラン設定を取得
     ;(async () => {
       try {
         const { createClient } = await import('@/lib/supabase')
         const supabase = createClient()
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return
-        setUserId(user.id)
         const { data: profile } = await supabase
           .from('profiles')
-          .select('plan, trial_started_at, morning_time, evening_time, notification_character, notification_enabled')
+          .select('plan, trial_started_at')
           .eq('user_id', user.id)
           .single()
         if (!profile) return
@@ -234,11 +206,6 @@ export default function SettingsPage() {
         else if (plan === 'canceled') setUserPlan('canceled')
         else setUserPlan('trial')
         setTrialDaysLeft(calcTrialDaysLeftFromDate(profile.trial_started_at ?? null))
-        // 通知設定を反映
-        if (profile.morning_time)          setMorningTime(profile.morning_time)
-        if (profile.evening_time)          setEveningTime(profile.evening_time)
-        if (profile.notification_character) setNotifCharacter(profile.notification_character)
-        setNotifEnabled(profile.notification_enabled ?? false)
         // サブスク期末日を取得
         const { data: sub } = await supabase
           .from('subscriptions')
@@ -260,48 +227,6 @@ export default function SettingsPage() {
     setNickname(trimmed); setEditing(false); setSaved(true); setTimeout(() => setSaved(false), 2500)
   }
 
-  const handleSaveNotifications = async () => {
-    setNotifSaving(true)
-    try {
-      // ネイティブ：Capacitor PushNotifications で権限リクエスト
-      if (isNative()) {
-        const { PushNotifications } = await import('@capacitor/push-notifications')
-        const permStatus = await PushNotifications.checkPermissions()
-        if (permStatus.receive === 'prompt') {
-          const result = await PushNotifications.requestPermissions()
-          if (result.receive !== 'granted') {
-            setNotifSaving(false)
-            return
-          }
-        }
-        await PushNotifications.register()
-      } else {
-        // Web：Notification API で権限リクエスト
-        if ('Notification' in window && Notification.permission !== 'denied') {
-          const permission = await Notification.requestPermission()
-          setNotifPermission(permission)
-          if (permission === 'granted') {
-            const reg = await navigator.serviceWorker.ready
-            reg.active?.postMessage({ type: 'SCHEDULE_NOTIFICATIONS', morningTime, eveningTime })
-          }
-        }
-      }
-
-      // Supabase に通知設定を保存
-      if (userId) {
-        const { createClient } = await import('@/lib/supabase')
-        const supabase = createClient()
-        await supabase.from('profiles').update({
-          morning_time: morningTime,
-          evening_time: eveningTime,
-          notification_character: notifCharacter,
-          notification_enabled: notifEnabled,
-        }).eq('user_id', userId)
-      }
-    } catch { /* 非対応端末は無視 */ }
-
-    setNotifSaved(true); setTimeout(() => setNotifSaved(false), 2500); setNotifSaving(false)
-  }
   const handleDeleteAccount = async () => {
     setIsDeleting(true); setDeleteError('')
     try {
@@ -419,101 +344,6 @@ export default function SettingsPage() {
             </button>
           </div>
         </div>
-
-        {/* 通知設定（スタンダード・プレミアム限定） */}
-        {(userPlan === 'standard' || userPlan === 'premium') ? (
-        <div style={{ background:'#fff',borderRadius:16,overflow:'hidden',boxShadow:'0 1px 6px rgba(233,30,99,0.07)' }}>
-          <div style={{ padding:'12px 16px',borderBottom:'1px solid #FCE4EC',fontSize:12,color:'#E91E63',fontWeight:700 }}>通知設定</div>
-          <div style={{ padding:16 }}>
-            {/* ── ON/OFF トグル ── */}
-            <div style={{ display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16 }}>
-              <span style={{ fontSize:13,fontWeight:600,color:'#555' }}>🔔 リマインダー通知</span>
-              <button
-                onClick={() => setNotifEnabled(v => !v)}
-                style={{
-                  width:50,height:28,borderRadius:14,border:'none',cursor:'pointer',
-                  background: notifEnabled ? '#E91E63' : '#ccc',
-                  position:'relative',transition:'background 0.2s',
-                }}
-              >
-                <span style={{
-                  position:'absolute',top:3,
-                  left: notifEnabled ? 25 : 4,
-                  width:22,height:22,borderRadius:'50%',background:'#fff',
-                  transition:'left 0.2s',display:'block',
-                }} />
-              </button>
-            </div>
-
-            {notifEnabled && (
-              <div>
-                {/* ネイティブ向け注意書き */}
-                {isNative() && (
-                  <div style={{ background:'#E3F2FD',border:'1px solid #90CAF9',borderRadius:10,padding:'10px 14px',marginBottom:14,fontSize:12,color:'#1565C0',lineHeight:1.7 }}>
-                    📱 通知を受け取るには、iOS/Androidの設定アプリで「ふぅ」の通知を許可してください。
-                  </div>
-                )}
-                {/* Web: 権限状態 */}
-                {!isNative() && notifPermission === 'denied' && (
-                  <div style={{ background:'#FFF3E0',border:'1px solid #FFB74D',borderRadius:10,padding:'10px 14px',marginBottom:14,fontSize:12,color:'#E65100',lineHeight:1.7 }}>
-                    ⚠️ ブラウザの通知がブロックされています。<br />
-                    ブラウザの設定から「fuu-app.vercel.app」の通知を許可してください。
-                  </div>
-                )}
-                {!isNative() && notifPermission === 'granted' && (
-                  <div style={{ background:'#E8F5E9',border:'1px solid #A5D6A7',borderRadius:10,padding:'8px 14px',marginBottom:14,fontSize:12,color:'#2E7D32' }}>
-                    🔔 ブラウザの通知が許可されています
-                  </div>
-                )}
-
-                {/* キャラ選択 */}
-                <div style={{ marginBottom:14 }}>
-                  <div style={{ fontSize:13,fontWeight:600,color:'#555',marginBottom:8 }}>💬 通知を送るキャラ</div>
-                  <select
-                    value={notifCharacter}
-                    onChange={e => setNotifCharacter(e.target.value)}
-                    style={{ border:'1.5px solid #F48FB1',borderRadius:10,padding:'8px 12px',fontSize:13,outline:'none',background:'#fdf4f7',fontFamily:'inherit',color:'#333',width:'100%' }}
-                  >
-                    {NOTIF_CHARACTERS.map(c => (
-                      <option key={c.id} value={c.id}>{c.label}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* 朝 */}
-                <div style={{ marginBottom:14 }}>
-                  <div style={{ fontSize:13,fontWeight:600,color:'#555',marginBottom:6 }}>🌅 おはようリマインダー</div>
-                  <input type="time" value={morningTime} onChange={e=>setMorningTime(e.target.value)} style={{ border:'1.5px solid #F48FB1',borderRadius:10,padding:'8px 12px',fontSize:16,outline:'none',background:'#fdf4f7',fontFamily:'inherit',color:'#333',width:140 }} />
-                </div>
-
-                {/* 夜 */}
-                <div style={{ marginBottom:16 }}>
-                  <div style={{ fontSize:13,fontWeight:600,color:'#555',marginBottom:6 }}>🌙 おやすみリマインダー</div>
-                  <input type="time" value={eveningTime} onChange={e=>setEveningTime(e.target.value)} style={{ border:'1.5px solid #F48FB1',borderRadius:10,padding:'8px 12px',fontSize:16,outline:'none',background:'#fdf4f7',fontFamily:'inherit',color:'#333',width:140 }} />
-                </div>
-              </div>
-            )}
-
-            <div style={{ display:'flex',alignItems:'center',gap:10,marginTop:4 }}>
-              <button onClick={handleSaveNotifications} disabled={notifSaving} style={{ background:'linear-gradient(135deg,#E91E63,#C2185B)',border:'none',borderRadius:20,padding:'8px 20px',fontSize:13,fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:'inherit',opacity:notifSaving?0.7:1 }}>
-                {notifSaving ? '保存中...' : (!isNative() && notifEnabled && notifPermission === 'default') ? '保存する（通知を許可）' : '保存する'}
-              </button>
-              {notifSaved && <span style={{ fontSize:13,color:'#4CAF50' }}>✅ 設定しました</span>}
-            </div>
-          </div>
-        </div>
-        ) : (
-        <div style={{ background:'#fff',borderRadius:16,overflow:'hidden',boxShadow:'0 1px 6px rgba(233,30,99,0.07)' }}>
-          <div style={{ padding:'12px 16px',borderBottom:'1px solid #FCE4EC',fontSize:12,color:'#E91E63',fontWeight:700 }}>通知設定</div>
-          <div style={{ padding:16 }}>
-            <div style={{ background:'#FFF3E0',border:'1px solid #FFB74D',borderRadius:12,padding:'12px 14px' }}>
-              <div style={{ fontSize:13,color:'#E65100',fontWeight:700,marginBottom:4 }}>🔔 スタンダード以上の機能です</div>
-              <div style={{ fontSize:12,color:'#888',lineHeight:1.7 }}>朝・夜のリマインダー通知はスタンダードプラン以上でご利用いただけます。</div>
-              <button onClick={()=>router.push('/app/plans')} style={{ marginTop:10,background:'none',border:'1px solid #FFB74D',borderRadius:20,padding:'6px 14px',fontSize:12,color:'#E65100',cursor:'pointer',fontFamily:'inherit' }}>プランを見る →</button>
-            </div>
-          </div>
-        </div>
-        )}
 
         {/* プラン */}
         <div style={{ background:'#fff',borderRadius:16,overflow:'hidden',boxShadow:'0 1px 6px rgba(233,30,99,0.07)' }}>

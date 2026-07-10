@@ -19,7 +19,7 @@ export default function PrivacyPage() {
 
         <Section title="第1条（収集する情報）">
           <p style={{ margin: '0 0 8px' }}>本サービスは以下の情報を収集します。</p>
-          <BulletItem>メールアドレス（ログイン・通知目的）</BulletItem>
+          <BulletItem>メールアドレス（ログイン目的）</BulletItem>
           <BulletItem>利用プラン情報（無料・スタンダード・プレミアム）</BulletItem>
           <BulletItem>チャット履歴（サービス提供目的。AI学習には使用しません）</BulletItem>
           <BulletItem>アプリ利用状況（改善目的・匿名化処理済み）</BulletItem>
@@ -30,7 +30,6 @@ export default function PrivacyPage() {
           <p style={{ margin: '0 0 8px' }}>収集した情報は以下の目的に使用します。</p>
           <BulletItem>本サービスの提供・維持・改善</BulletItem>
           <BulletItem>ユーザー認証・プラン管理</BulletItem>
-          <BulletItem>朝夜プッシュ通知の配信</BulletItem>
           <BulletItem>お問い合わせへの対応</BulletItem>
           <BulletItem>利用規約違反の調査・対応</BulletItem>
         </Section>

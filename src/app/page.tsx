@@ -273,9 +273,7 @@ export default function LandingPage() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           {[
             { icon: '💬', title: 'いつでも会話', desc: '24時間・深夜もOK' },
-            { icon: '🔔', title: '朝・夜の通知', desc: '毎朝毎晩、キャラから一言' },
             { icon: '🧹', title: '気持ちの箱', desc: '感情を3タグで整理' },
-            { icon: '🎤', title: '音声テキスト入力', desc: '話すだけで文字起こし（プレミアム）' },
             { icon: '🎵', title: 'BGM', desc: 'チャット中に癒やしのBGM' },
             { icon: '💴', title: '月わずか¥300', desc: 'コーヒー1杯以下・いつでも解約可' },
           ].map((f, i) => (
@@ -324,7 +322,6 @@ export default function LandingPage() {
             'あおい・さくら・りか・なつこ（4名）と話せる',
             'ニックネームで呼んでもらえる',
             '気持ちの箱（感情整理）・BGMフル利用',
-            '朝・夜プッシュ通知（時間設定可）',
             '使い放題チケット ¥300/日（追加購入可）',
           ].map((t, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 8, fontSize: 13, color: '#444' }}>
@@ -345,7 +342,6 @@ export default function LandingPage() {
           <p style={{ fontSize: 11, color: '#C2185B', margin: '0 0 10px', fontWeight: 600 }}>月900会話（1日約30会話）— 1会話単価がスタンダードより27%お得</p>
           {[
             { text: 'スタンダードの全機能', prefix: '✓' },
-            { text: '🎤 音声テキスト入力（話すだけで文字起こし）', prefix: '✓' },
             { text: 'パパキャラ けんじ・ひろし＋随時追加', prefix: '✓' },
             { text: '使い放題チケット ¥300/日（追加購入可）', prefix: '✓' },
           ].map((item, i) => (
