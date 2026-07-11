@@ -185,7 +185,7 @@ export default function CharacterSelectPage() {
       <div style={{
         position: 'sticky', top: 0, zIndex: 10,
         background: '#fff', borderBottom: '1px solid #FCE4EC',
-        padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 10,
+        padding: '14px 20px', paddingTop: 'calc(env(safe-area-inset-top) + 14px)', display: 'flex', alignItems: 'center', gap: 10,
       }}>
         <img src="/icons/icon_c.png" alt="fuu" style={{ width: 28, height: 28, objectFit: 'contain' }} />
         <span style={{ fontWeight: 700, fontSize: 17, color: '#E91E63' }}>fuu ふぅ</span>

@@ -80,7 +80,7 @@ export default function JournalPage() {
 
   return (
     <div style={{ maxWidth:480,margin:'0 auto',background:'#fdf4f7',minHeight:'100dvh' }}>
-      <div style={{ background:'#fff',borderBottom:'1px solid #FCE4EC',padding:'14px 16px',display:'flex',alignItems:'center',gap:12,position:'sticky',top:0,zIndex:10 }}>
+      <div style={{ background:'#fff',borderBottom:'1px solid #FCE4EC',padding:'14px 16px',paddingTop:'calc(env(safe-area-inset-top) + 14px)',display:'flex',alignItems:'center',gap:12,position:'sticky',top:0,zIndex:10 }}>
         <button onClick={()=>router.push('/app')} style={{ background:'none',border:'none',fontSize:20,cursor:'pointer',color:'#E91E63',padding:4 }}>‹</button>
         <div><div style={{ fontWeight:700,fontSize:16,color:'#333' }}>✨ 気持ちの箱</div><div style={{ fontSize:11,color:'#aaa' }}>気持ちを変換した記録</div></div>
       </div>

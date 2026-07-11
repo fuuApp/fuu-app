@@ -299,7 +299,7 @@ function PlansContent() {
       {/* ヘッダー */}
       <div style={{
         background: '#fff', borderBottom: '1px solid #FCE4EC',
-        padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12,
+        padding: '14px 16px', paddingTop: 'calc(env(safe-area-inset-top) + 14px)', display: 'flex', alignItems: 'center', gap: 12,
         position: 'sticky', top: 0, zIndex: 10,
       }}>
         <button

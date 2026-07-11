@@ -293,7 +293,7 @@ export default function SettingsPage() {
       )}
 
       {/* ヘッダー */}
-      <div style={{ background:'#fff',borderBottom:'1px solid #FCE4EC',padding:'14px 16px',display:'flex',alignItems:'center',gap:12,position:'sticky',top:0,zIndex:10 }}>
+      <div style={{ background:'#fff',borderBottom:'1px solid #FCE4EC',padding:'14px 16px',paddingTop:'calc(env(safe-area-inset-top) + 14px)',display:'flex',alignItems:'center',gap:12,position:'sticky',top:0,zIndex:10 }}>
         <button onClick={() => router.push('/app')} style={{ background:'none',border:'none',fontSize:20,cursor:'pointer',color:'#E91E63',padding:4 }}>‹</button>
         <span style={{ fontWeight:700,fontSize:16,color:'#333' }}>設定</span>
       </div>
