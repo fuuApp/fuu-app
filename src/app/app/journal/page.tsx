@@ -83,11 +83,9 @@ export default function JournalPage() {
       <div style={{ background:'#fff',borderBottom:'1px solid #FCE4EC',padding:'14px 16px',paddingTop:'calc(env(safe-area-inset-top) + 14px)',display:'flex',alignItems:'center',gap:12,position:'sticky',top:0,zIndex:10 }}>
         <button onClick={()=>router.push('/app')} style={{ display:'flex',alignItems:'center',gap:6,background:'none',border:'none',cursor:'pointer',padding:'6px 0',fontFamily:'inherit',lineHeight:1 }}>
           <span style={{ fontSize:20,color:'#E91E63',lineHeight:1 }}>‹</span>
-          <div style={{ textAlign:'left' }}>
-            <div style={{ fontWeight:700,fontSize:16,color:'#333' }}>✨ 気持ちの箱</div>
-            <div style={{ fontSize:11,color:'#aaa' }}>気持ちを変換した記録</div>
-          </div>
+          <span style={{ fontWeight:700,fontSize:16,color:'#333' }}>✨ 気持ちの箱</span>
         </button>
+        <span style={{ fontSize:11,color:'#aaa',marginLeft:'auto' }}>気持ちを変換した記録</span>
       </div>
       <div style={{ padding:16 }}>
         <div style={{ background:'linear-gradient(135deg,#FFF0F5,#FCE4EC)',borderRadius:16,padding:'16px 18px',marginBottom:20,border:'1px solid #F8BBD9' }}>
