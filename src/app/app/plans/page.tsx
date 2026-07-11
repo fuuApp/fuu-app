@@ -194,6 +194,18 @@ function PlansContent() {
     }
   }, [toastMessage])
 
+  // ── iOSネイティブ：外部ブラウザでプランページを開く（Strategy C）──
+  // Strategy C: /app/plans 直接リンク → Apple審査で問題があれば Strategy B（/app）に変更
+  // 変更箇所：この関数の url を 'https://fuu-app.vercel.app/app' に変えるだけで B に切替可
+  const handleOpenWebPlans = async () => {
+    try {
+      const { Browser } = await import('@capacitor/browser')
+      await Browser.open({ url: 'https://fuu-app.vercel.app/app/plans' })
+    } catch {
+      window.open('https://fuu-app.vercel.app/app/plans', '_blank')
+    }
+  }
+
   // チケット購入ハンドラ
   const handleTicket = async () => {
     setLoadingTicket(true)
@@ -326,18 +338,74 @@ function PlansContent() {
           </div>
         )}
 
-        {/* ネイティブアプリ向け：外部ブラウザで決済する旨の案内 */}
+        {/* ── iOSネイティブ：Strategy C（プランページ直接ボタン） ── */}
+        {/* 購入はSafari外部ブラウザで行うため Apple 3.1.1 非対象。 */}
+        {/* 審査で問題が出た場合は handleOpenWebPlans の url を /app に変えて再申請（Strategy B）。 */}
         {isNative() && (
           <div style={{
-            background: '#E3F2FD', border: '1px solid #90CAF9',
-            borderRadius: 14, padding: '12px 16px', lineHeight: 1.7,
+            background: 'linear-gradient(135deg,#FCE4EC,#FFF8F9)',
+            border: '1.5px solid #F48FB1',
+            borderRadius: 20, padding: '20px 18px',
           }}>
-            <div style={{ fontWeight: 700, fontSize: 13, color: '#1565C0', marginBottom: 2 }}>
-              📱 アプリからのご登録について
+            <div style={{ fontWeight: 700, fontSize: 15, color: '#C2185B', marginBottom: 4 }}>
+              💳 プランを登録・変更する
             </div>
-            <div style={{ fontSize: 12, color: '#1565C0' }}>
-              下のボタンをタップするとブラウザ（Safari / Chrome）が開き、
-              そこでお支払い手続きができます。完了後アプリに戻るとプランが反映されます。
+            <div style={{ fontSize: 12, color: '#888', marginBottom: 16, lineHeight: 1.7 }}>
+              Safariで安全に手続きできます。<br />
+              ふぅと同じメールアドレスでログインしてください。
+            </div>
+
+            {/* ミニプランカード */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+              {/* スタンダード */}
+              <div style={{
+                flex: 1, background: '#fff', borderRadius: 12, padding: '12px 10px',
+                border: '1.5px solid #FCE4EC', textAlign: 'center',
+              }}>
+                <div style={{ fontSize: 11, color: '#E91E63', fontWeight: 700, marginBottom: 2 }}>スタンダード</div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: '#333' }}>¥300</div>
+                <div style={{ fontSize: 10, color: '#aaa', marginBottom: 6 }}>/月（税込）</div>
+                <div style={{ fontSize: 10, color: '#666', lineHeight: 1.6 }}>
+                  月200会話<br />4人のキャラ
+                </div>
+              </div>
+              {/* プレミアム */}
+              <div style={{
+                flex: 1, background: 'linear-gradient(160deg,#FFF0F5,#FFE4EF)',
+                borderRadius: 12, padding: '12px 10px',
+                border: '2px solid #E91E63', textAlign: 'center',
+                position: 'relative',
+              }}>
+                <div style={{
+                  position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)',
+                  background: 'linear-gradient(135deg,#E91E63,#C2185B)',
+                  color: '#fff', fontSize: 9, fontWeight: 700,
+                  padding: '2px 10px', borderRadius: 20, whiteSpace: 'nowrap',
+                }}>おすすめ</div>
+                <div style={{ fontSize: 11, color: '#C2185B', fontWeight: 700, marginBottom: 2, marginTop: 4 }}>プレミアム</div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: '#333' }}>¥980</div>
+                <div style={{ fontSize: 10, color: '#aaa', marginBottom: 6 }}>/月（税込）</div>
+                <div style={{ fontSize: 10, color: '#666', lineHeight: 1.6 }}>
+                  月900会話<br />全キャラ＋専用
+                </div>
+              </div>
+            </div>
+
+            {/* プランページを開くボタン */}
+            <button
+              onClick={handleOpenWebPlans}
+              style={{
+                width: '100%', padding: '14px',
+                background: 'linear-gradient(135deg,#E91E63,#C2185B)',
+                color: '#fff', border: 'none', borderRadius: 50,
+                fontSize: 15, fontWeight: 700, cursor: 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
+              🌐 プランを見る →
+            </button>
+            <div style={{ fontSize: 10, color: '#bbb', textAlign: 'center', marginTop: 8, lineHeight: 1.6 }}>
+              Safariで開きます · いつでも解約できます
             </div>
           </div>
         )}
@@ -361,7 +429,8 @@ function PlansContent() {
           </div>
         </div>
 
-        {/* トライアル説明 */}
+        {/* トライアル説明（ウェブ版のみ表示） */}
+        {!isNative() && (
         <div style={{
           background: '#fff', borderRadius: 16, padding: '14px 18px',
           boxShadow: '0 1px 6px rgba(233,30,99,0.07)',
@@ -374,15 +443,18 @@ function PlansContent() {
             ・トライアル終了後は自動課金されません
           </div>
         </div>
+        )}
 
-        {/* キャッチコピー */}
+        {/* キャッチコピー（ウェブ版のみ） */}
+        {!isNative() && (
         <p style={{ fontSize: 13, color: '#888', textAlign: 'center', margin: '4px 0 8px', lineHeight: 1.7 }}>
           トライアル終了後も、ふぅと続けよう。<br />
           いつでも解約できます。
         </p>
+        )}
 
-        {/* プランカード */}
-        {PLANS.map(plan => {
+        {/* プランカード（ウェブ版のみ） */}
+        {!isNative() && PLANS.map(plan => {
           const isCurrentPlan = currentPlan === plan.id
           const isLoading = loadingPlan === plan.id
 
@@ -482,8 +554,8 @@ function PlansContent() {
           )
         })}
 
-        {/* ─── チケット購入カード ─── */}
-        {(currentPlan === 'standard' || currentPlan === 'premium') && (
+        {/* ─── チケット購入カード（ウェブ版のみ） ─── */}
+        {!isNative() && (currentPlan === 'standard' || currentPlan === 'premium') && (
           <div style={{
             background: 'linear-gradient(135deg,#FFF8E1,#FFF3E0)',
             border: '2px solid #FFB300',
@@ -572,7 +644,8 @@ function PlansContent() {
           </div>
         )}
 
-        {/* 注意書き */}
+        {/* 注意書き（ウェブ版のみ） */}
+        {!isNative() && (
         <div style={{ fontSize: 11, color: '#bbb', textAlign: 'center', lineHeight: 1.9, marginTop: 4 }}>
           <p style={{ margin: 0 }}>
             ・お支払いはクレジットカード・Apple Pay・Google Pay（Stripe決済）<br />
@@ -580,9 +653,10 @@ function PlansContent() {
             ・解約後も次回更新日まで利用できます
           </p>
         </div>
+        )}
 
-        {/* デモモード案内 */}
-        {!isSupabaseConfigured && (
+        {/* デモモード案内（ウェブ版のみ） */}
+        {!isNative() && !isSupabaseConfigured && (
           <div style={{
             background: '#FFF8E1', border: '1px solid #FFD54F',
             borderRadius: 12, padding: '12px 16px',

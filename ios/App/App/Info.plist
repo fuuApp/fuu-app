@@ -45,5 +45,15 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<!-- 輸出コンプライアンス: AES-256-GCM はOS標準TLS実装のみ → 免除対象 -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<!-- iOS 26 Simulator SSL証明書エラー回避（WKWebView ATS全解除）-->
+	<!-- ⚠️ App Store申請前に削除すること -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoadsInWebContent</key>
+		<true/>
+	</dict>
 </dict>
 </plist>

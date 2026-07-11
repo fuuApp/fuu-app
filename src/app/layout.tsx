@@ -20,6 +20,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   themeColor: '#E91E63',
+  viewportFit: 'cover',  // Dynamic Island / ノッチ対応
 }
 
 export default function RootLayout({

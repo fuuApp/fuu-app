@@ -21,11 +21,9 @@ const config: CapacitorConfig = {
 
   plugins: {
     // ─── プッシュ通知 ──────────────────────────────────────────
-    // iOS: Apple Push Notification Service (APNs) が必要
-    // → Xcode で Push Notifications Capability を追加すること
-    PushNotifications: {
-      presentationOptions: ['badge', 'sound', 'alert'],
-    },
+    // fuu は Service Worker (Web Push) を使用しているため APNs は不使用。
+    // Capacitor の PushNotifications プラグインは有効化しない。
+    // ※ APNs を使う場合は Xcode で Push Notifications Capability を追加すること
 
     // ─── ディープリンク（Supabase OTP メール認証コールバック用）──
     // fuu://auth/callback 形式のリンクをアプリ内で処理する

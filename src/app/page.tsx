@@ -11,6 +11,7 @@ export default function LandingPage() {
       <div style={{
         background: '#FCE4EC', borderBottom: '1px solid #F48FB1',
         padding: '10px 20px', textAlign: 'center', fontSize: 13, color: '#880E4F',
+        paddingTop: 'calc(env(safe-area-inset-top) + 10px)',
       }}>
         育児中のママ、<strong>4人に1人</strong>が「誰にも頼れていない」
       </div>
