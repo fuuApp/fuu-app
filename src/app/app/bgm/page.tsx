@@ -89,7 +89,7 @@ export default function BgmPage() {
     <div style={{ maxWidth:480,margin:'0 auto',background:'#fdf4f7',minHeight:'100dvh' }}>
       {/* ヘッダー */}
       <div style={{ background:'#fff',borderBottom:'1px solid #FCE4EC',padding:'14px 16px',paddingTop:'calc(env(safe-area-inset-top) + 14px)',display:'flex',alignItems:'center',gap:12,position:'sticky',top:0,zIndex:10 }}>
-        <button onClick={()=>{ audioRef.current?.pause(); router.push('/app/settings') }} style={{ background:'none',border:'none',fontSize:20,cursor:'pointer',color:'#E91E63',padding:4 }}>‹</button>
+        <button onClick={()=>{ audioRef.current?.pause(); window.history.length > 1 ? router.back() : router.push('/app') }} style={{ background:'none',border:'none',fontSize:20,cursor:'pointer',color:'#E91E63',padding:4 }}>‹</button>
         <span style={{ fontWeight:700,fontSize:16,color:'#333' }}>BGM・サウンド</span>
         <div style={{ marginLeft:'auto',display:'flex',alignItems:'center',gap:8 }}>
           <span style={{ fontSize:11,color:bgmEnabled?'#E91E63':'#aaa',fontWeight:600 }}>チャット中BGM</span>

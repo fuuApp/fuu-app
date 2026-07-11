@@ -303,7 +303,7 @@ function PlansContent() {
         position: 'sticky', top: 0, zIndex: 10,
       }}>
         <button
-          onClick={() => router.push('/app/settings')}
+          onClick={() => window.history.length > 1 ? router.back() : router.push('/app/settings')}
           style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#E91E63', padding: 4 }}
         >‹</button>
         <span style={{ fontWeight: 700, fontSize: 16, color: '#333' }}>プランを選ぶ</span>
