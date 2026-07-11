@@ -4,9 +4,8 @@ export default function PrivacyPage() {
   return (
     <main style={{ maxWidth: 480, margin: '0 auto', background: '#fdf4f7', minHeight: '100vh', padding: '0 0 40px' }}>
       <div style={{ background: '#fff', borderBottom: '1px solid #FCE4EC', padding: '16px 20px', paddingTop: 'calc(env(safe-area-inset-top) + 16px)', position: 'sticky', top: 0, zIndex: 10 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <BackButton fallback="/" />
-          <span style={{ fontWeight: 700, fontSize: 16, color: '#333' }}>プライバシーポリシー</span>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <BackButton title="プライバシーポリシー" fallback="/" />
         </div>
       </div>
 

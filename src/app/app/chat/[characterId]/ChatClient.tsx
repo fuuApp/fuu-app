@@ -621,7 +621,7 @@ export default function ChatPage() {
         flexShrink: 0,
       }}>
         <button onClick={() => router.push('/app')}
-          style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#E91E63', padding: 4 }}>‹</button>
+          style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: '#E91E63', padding: '8px 12px 8px 4px' }}>‹</button>
         <div style={{
           width: 40, height: 40, borderRadius: '50%', overflow: 'hidden',
           background: 'linear-gradient(135deg,#E91E63,#F48FB1)',

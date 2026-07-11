@@ -304,9 +304,11 @@ function PlansContent() {
       }}>
         <button
           onClick={() => window.history.length > 1 ? router.back() : router.push('/app/settings')}
-          style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#E91E63', padding: 4 }}
-        >‹</button>
-        <span style={{ fontWeight: 700, fontSize: 16, color: '#333' }}>プランを選ぶ</span>
+          style={{ display:'flex',alignItems:'center',gap:6,background:'none',border:'none',cursor:'pointer',padding:'6px 0',fontFamily:'inherit',lineHeight:1 }}
+        >
+          <span style={{ fontSize:20,color:'#E91E63',lineHeight:1 }}>‹</span>
+          <span style={{ fontWeight:700,fontSize:16,color:'#333' }}>プランを選ぶ</span>
+        </button>
       </div>
 
       <div style={{ padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
