@@ -264,11 +264,14 @@ export default function SettingsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pendingDeletion: true }),
       })
-      if (!res.ok) { const d = await res.json(); setDeleteError(d.error ?? '退会予約に失敗しました'); setIsDeleting(false); return }
+      const d = await res.json()
+      if (!res.ok) { setDeleteError(d.error ?? '退会予約に失敗しました'); setIsDeleting(false); return }
       setShowDeleteModal(false)
-      const date = periodEndDate
-        ? new Date(periodEndDate).toLocaleDateString('ja-JP', { month: 'long', day: 'numeric' })
-        : '次回更新日'
+      // cancelAt: APIがStripeから返す実際の解約日（subscriptionsテーブルが空でも取得可能）
+      const date = d.cancelAt
+        ?? (periodEndDate
+          ? new Date(periodEndDate).toLocaleDateString('ja-JP', { month: 'long', day: 'numeric' })
+          : '次回更新日')
       setWithdrawToast(`📅 退会を予約しました。${date}までご利用いただけます。`)
       setTimeout(() => setWithdrawToast(null), 5000)
     } catch { setDeleteError('通信エラーが発生しました。'); }

@@ -26,6 +26,8 @@ export async function POST(req: NextRequest) {
 
     const admin = createAdminClient()
 
+    // ① subscriptionsテーブルから取得
+    let stripeSubscriptionId: string | null = null
     const { data: sub } = await admin
       .from('subscriptions')
       .select('stripe_subscription_id, status')
@@ -35,13 +37,35 @@ export async function POST(req: NextRequest) {
       .limit(1)
       .single()
 
-    if (!sub?.stripe_subscription_id) {
+    if (sub?.stripe_subscription_id) {
+      stripeSubscriptionId = sub.stripe_subscription_id
+    } else {
+      // ② フォールバック: profilesのstripe_customer_idでStripeに直接問い合わせ
+      const { data: profile } = await admin
+        .from('profiles')
+        .select('stripe_customer_id')
+        .eq('user_id', user.id)
+        .single()
+
+      if (profile?.stripe_customer_id) {
+        const stripeSubs = await stripe.subscriptions.list({
+          customer: profile.stripe_customer_id,
+          status: 'active',
+          limit: 1,
+        })
+        if (stripeSubs.data.length > 0) {
+          stripeSubscriptionId = stripeSubs.data[0].id
+        }
+      }
+    }
+
+    if (!stripeSubscriptionId) {
       return NextResponse.json({ error: 'アクティブなサブスクリプションが見つかりません' }, { status: 404 })
     }
 
     // スケジュール管理下（ダウングレード予約中）の場合は先にリリース
     // （cancel_at_period_end はスケジュール管理下では直接設定不可）
-    const stripeSub = await stripe.subscriptions.retrieve(sub.stripe_subscription_id)
+    const stripeSub = await stripe.subscriptions.retrieve(stripeSubscriptionId)
     if (stripeSub.schedule) {
       const schedId = typeof stripeSub.schedule === 'string'
         ? stripeSub.schedule
@@ -49,7 +73,7 @@ export async function POST(req: NextRequest) {
       await stripe.subscriptionSchedules.release(schedId)
     }
 
-    const canceled = await stripe.subscriptions.update(sub.stripe_subscription_id, {
+    const canceled = await stripe.subscriptions.update(stripeSubscriptionId, {
       cancel_at_period_end: true,
       // pendingDeletion の場合、期末に webhook がアカウント削除を実行するためのフラグを設定
       ...(pendingDeletion ? {
