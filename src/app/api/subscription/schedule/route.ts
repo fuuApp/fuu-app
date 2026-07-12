@@ -6,10 +6,13 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-04-10',
 })
 
-// ダウングレード予約情報を返す（plans/page で常時バナー表示に使用）
+// サブスク予約状態を返す（plans/page・settings/page で常時バナー表示に使用）
+// - scheduledDowngradeAt: ダウングレード予約日（Stripeスケジュール）
+// - pendingWithdrawal: 退会予約中かどうか（cancel_at_period_end + pending_deletion）
+// - withdrawalDate: 退会（アカウント削除）予定日
 export async function GET(req: NextRequest) {
   const userId = req.nextUrl.searchParams.get('userId')
-  if (!userId) return NextResponse.json({ scheduledDowngradeAt: null })
+  if (!userId) return NextResponse.json({ scheduledDowngradeAt: null, pendingWithdrawal: false, withdrawalDate: null })
 
   try {
     const supabase = createAdminClient()
@@ -20,7 +23,7 @@ export async function GET(req: NextRequest) {
       .single()
 
     if (!profile?.stripe_customer_id) {
-      return NextResponse.json({ scheduledDowngradeAt: null })
+      return NextResponse.json({ scheduledDowngradeAt: null, pendingWithdrawal: false, withdrawalDate: null })
     }
 
     // アクティブなサブスクを取得
@@ -30,11 +33,24 @@ export async function GET(req: NextRequest) {
       limit: 1,
     })
 
-    if (!subs.data.length || !subs.data[0].schedule) {
-      return NextResponse.json({ scheduledDowngradeAt: null })
+    if (!subs.data.length) {
+      return NextResponse.json({ scheduledDowngradeAt: null, pendingWithdrawal: false, withdrawalDate: null })
     }
 
     const sub = subs.data[0]
+
+    // ── 退会予約チェック（cancel_at_period_end + pending_deletion メタデータ）──
+    const pendingWithdrawal = sub.cancel_at_period_end === true && sub.metadata?.pending_deletion === 'true'
+    const withdrawalDate = pendingWithdrawal && sub.cancel_at
+      ? new Date(sub.cancel_at * 1000).toISOString()
+      : null
+
+    // スケジュールがない場合はダウングレード予約なし
+    if (!sub.schedule) {
+      return NextResponse.json({ scheduledDowngradeAt: null, pendingWithdrawal, withdrawalDate })
+    }
+
+    // ── ダウングレード予約チェック（Stripeスケジュール）──
     const scheduleId = typeof sub.schedule === 'string'
       ? sub.schedule
       : (sub.schedule as { id: string }).id
@@ -51,9 +67,11 @@ export async function GET(req: NextRequest) {
       scheduledDowngradeAt: isUpcoming
         ? new Date(phase1End * 1000).toISOString()
         : null,
+      pendingWithdrawal,
+      withdrawalDate,
     })
   } catch (error: any) {
     console.error('Schedule fetch error:', error)
-    return NextResponse.json({ scheduledDowngradeAt: null })
+    return NextResponse.json({ scheduledDowngradeAt: null, pendingWithdrawal: false, withdrawalDate: null })
   }
 }

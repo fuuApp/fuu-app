@@ -83,8 +83,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      // ISO文字列で返却（フロント側でtoLocaleDateStringして表示）
       cancelAt: canceled.cancel_at
-        ? new Date(canceled.cancel_at * 1000).toLocaleDateString('ja-JP')
+        ? new Date(canceled.cancel_at * 1000).toISOString()
         : null,
     })
   } catch (error: any) {

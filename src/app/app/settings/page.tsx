@@ -188,6 +188,8 @@ export default function SettingsPage() {
   const [deleteError, setDeleteError] = useState('')
   const [periodEndDate, setPeriodEndDate] = useState<string | null>(null)
   const [withdrawToast, setWithdrawToast] = useState<string | null>(null)
+  const [withdrawalScheduled, setWithdrawalScheduled] = useState(false)
+  const [withdrawalDate, setWithdrawalDate] = useState<string | null>(null)
 
   useEffect(() => {
     const n = localStorage.getItem(NICKNAME_KEY) ?? ''
@@ -223,6 +225,18 @@ export default function SettingsPage() {
           .limit(1)
           .single()
         if (sub?.current_period_end) setPeriodEndDate(sub.current_period_end)
+
+        // 退会予約状態を確認（Stripeの cancel_at_period_end + pending_deletion）
+        try {
+          const schedRes = await fetch(`/api/subscription/schedule?userId=${user.id}`)
+          if (schedRes.ok) {
+            const schedData = await schedRes.json()
+            if (schedData.pendingWithdrawal) {
+              setWithdrawalScheduled(true)
+              setWithdrawalDate(schedData.withdrawalDate ?? null)
+            }
+          }
+        } catch {}
       } catch {}
     })()
   }, [])
@@ -266,12 +280,15 @@ export default function SettingsPage() {
       })
       const d = await res.json()
       if (!res.ok) { setDeleteError(d.error ?? '退会予約に失敗しました'); setIsDeleting(false); return }
+      // 退会予約成功 → 即バナー反映（ページリロードを待たずに表示）
+      setWithdrawalScheduled(true)
+      if (d.cancelAt) setWithdrawalDate(new Date(d.cancelAt).toISOString())
       setShowDeleteModal(false)
-      // cancelAt: APIがStripeから返す実際の解約日（subscriptionsテーブルが空でも取得可能）
-      const date = d.cancelAt
-        ?? (periodEndDate
-          ? new Date(periodEndDate).toLocaleDateString('ja-JP', { month: 'long', day: 'numeric' })
-          : '次回更新日')
+      // cancelAt: APIがStripeから返す実際の解約日（ISO文字列）
+      const dateStr = d.cancelAt ?? periodEndDate ?? null
+      const date = dateStr
+        ? new Date(dateStr).toLocaleDateString('ja-JP', { month: 'long', day: 'numeric' })
+        : '次回更新日'
       setWithdrawToast(`📅 退会を予約しました。${date}までご利用いただけます。`)
       setTimeout(() => setWithdrawToast(null), 5000)
     } catch { setDeleteError('通信エラーが発生しました。'); }
@@ -368,9 +385,21 @@ export default function SettingsPage() {
               </span>
               {userPlan==='trial' && <span style={{ fontSize:12,color:trialDaysLeft<=3?'#E91E63':'#aaa',fontWeight:trialDaysLeft<=3?700:400 }}>残り{trialDaysLeft}日</span>}
             </div>
-            <p style={{ fontSize:13,color:'#888',margin:'8px 0 0',lineHeight:1.7 }}>
-              {userPlan==='trial'?(trialDaysLeft>0?<>トライアル終了後は月額プランへ。<br />いつでもキャンセルできます。</>:<>トライアルが終了しました。<br />プランを選んで続けましょう。</>):userPlan==='canceled'?<>プランが終了しています。<br />またいつでも再開できます。</>:<>いつでもキャンセルできます。<br />解約後もその月末まで利用できます。</>}
-            </p>
+            {/* 退会予約中バナー */}
+            {withdrawalScheduled && (
+              <div style={{ background:'#FFF3E0',border:'1.5px solid #FFB74D',borderRadius:12,padding:'12px 14px',marginTop:10,fontSize:13,color:'#E65100',lineHeight:1.8 }}>
+                🚪 <strong>退会を予約しました</strong><br />
+                {withdrawalDate
+                  ? <>{new Date(withdrawalDate).toLocaleDateString('ja-JP', { month: 'long', day: 'numeric' })}まで引き続きご利用いただけます。<br /><span style={{ fontSize:12 }}>{new Date(withdrawalDate).toLocaleDateString('ja-JP', { month: 'long', day: 'numeric' })}にアカウントが自動削除されます。</span></>
+                  : '次回更新日まで引き続きご利用いただけます。次回更新日にアカウントが削除されます。'
+                }
+              </div>
+            )}
+            {!withdrawalScheduled && (
+              <p style={{ fontSize:13,color:'#888',margin:'8px 0 0',lineHeight:1.7 }}>
+                {userPlan==='trial'?(trialDaysLeft>0?<>トライアル終了後は月額プランへ。<br />いつでもキャンセルできます。</>:<>トライアルが終了しました。<br />プランを選んで続けましょう。</>):userPlan==='canceled'?<>プランが終了しています。<br />またいつでも再開できます。</>:<>いつでもキャンセルできます。<br />解約後もその月末まで利用できます。</>}
+              </p>
+            )}
             <button onClick={()=>router.push('/app/plans')} style={{ marginTop:12,background:'none',border:'1px solid #F48FB1',borderRadius:20,padding:'8px 16px',fontSize:13,color:'#E91E63',cursor:'pointer',fontFamily:'inherit' }}>プランを見る →</button>
           </div>
         </div>
@@ -390,10 +419,16 @@ export default function SettingsPage() {
             }}
             style={{ width:'100%',padding:'14px 16px',background:'none',border:'none',fontSize:14,color:'#E57373',cursor:'pointer',textAlign:'left',fontFamily:'inherit',borderBottom:'1px solid #fdf4f7' }}
           >ログアウト</button>
-          <button onClick={()=>setShowDeleteModal(true)}
-            style={{ width:'100%',padding:'14px 16px',background:'none',border:'none',fontSize:14,color:'#bbb',cursor:'pointer',textAlign:'left',fontFamily:'inherit' }}>
-            退会する
-          </button>
+          {withdrawalScheduled ? (
+            <div style={{ width:'100%',padding:'14px 16px',fontSize:14,color:'#FFB74D',textAlign:'left' }}>
+              🚪 退会予約済み{withdrawalDate ? `（${new Date(withdrawalDate).toLocaleDateString('ja-JP', { month: 'long', day: 'numeric' })}に削除）` : ''}
+            </div>
+          ) : (
+            <button onClick={()=>setShowDeleteModal(true)}
+              style={{ width:'100%',padding:'14px 16px',background:'none',border:'none',fontSize:14,color:'#bbb',cursor:'pointer',textAlign:'left',fontFamily:'inherit' }}>
+              退会する
+            </button>
+          )}
         </div>
 
         {deleteError && <div style={{ background:'#FFEBEE',border:'1px solid #FFCDD2',borderRadius:12,padding:'12px 16px',fontSize:13,color:'#C62828' }}>⚠️ {deleteError}</div>}

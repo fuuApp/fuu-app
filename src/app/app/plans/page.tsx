@@ -69,6 +69,8 @@ function PlansContent() {
   const [userEmail, setUserEmail] = useState<string>('')
   const [isTicketJustPurchased, setIsTicketJustPurchased] = useState(false)
   const [scheduledDowngradeAt, setScheduledDowngradeAt] = useState<string | null>(null)
+  const [pendingWithdrawal, setPendingWithdrawal] = useState(false)
+  const [withdrawalDate, setWithdrawalDate] = useState<string | null>(null)
 
   // ── プラン・チケット状態をSupabaseから取得する共通関数 ──────────────
   // 初回マウント時 + ネイティブアプリでSafari/Chrome決済後にアプリ復帰した際の
@@ -102,6 +104,8 @@ function PlansContent() {
         if (schedRes.ok) {
           const schedData = await schedRes.json()
           setScheduledDowngradeAt(schedData.scheduledDowngradeAt ?? null)
+          setPendingWithdrawal(schedData.pendingWithdrawal ?? false)
+          setWithdrawalDate(schedData.withdrawalDate ?? null)
         }
       } catch { /* スケジュール取得失敗時は無視 */ }
     } catch { /* 取得失敗時はそのまま */ }
@@ -328,8 +332,37 @@ function PlansContent() {
           </div>
         )}
 
+        {/* 退会予約バナー（常時表示） */}
+        {pendingWithdrawal && (
+          <div style={{
+            background: '#FFF3E0', border: '1.5px solid #FFB74D',
+            borderRadius: 14, padding: '14px 16px',
+            fontSize: 13, color: '#E65100',
+            textAlign: 'center', lineHeight: 1.9,
+          }}>
+            <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>🚪 退会を予約しました</div>
+            {withdrawalDate ? (
+              <>
+                <strong style={{ fontSize: 15 }}>
+                  {new Date(withdrawalDate).toLocaleDateString('ja-JP', { month: 'long', day: 'numeric' })}
+                </strong>
+                {' '}までは引き続き
+                <strong>
+                  {currentPlan === 'premium' ? 'プレミアム' : currentPlan === 'standard' ? 'スタンダード' : '現在のプラン'}
+                </strong>
+                をご利用いただけます。<br />
+                <span style={{ fontSize: 12, color: '#F57F17' }}>
+                  {new Date(withdrawalDate).toLocaleDateString('ja-JP', { month: 'long', day: 'numeric' })}にアカウントが自動削除されます。
+                </span>
+              </>
+            ) : (
+              '次回更新日まで引き続きご利用いただけます。次回更新日にアカウントが削除されます。'
+            )}
+          </div>
+        )}
+
         {/* ダウングレード予約バナー（常時表示） */}
-        {scheduledDowngradeAt && (
+        {scheduledDowngradeAt && !pendingWithdrawal && (
           <div style={{
             background: '#E8F5E9', border: '1px solid #A5D6A7',
             borderRadius: 12, padding: '12px 16px',
@@ -524,7 +557,18 @@ function PlansContent() {
 
               {/* ボタン */}
               <div style={{ padding: '0 20px 20px' }}>
-                {isCurrentPlan ? (
+                {pendingWithdrawal ? (
+                  // 退会予約中はボタン非表示
+                  isCurrentPlan ? (
+                    <div style={{
+                      textAlign: 'center', padding: '12px',
+                      background: '#FFF3E0', borderRadius: 50,
+                      fontSize: 12, color: '#E65100',
+                    }}>
+                      🚪 退会予約中
+                    </div>
+                  ) : null
+                ) : isCurrentPlan ? (
                   <div style={{
                     textAlign: 'center', padding: '12px',
                     background: '#f5f5f5', borderRadius: 50,
