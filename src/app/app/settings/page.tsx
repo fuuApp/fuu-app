@@ -12,11 +12,12 @@ const BGM_KEY = 'fuu_bgm_enabled'
 
 type WithdrawalType = 'scheduled' | 'immediate'
 
-function DeleteAccountModal({ onImmediate, onScheduled, onCancel, isDeleting, isTrial, periodEndDate }: {
+function DeleteAccountModal({ onImmediate, onScheduled, onCancel, isDeleting, isTrial, periodEndDate, error }: {
   onImmediate: () => void
   onScheduled: () => void
   onCancel: () => void
   isDeleting: boolean
+  error?: string
   isTrial: boolean
   periodEndDate: string | null
 }) {
@@ -137,6 +138,12 @@ function DeleteAccountModal({ onImmediate, onScheduled, onCancel, isDeleting, is
                 style={{ width:'100%',border:'1.5px solid #FFCDD2',borderRadius:12,padding:'10px 14px',fontSize:14,outline:'none',background:isDeleting?'#fafafa':'#fff',fontFamily:'inherit',boxSizing:'border-box' }}
               />
             </div>
+
+            {error && (
+              <div style={{ background:'#FFEBEE',border:'1px solid #FFCDD2',borderRadius:12,padding:'12px 14px',fontSize:13,color:'#C62828',marginBottom:12 }}>
+                ⚠️ {error}
+              </div>
+            )}
 
             <div style={{ display:'flex',gap:10 }}>
               <button
@@ -284,6 +291,7 @@ export default function SettingsPage() {
           isDeleting={isDeleting}
           isTrial={userPlan === 'trial' || userPlan === 'canceled'}
           periodEndDate={periodEndDate}
+          error={deleteError}
         />
       )}
       {withdrawToast && (
