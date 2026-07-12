@@ -12,7 +12,7 @@ const BGM_KEY = 'fuu_bgm_enabled'
 
 type WithdrawalType = 'scheduled' | 'immediate'
 
-function DeleteAccountModal({ onImmediate, onScheduled, onCancel, isDeleting, isTrial, periodEndDate, error }: {
+function DeleteAccountModal({ onImmediate, onScheduled, onCancel, isDeleting, isTrial, periodEndDate, error, forceImmediate }: {
   onImmediate: () => void
   onScheduled: () => void
   onCancel: () => void
@@ -20,8 +20,10 @@ function DeleteAccountModal({ onImmediate, onScheduled, onCancel, isDeleting, is
   error?: string
   isTrial: boolean
   periodEndDate: string | null
+  forceImmediate?: boolean  // 退会予約中から「今すぐ退会」する場合
 }) {
-  const [step, setStep] = useState<'choose' | 'confirm'>(isTrial ? 'confirm' : 'choose')
+  const skipChoose = isTrial || forceImmediate
+  const [step, setStep] = useState<'choose' | 'confirm'>(skipChoose ? 'confirm' : 'choose')
   const [withdrawalType, setWithdrawalType] = useState<WithdrawalType>('immediate')
   const [confirmText, setConfirmText] = useState('')
   const REQUIRED = '退会する'
@@ -99,7 +101,7 @@ function DeleteAccountModal({ onImmediate, onScheduled, onCancel, isDeleting, is
             <div style={{ fontWeight:700,fontSize:17,color:'#333',textAlign:'center',marginBottom:16 }}>退会の確認</div>
 
             {/* 選択内容サマリー */}
-            {!isTrial && (
+            {(!isTrial || forceImmediate) && (
               <div style={{
                 background: withdrawalType === 'scheduled' ? '#E3F2FD' : '#FFEBEE',
                 border: `1px solid ${withdrawalType === 'scheduled' ? '#90CAF9' : '#FFCDD2'}`,
@@ -147,11 +149,11 @@ function DeleteAccountModal({ onImmediate, onScheduled, onCancel, isDeleting, is
 
             <div style={{ display:'flex',gap:10 }}>
               <button
-                onClick={() => isTrial ? onCancel() : setStep('choose')}
+                onClick={() => skipChoose ? onCancel() : setStep('choose')}
                 disabled={isDeleting}
                 style={{ flex:1,background:'#f5f5f5',border:'none',borderRadius:14,padding:'13px 0',fontSize:14,color:'#666',cursor:'pointer',fontFamily:'inherit' }}
               >
-                {isTrial ? 'キャンセル' : '← 戻る'}
+                {skipChoose ? 'キャンセル' : '← 戻る'}
               </button>
               <button
                 onClick={handleConfirm}
@@ -190,6 +192,7 @@ export default function SettingsPage() {
   const [withdrawToast, setWithdrawToast] = useState<string | null>(null)
   const [withdrawalScheduled, setWithdrawalScheduled] = useState(false)
   const [withdrawalDate, setWithdrawalDate] = useState<string | null>(null)
+  const [forceImmediate, setForceImmediate] = useState(false)
 
   useEffect(() => {
     const n = localStorage.getItem(NICKNAME_KEY) ?? ''
@@ -307,11 +310,12 @@ export default function SettingsPage() {
         <DeleteAccountModal
           onImmediate={handleDeleteAccount}
           onScheduled={handleScheduledWithdraw}
-          onCancel={() => { setShowDeleteModal(false); setDeleteError('') }}
+          onCancel={() => { setShowDeleteModal(false); setDeleteError(''); setForceImmediate(false) }}
           isDeleting={isDeleting}
           isTrial={userPlan === 'trial' || userPlan === 'canceled'}
           periodEndDate={periodEndDate}
           error={deleteError}
+          forceImmediate={forceImmediate}
         />
       )}
       {withdrawToast && (
@@ -393,6 +397,12 @@ export default function SettingsPage() {
                   ? <>{new Date(withdrawalDate).toLocaleDateString('ja-JP', { month: 'long', day: 'numeric' })}まで引き続きご利用いただけます。<br /><span style={{ fontSize:12 }}>{new Date(withdrawalDate).toLocaleDateString('ja-JP', { month: 'long', day: 'numeric' })}にアカウントが自動削除されます。</span></>
                   : '次回更新日まで引き続きご利用いただけます。次回更新日にアカウントが削除されます。'
                 }
+                <button
+                  onClick={() => { setForceImmediate(true); setShowDeleteModal(true) }}
+                  style={{ marginTop:10,width:'100%',background:'none',border:'1px solid #FFB74D',borderRadius:10,padding:'8px 0',fontSize:12,color:'#E65100',cursor:'pointer',fontFamily:'inherit',fontWeight:600 }}
+                >
+                  今すぐ退会する →
+                </button>
               </div>
             )}
             {!withdrawalScheduled && (
