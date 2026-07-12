@@ -154,7 +154,7 @@ export async function POST(req: NextRequest) {
       payment_method_types: ['card'],
       allow_promotion_codes: true,
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${baseUrl}/app/plans?success=true`,
+      success_url: `${baseUrl}/app/plans?success=true&plan=${plan}`,
       cancel_url:  `${baseUrl}/app/plans?canceled=true`,
       // 既存顧客IDがあれば customer を指定（重複顧客防止）
       ...(existingCustomerId

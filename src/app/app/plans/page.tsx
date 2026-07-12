@@ -71,6 +71,7 @@ function PlansContent() {
   const [scheduledDowngradeAt, setScheduledDowngradeAt] = useState<string | null>(null)
   const [pendingWithdrawal, setPendingWithdrawal] = useState(false)
   const [withdrawalDate, setWithdrawalDate] = useState<string | null>(null)
+  const [justSubscribed, setJustSubscribed] = useState(false)
 
   // ── プラン・チケット状態をSupabaseから取得する共通関数 ──────────────
   // 初回マウント時 + ネイティブアプリでSafari/Chrome決済後にアプリ復帰した際の
@@ -156,8 +157,22 @@ function PlansContent() {
     const canceled = searchParams.get('canceled')
 
     if (success === 'true') {
+      setJustSubscribed(true)
+      // Webhookが届く前にURLパラメータからプランを即時反映（真っ白ボタン防止）
+      const planParam = searchParams.get('plan')
+      if (planParam === 'standard' || planParam === 'premium') {
+        setCurrentPlan(planParam)
+      }
       setToastMessage({ type: 'success', text: '🎉 ご登録ありがとうございます！プランが有効になりました。' })
       router.replace('/app/plans')
+      // Webhook反映を待ってSupabaseを再確認（最大2回）
+      const pollPlan = async () => {
+        await new Promise(r => setTimeout(r, 5000))
+        await fetchPlanStatus()
+        await new Promise(r => setTimeout(r, 10000))
+        await fetchPlanStatus()
+      }
+      pollPlan()
     } else if (ticketSuccess === 'true') {
       router.replace('/app/plans')
       setIsTicketJustPurchased(true)
@@ -307,11 +322,22 @@ function PlansContent() {
         position: 'sticky', top: 0, zIndex: 10,
       }}>
         <button
-          onClick={() => window.history.length > 1 ? router.back() : router.push('/app/settings')}
+          onClick={() => {
+            // 決済直後(justSubscribed)はrouter.back()でStripe決済ページに戻らずホームへ
+            if (justSubscribed) {
+              router.push('/app')
+            } else if (window.history.length > 1) {
+              router.back()
+            } else {
+              router.push('/app/settings')
+            }
+          }}
           style={{ display:'flex',alignItems:'center',gap:6,background:'none',border:'none',cursor:'pointer',padding:'6px 0',fontFamily:'inherit',lineHeight:1 }}
         >
           <span style={{ fontSize:20,color:'#E91E63',lineHeight:1 }}>‹</span>
-          <span style={{ fontWeight:700,fontSize:16,color:'#333' }}>プランを選ぶ</span>
+          <span style={{ fontWeight:700,fontSize:16,color:'#333' }}>
+            {justSubscribed ? 'ホームへ' : 'プランを選ぶ'}
+          </span>
         </button>
       </div>
 
