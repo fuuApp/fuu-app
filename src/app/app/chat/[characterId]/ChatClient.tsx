@@ -39,6 +39,7 @@ export default function ChatPage() {
   const [inputFocused, setInputFocused] = useState(false)
 
   const bottomRef = useRef<HTMLDivElement>(null)
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const nicknameInputRef = useRef<HTMLInputElement>(null)
   // refで最新値を保持（handleSend時に非同期タイミングのズレを防ぐ）
@@ -260,7 +261,8 @@ export default function ChatPage() {
   }, [characterId, character])
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    const el = messagesContainerRef.current
+    if (el) el.scrollTop = el.scrollHeight
   }, [messages, guchiSummary])
 
   // iOS キーボード対策（2段構え）
@@ -290,13 +292,16 @@ export default function ChatPage() {
   // キーボード出現でコンテナが縮んだ後、最新メッセージが見えるよう再スクロール
   useEffect(() => {
     const vv = window.visualViewport
+    const scrollToBottom = () => {
+      const el = messagesContainerRef.current
+      if (el) el.scrollTop = el.scrollHeight
+    }
     const update = () => {
       const h = vv?.height ?? window.innerHeight
       document.documentElement.style.setProperty('--chat-height', `${h}px`)
-      // レイアウト更新後にメッセージ末尾へスクロール（キャラの最後の返信が入力欄直上に来る）
-      setTimeout(() => {
-        bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-      }, 50)
+      // CSS変数反映後（rAF）と、キーボードアニメーション完了後（350ms）の2段階でスクロール
+      requestAnimationFrame(scrollToBottom)
+      setTimeout(scrollToBottom, 350)
     }
     vv?.addEventListener('resize', update)
     update()
@@ -704,7 +709,7 @@ export default function ChatPage() {
       </div>
 
       {/* メッセージ一覧 */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 12px' }}>
+      <div ref={messagesContainerRef} style={{ flex: 1, overflowY: 'auto', padding: '16px 12px' }}>
         {messages.map(msg => (
           msg.content === '（スキップ）' ? null : (
             <div key={msg.id} style={{
@@ -1051,7 +1056,8 @@ export default function ChatPage() {
       {nicknamePhase === 'done' && (
         <div style={{
           background: '#fff', borderTop: '1px solid #FCE4EC',
-          paddingBottom: 'max(4px, env(safe-area-inset-bottom))', flexShrink: 0,
+          // キーボード表示中はsafe-area-inset-bottomが不要（キーボードがその領域をカバー）
+          paddingBottom: inputFocused ? 4 : 'max(4px, env(safe-area-inset-bottom))', flexShrink: 0,
         }}>
           {/* 入力行 */}
           <div style={{ padding: '10px 12px 6px', display: 'flex', gap: 8, alignItems: 'flex-end' }}>
