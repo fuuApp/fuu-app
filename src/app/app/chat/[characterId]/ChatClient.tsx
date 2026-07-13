@@ -1068,7 +1068,7 @@ export default function ChatPage() {
                 setInput(e.target.value)
               }}
               onFocus={() => setInputFocused(true)}
-              onBlur={() => setInputFocused(false)}
+              onBlur={() => setTimeout(() => setInputFocused(false), 200)}  // 200ms遅延でレイアウト変化前にclickが届く
               onKeyDown={handleKeyDown}
               placeholder={
                 chatMode === 'soudan' ? `${character.name}に相談する…`
@@ -1095,8 +1095,12 @@ export default function ChatPage() {
             />
 
             <button
-              onPointerDown={e => e.preventDefault()}  // textareaのblur→キーボード閉じを防ぐ
-              onClick={() => handleSend()}
+              // iOS: touchEnd(blur前)で直接送信 → click は preventDefault で抑制し二重発火防止
+              onTouchEnd={(e) => {
+                e.preventDefault()
+                if (input.trim() && !loading && journalLoaded) handleSend()
+              }}
+              onClick={() => handleSend()}  // デスクトップ(マウス)用
               disabled={!input.trim() || loading || !journalLoaded}
               style={{
                 width: 44, height: 44, borderRadius: '50%', border: 'none',
