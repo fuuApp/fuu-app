@@ -41,6 +41,7 @@ export default function ChatPage() {
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const nicknameInputRef = useRef<HTMLInputElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   // refで最新値を保持（handleSend時に非同期タイミングのズレを防ぐ）
   const journalContextRef = useRef<string>('')
 
@@ -263,19 +264,17 @@ export default function ChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, guchiSummary])
 
-  // Capacitor iOS: キーボード表示時に visualViewport で高さを追従
-  // （WKWebView は 100dvh がキーボード分縮まらないため、ページスクロールが起きて会話が消える問題を修正）
+  // Capacitor iOS キーボード対策: position:fixed + visualViewport.height で高さをリアルタイム追従
+  // - position:fixed により iOS のページスクロールの影響を受けない
+  // - visualViewport.height がキーボード出現時に縮小するので、それに合わせてコンテナを縮める
   useEffect(() => {
     const vv = window.visualViewport
-    const update = () => {
-      document.documentElement.style.setProperty(
-        '--chat-height',
-        `${vv?.height ?? window.innerHeight}px`
-      )
-    }
-    vv?.addEventListener('resize', update)
+    const el = containerRef.current
+    if (!vv || !el) return
+    const update = () => { el.style.height = `${vv.height}px` }
+    vv.addEventListener('resize', update)
     update()
-    return () => vv?.removeEventListener('resize', update)
+    return () => vv.removeEventListener('resize', update)
   }, [])
 
   useEffect(() => {
@@ -625,11 +624,11 @@ export default function ChatPage() {
   }
 
   return (
-    <div style={{
-      maxWidth: 480, margin: '0 auto',
+    <div ref={containerRef} style={{
+      position: 'fixed', top: 0, left: '50%', transform: 'translateX(-50%)',
+      width: '100%', maxWidth: 480,
       display: 'flex', flexDirection: 'column',
-      height: 'var(--chat-height, 100dvh)',
-      overflow: 'hidden',  // iOSがページ全体をスクロールするのを防ぐ
+      height: '100dvh',  // visualViewport useEffect が上書きするのでフォールバック値
       background: '#fdf4f7',
     }}>
       {/* ヘッダー（safe-area-inset-top でステータスバー重なり防止） */}
