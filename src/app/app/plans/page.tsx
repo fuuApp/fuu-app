@@ -122,6 +122,15 @@ function PlansContent() {
           setUserId(user.id)
           setUserEmail(user.email ?? '')
           await fetchPlanStatus(user.id)
+        } else {
+          // Safari外部ブラウザ経由: URLパラメータからuserId/emailを取得
+          const uidParam = searchParams.get('uid')
+          const emailParam = searchParams.get('email')
+          if (uidParam) {
+            setUserId(uidParam)
+            setUserEmail(emailParam ?? '')
+            await fetchPlanStatus(uidParam)
+          }
         }
       } catch { /* 取得失敗時はtrialのまま */ }
     })()
@@ -217,11 +226,17 @@ function PlansContent() {
   // Strategy C: /app/plans 直接リンク → Apple審査で問題があれば Strategy B（/app）に変更
   // 変更箇所：この関数の url を 'https://fuu-app.vercel.app/app' に変えるだけで B に切替可
   const handleOpenWebPlans = async () => {
+    // userId/emailをURLパラメータで渡す（Safari側でSupabase認証が取れないため）
+    const params = new URLSearchParams()
+    if (userId) params.set('uid', userId)
+    if (userEmail) params.set('email', userEmail)
+    const query = params.toString() ? `?${params.toString()}` : ''
+    const url = `https://fuu-app.vercel.app/app/plans${query}`
     try {
       const { Browser } = await import('@capacitor/browser')
-      await Browser.open({ url: 'https://fuu-app.vercel.app/app/plans' })
+      await Browser.open({ url })
     } catch {
-      window.open('https://fuu-app.vercel.app/app/plans', '_blank')
+      window.open(url, '_blank')
     }
   }
 

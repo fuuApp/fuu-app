@@ -159,7 +159,7 @@ export async function POST(req: NextRequest) {
       // 既存顧客IDがあれば customer を指定（重複顧客防止）
       ...(existingCustomerId
         ? { customer: existingCustomerId }
-        : { customer_email: email ?? undefined }
+        : { customer_email: email || undefined }
       ),
       metadata: { userId: userId ?? '', plan },
       subscription_data: {
