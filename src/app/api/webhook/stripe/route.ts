@@ -99,8 +99,9 @@ export async function POST(req: NextRequest) {
           // ── subscriptions テーブルを更新（失敗しても200を返す） ──
           try {
             // Stripe API 2026-05-27.dahlia 以降は current_period_end が items 側に移動
-            const periodEndTs = (sub as any).current_period_end
-              ?? sub.items?.data?.[0]?.current_period_end
+            const subAny = sub as any
+            const periodEndTs = subAny.current_period_end
+              ?? subAny.items?.data?.[0]?.current_period_end
             const periodEnd = periodEndTs
               ? new Date(periodEndTs * 1000).toISOString()
               : new Date().toISOString()
