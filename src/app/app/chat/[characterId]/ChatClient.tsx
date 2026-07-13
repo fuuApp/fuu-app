@@ -265,13 +265,26 @@ export default function ChatPage() {
     if (el) el.scrollTop = el.scrollHeight
   }, [messages, guchiSummary])
 
-  // iOS キーボード対策（2段構え）
-  // ① overflow:hidden でスクロールを封じる
-  // ② iOS がそれでもスクロールした場合は scrollTo(0,0) で即座に打ち消す
+  // ── キーボード対策（iOS / Android 共通設計） ─────────────────────────────
+  //
+  // [iOS WKWebView] キーボードが出ても WebView はリサイズされない
+  //   → visualViewport.height で正確な高さを取得し --chat-height に反映
+  //   → iOS はキーボード出現でページを上スクロールするため scrollTo(0,0) で打ち消す
+  //
+  // [Android WebView] キーボードが出ると WebView 自体がリサイズされる
+  //   → visualViewport.height も自動縮小するので --chat-height は正しく更新される
+  //   → window.scrollY は常に 0 のままなので resetScroll は実質何もしない（無害）
+  //   → safe-area-inset-bottom は基本 0 なので paddingBottom 分岐も無害
+  //
+  // → このコードは iOS/Android/Web ブラウザ すべてで安全に動作する
+
   useEffect(() => {
+    // overflow:hidden でページスクロールを封じる（両OS共通・無害）
     document.documentElement.classList.add('chat-active')
     document.body.classList.add('chat-active')
 
+    // iOS 限定: キーボード表示時にページが強制スクロールされるのを打ち消す
+    // Android では scrollY = 0 のまま変化しないため実質ノーオペレーション
     const resetScroll = () => {
       if (window.scrollY !== 0) {
         window.scrollTo({ top: 0, left: 0, behavior: 'instant' } as ScrollToOptions)
@@ -288,8 +301,10 @@ export default function ChatPage() {
     }
   }, [])
 
-  // visualViewport でキーボード上端までの高さをリアルタイム計測 → CSS変数に反映
-  // キーボード出現でコンテナが縮んだ後、最新メッセージが見えるよう再スクロール
+  // キーボード上端までの高さを --chat-height に反映（iOS/Android 両対応）
+  // iOS: WebView はリサイズされないが visualViewport.height は正確な値を返す
+  // Android: WebView がリサイズされるため visualViewport.height も自動縮小する
+  // → どちらも同じコードで正しく動く
   useEffect(() => {
     const vv = window.visualViewport
     const scrollToBottom = () => {
