@@ -586,6 +586,8 @@ export default function ChatPage() {
       const summary = res.ok ? data.message : '今日はいっぱい相談してくれてありがとう。また話しかけてね。'
       setSoudanSummary(summary)
       setSoudanDone(true)
+      setShowSoudanReplies(false)
+      setShowAlternativeReplies(false)
 
       const today = getTodayJST()
       try {
@@ -606,6 +608,8 @@ export default function ChatPage() {
       const fallback = '今日はいっぱい相談してくれてありがとう。また話しかけてね。'
       setSoudanSummary(fallback)
       setSoudanDone(true)
+      setShowSoudanReplies(false)
+      setShowAlternativeReplies(false)
     } finally {
       setLoadingSummary(false)
     }
