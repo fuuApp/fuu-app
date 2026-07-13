@@ -36,6 +36,7 @@ export default function ChatPage() {
   // チャットモード
   const [chatMode, setChatMode] = useState<'guchi' | 'soudan' | 'hybrid'>('guchi')
   const [showSoudanReplies, setShowSoudanReplies] = useState(false)
+  const [inputFocused, setInputFocused] = useState(false)
 
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -614,32 +615,33 @@ export default function ChatPage() {
       display: 'flex', flexDirection: 'column',
       height: '100dvh', background: '#fdf4f7',
     }}>
-      {/* ヘッダー */}
+      {/* ヘッダー（safe-area-inset-top でステータスバー重なり防止） */}
       <div style={{
         background: '#fff', borderBottom: '1px solid #FCE4EC',
-        padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12,
+        paddingTop: 'calc(12px + env(safe-area-inset-top))',
+        paddingBottom: 12, paddingLeft: 16, paddingRight: 16,
+        display: 'flex', alignItems: 'center', gap: 10,
         flexShrink: 0,
       }}>
         <button onClick={() => router.push('/app')}
-          style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: '#E91E63', padding: '8px 12px 8px 4px' }}>‹</button>
+          style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: '#E91E63', padding: '8px 8px 8px 0', flexShrink: 0 }}>‹</button>
         <div style={{
-          width: 40, height: 40, borderRadius: '50%', overflow: 'hidden',
+          width: 36, height: 36, borderRadius: '50%', overflow: 'hidden',
           background: 'linear-gradient(135deg,#E91E63,#F48FB1)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
           flexShrink: 0,
         }}>
           {avatarHasImage
             ? <img src={character.avatar} alt={character.name} style={avatarStyle} onError={e => { (e.currentTarget as HTMLImageElement).style.display='none' }} />
             : avatarFallback[characterId] ?? '👩'}
         </div>
-        <div>
-          <div style={{ fontWeight: 700, fontSize: 15, color: '#333' }}>{character.name}</div>
+        {/* キャラ名：flex:1 + minWidth:0 で右要素が押し出されないように */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 700, fontSize: 15, color: '#333', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{character.name}</div>
           <div style={{ fontSize: 11, color: '#E91E63' }}>{character.role}</div>
         </div>
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
-          {nickname && (
-            <div style={{ fontSize: 12, color: '#888' }}>{nickname}</div>
-          )}
+        {/* 右セクション：flexShrink:0 で縮まらないように */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
           {/* 残り会話回数バッジ */}
           {remaining !== null && (
             <div style={{
@@ -652,11 +654,12 @@ export default function ChatPage() {
                     ? 'linear-gradient(135deg,#FF9800,#E65100)'
                     : '#FCE4EC',
               color: ticketActive || remaining <= 30 ? '#fff' : '#E91E63',
+              whiteSpace: 'nowrap',
             }}>
               {ticketActive ? '∞ 使い放題' : `残り${remaining}回`}
             </div>
           )}
-          <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#4CAF50' }} />
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#4CAF50', flexShrink: 0 }} />
         </div>
       </div>
 
@@ -940,8 +943,8 @@ export default function ChatPage() {
         </div>
       )}
 
-      {/* クイック返信（愚痴聞きモード） */}
-      {nicknamePhase === 'done' && showQuickReplies && !loading && chatMode === 'guchi' && (
+      {/* クイック返信（愚痴聞きモード）- キーボード表示中は非表示で会話エリアを確保 */}
+      {nicknamePhase === 'done' && showQuickReplies && !loading && chatMode === 'guchi' && !inputFocused && (
         <div style={{
           padding: '4px 12px 4px',
           display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center',
@@ -961,8 +964,8 @@ export default function ChatPage() {
         </div>
       )}
 
-      {/* 相談モード：深掘りクイック返信（①②③が出た後に表示） */}
-      {nicknamePhase === 'done' && showSoudanReplies && !loading && chatMode === 'soudan' && (
+      {/* 相談モード：深掘りクイック返信（①②③が出た後に表示）- キーボード表示中は非表示 */}
+      {nicknamePhase === 'done' && showSoudanReplies && !loading && chatMode === 'soudan' && !inputFocused && (
         <div style={{
           padding: '4px 12px 4px',
           display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center',
@@ -1008,7 +1011,7 @@ export default function ChatPage() {
       {nicknamePhase === 'done' && (
         <div style={{
           background: '#fff', borderTop: '1px solid #FCE4EC',
-          paddingBottom: 4, flexShrink: 0,
+          paddingBottom: 'max(4px, env(safe-area-inset-bottom))', flexShrink: 0,
         }}>
           {/* 入力行 */}
           <div style={{ padding: '10px 12px 6px', display: 'flex', gap: 8, alignItems: 'flex-end' }}>
@@ -1018,6 +1021,8 @@ export default function ChatPage() {
               onChange={e => {
                 setInput(e.target.value)
               }}
+              onFocus={() => setInputFocused(true)}
+              onBlur={() => setInputFocused(false)}
               onKeyDown={handleKeyDown}
               placeholder={
                 chatMode === 'soudan' ? `${character.name}に相談する…`
