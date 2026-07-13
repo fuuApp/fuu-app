@@ -263,20 +263,30 @@ export default function ChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, guchiSummary])
 
-  // チャット画面滞在中: html/body に chat-active クラスを付与してページスクロールを封じる
-  // iOS はキーボード出現時にページをスクロールしようとするが overflow:hidden で阻止
+  // iOS キーボード対策（2段構え）
+  // ① overflow:hidden でスクロールを封じる
+  // ② iOS がそれでもスクロールした場合は scrollTo(0,0) で即座に打ち消す
   useEffect(() => {
     document.documentElement.classList.add('chat-active')
     document.body.classList.add('chat-active')
+
+    const resetScroll = () => {
+      if (window.scrollY !== 0) {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' } as ScrollToOptions)
+      }
+    }
+    window.addEventListener('scroll', resetScroll, { passive: true })
+    window.visualViewport?.addEventListener('scroll', resetScroll)
+
     return () => {
       document.documentElement.classList.remove('chat-active')
       document.body.classList.remove('chat-active')
+      window.removeEventListener('scroll', resetScroll)
+      window.visualViewport?.removeEventListener('scroll', resetScroll)
     }
   }, [])
 
   // visualViewport でキーボード上端までの高さをリアルタイム計測 → CSS変数に反映
-  // overflow:hidden でページスクロールを封じた上でこれを使うと
-  // コンテナがキーボード分だけ縮み、会話が見えたまま入力できる
   useEffect(() => {
     const vv = window.visualViewport
     const update = () => {
