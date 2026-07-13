@@ -419,18 +419,30 @@ function detectSolutionIntent(message: string): boolean {
 // ─── ユーザーが番号を選んだか検知 ───
 function isDeepDiveRequest(message: string): boolean {
   const t = message.trim()
+  // 「①②③以外で」「④⑤⑥以外で」は別提案リクエストなので除外
+  if (/[①②③④⑤⑥].{0,4}以外/.test(t)) return false
   return (
-    // 番号だけ
-    /^[①②③１２３123]$/.test(t) ||
-    /^[①②③１２３123][番つ目]/.test(t) ||
-    // 「③について」「③を」「③で」「③が」系
-    /[①②③].{0,6}詳しく/.test(t) ||   // 「について詳しく」「を詳しく」どちらも
-    /[①②③].{0,6}教えて/.test(t) ||   // 「について教えて」
-    /[①②③].{0,6}知りたい/.test(t) ||
-    /[①②③]で/.test(t) ||
-    /[①②③]がいい/.test(t) ||
-    /[①②③]に?して/.test(t) ||
-    /[①②③]お?願い/.test(t)
+    // 番号だけ（①〜⑥対応）
+    /^[①②③④⑤⑥１２３456123]$/.test(t) ||
+    /^[①②③④⑤⑥１２３456123][番つ目]/.test(t) ||
+    // 「③について」「⑤を」「④で」系（①〜⑥対応）
+    /[①②③④⑤⑥].{0,6}詳しく/.test(t) ||
+    /[①②③④⑤⑥].{0,6}教えて/.test(t) ||
+    /[①②③④⑤⑥].{0,6}知りたい/.test(t) ||
+    /[①②③④⑤⑥]で/.test(t) ||
+    /[①②③④⑤⑥]がいい/.test(t) ||
+    /[①②③④⑤⑥]に?して/.test(t) ||
+    /[①②③④⑤⑥]お?願い/.test(t)
+  )
+}
+
+// ─── ユーザーが「①②③以外の別提案」を求めているか検知 ───
+function isAlternativeRequest(message: string): boolean {
+  return (
+    /④.*⑤.*⑥/.test(message) ||          // 「④⑤⑥として」など
+    /以外.{0,10}提案/.test(message) ||    // 「以外で提案」「以外の提案」
+    /違う視点.{0,10}提案/.test(message) || // 「違う視点で提案」
+    /別.{0,5}提案.{0,5}3つ/.test(message) // 「別の提案を3つ」
   )
 }
 
@@ -501,6 +513,23 @@ const SOUDAN_DEEPDIVE_PROMPT = `
 - 4文以上書かない
 - 選んでいない番号の内容を出さない
 - ですます調禁止
+`
+
+// ─── 相談モード：追加提案（④⑤⑥）───
+const SOUDAN_ALTERNATIVE_PROMPT = `
+【相談モード・追加提案（④⑤⑥）】
+ユーザーが最初の①②③とは異なる視点での追加提案を求めています。
+
+Step 1【橋渡し】「ちがう角度で考えてみると」など自然な1文
+Step 2【追加提案】必ず④⑤⑥の番号を使って3つ出す
+  例：「④ 〇〇してみる」「⑤ 〇〇を変える」「⑥ 〇〇という考え方」
+  - ①②③とは全く異なる方向性にする（同じ内容の言い換えは絶対NG）
+Step 3【選択を促す】「気になった番号あった？詳しく話せるよ」で締める
+
+【絶対ルール】
+- 番号は必ず④⑤⑥を使う（①②③は絶対に使わない）
+- 提案は番号＋15文字以内のタイトルのみ。詳細は書かない
+- キャラクターの口調を維持。ですます調禁止
 `
 
 // ─── ハイブリッドモード：初回（共感＋簡潔提案）───
@@ -655,25 +684,37 @@ export async function POST(req: NextRequest) {
     // 愚痴モード中に解決志向を検知 → 自動ハイブリッド切り替え
     const autoHybrid = !isCrisis && mode === 'guchi' && detectSolutionIntent(message)
 
-    // 深掘りリクエスト（①②③を選んだ）か判定
+    // 深掘りリクエスト（①〜⑥のいずれかを選んだ）か判定
     const deepDive = (mode === 'soudan' || mode === 'hybrid') && isDeepDiveRequest(message)
+
+    // 別提案リクエスト（④⑤⑥で出してほしい）か判定
+    const altRequest = !deepDive && (mode === 'soudan' || mode === 'hybrid') && isAlternativeRequest(message)
 
     // effectiveMode を決定
     const effectiveMode =
       autoHybrid ? (deepDive ? 'hybrid_deepdive' : 'hybrid_brief') :
-      mode === 'soudan' ? (deepDive ? 'soudan_deepdive' : 'soudan_brief') :
-      mode === 'hybrid' ? (deepDive ? 'hybrid_deepdive' : 'hybrid_brief') :
+      mode === 'soudan' ? (
+        deepDive    ? 'soudan_deepdive' :
+        altRequest  ? 'soudan_alternative' :
+        'soudan_brief'
+      ) :
+      mode === 'hybrid' ? (
+        deepDive    ? 'hybrid_deepdive' :
+        altRequest  ? 'soudan_alternative' :
+        'hybrid_brief'
+      ) :
       mode // guchi はそのまま
 
     // モード別プロンプトの組み立て
     const modeInstruction =
-      effectiveMode === 'soudan_brief'    ? SOUDAN_BRIEF_PROMPT :
-      effectiveMode === 'soudan_deepdive' ? SOUDAN_DEEPDIVE_PROMPT :
-      effectiveMode === 'hybrid_brief'    ? HYBRID_BRIEF_PROMPT :
-      effectiveMode === 'hybrid_deepdive' ? SOUDAN_DEEPDIVE_PROMPT :
-      effectiveMode === 'soudan'          ? SOUDAN_BRIEF_PROMPT : // 後方互換
-      effectiveMode === 'hybrid'          ? HYBRID_BRIEF_PROMPT : // 後方互換
-      effectiveMode === 'guchi'           ? GUCHI_PROMPT + '\n' + instruction :
+      effectiveMode === 'soudan_brief'        ? SOUDAN_BRIEF_PROMPT :
+      effectiveMode === 'soudan_deepdive'     ? SOUDAN_DEEPDIVE_PROMPT :
+      effectiveMode === 'soudan_alternative'  ? SOUDAN_ALTERNATIVE_PROMPT :
+      effectiveMode === 'hybrid_brief'        ? HYBRID_BRIEF_PROMPT :
+      effectiveMode === 'hybrid_deepdive'     ? SOUDAN_DEEPDIVE_PROMPT :
+      effectiveMode === 'soudan'              ? SOUDAN_BRIEF_PROMPT : // 後方互換
+      effectiveMode === 'hybrid'              ? HYBRID_BRIEF_PROMPT : // 後方互換
+      effectiveMode === 'guchi'               ? GUCHI_PROMPT + '\n' + instruction :
       instruction
     // 過去の気持ちの箱があれば文脈として差し込む
     const isFollowUp = /つづき|続き|この前|前回|また来た|また話|さっきの/.test(message)
@@ -695,6 +736,8 @@ ${SOUDAN_PROMPT}
 ${SOUDAN_BRIEF_PROMPT}
 
 ${SOUDAN_DEEPDIVE_PROMPT}
+
+${SOUDAN_ALTERNATIVE_PROMPT}
 
 ${HYBRID_BRIEF_PROMPT}`
 

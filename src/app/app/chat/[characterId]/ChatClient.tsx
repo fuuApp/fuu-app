@@ -36,6 +36,7 @@ export default function ChatPage() {
   // チャットモード
   const [chatMode, setChatMode] = useState<'guchi' | 'soudan' | 'hybrid'>('guchi')
   const [showSoudanReplies, setShowSoudanReplies] = useState(false)
+  const [showAlternativeReplies, setShowAlternativeReplies] = useState(false) // ④⑤⑥追加提案後
   const [inputFocused, setInputFocused] = useState(false)
 
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -460,12 +461,18 @@ export default function ChatPage() {
         setChatMode('soudan')
       }
 
-      // 相談 or ハイブリッドで①②③が含まれていたら深掘りボタンを表示
+      // 相談 or ハイブリッドで提案が含まれていたら深掘りボタンを表示
       const hasSoudanOptions = data.message.includes('①') && data.message.includes('②') && data.message.includes('③')
-      if ((chatMode === 'soudan' || data.autoHybrid) && hasSoudanOptions) {
+      const hasAlternativeOptions = data.message.includes('④') && data.message.includes('⑤') && data.message.includes('⑥')
+      if ((chatMode === 'soudan' || data.autoHybrid) && hasAlternativeOptions) {
+        setShowAlternativeReplies(true)
+        setShowSoudanReplies(false) // ④⑤⑥が出たら①②③ボタンは隠す
+      } else if ((chatMode === 'soudan' || data.autoHybrid) && hasSoudanOptions) {
         setShowSoudanReplies(true)
+        setShowAlternativeReplies(false)
       } else {
         setShowSoudanReplies(false)
+        setShowAlternativeReplies(false)
       }
 
       setMessages(prev => [...prev, {
@@ -1046,15 +1053,15 @@ export default function ChatPage() {
               }}
             >{item.label}</button>
           ))}
-          {/* ④ 別の提案ボタン */}
+          {/* ④⑤⑥ 別の提案ボタン */}
           <button
-            onClick={() => { handleSend('①②③以外で、違う視点の提案を3つ出してもらえる？'); setShowSoudanReplies(false) }}
+            onClick={() => { handleSend('さっきとは全く違う視点で、④⑤⑥として別の提案を3つ出してほしい'); setShowSoudanReplies(false) }}
             style={{
               background: '#FFF8E1', border: '1.5px solid #FFD54F', borderRadius: 20,
               padding: '7px 14px', fontSize: 13, color: '#F57F17',
               cursor: 'pointer', fontFamily: 'inherit',
             }}
-          >④ 他の提案ももらう</button>
+          >④⑤⑥ 他の提案ももらう</button>
           {/* 愚痴聞きモードに戻る */}
           <button
             onClick={() => { setChatMode('guchi'); setShowSoudanReplies(false) }}
@@ -1064,6 +1071,39 @@ export default function ChatPage() {
               cursor: 'pointer', fontFamily: 'inherit',
             }}
           >やっぱり聞いてほしいだけ</button>
+        </div>
+      )}
+
+      {/* 相談モード：④⑤⑥追加提案後の深掘りクイック返信 */}
+      {nicknamePhase === 'done' && showAlternativeReplies && !loading && chatMode === 'soudan' && !inputFocused && (
+        <div style={{
+          padding: '4px 12px 4px',
+          display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center',
+          background: '#fdf4f7',
+        }}>
+          {[
+            { label: '④を詳しく', msg: '④について詳しく教えて' },
+            { label: '⑤を詳しく', msg: '⑤について詳しく教えて' },
+            { label: '⑥を詳しく', msg: '⑥について詳しく教えて' },
+          ].map(item => (
+            <button key={item.label}
+              onClick={() => { handleSend(item.msg); setShowAlternativeReplies(false) }}
+              style={{
+                background: '#FFF3E0', border: '1.5px solid #FFB74D', borderRadius: 20,
+                padding: '7px 14px', fontSize: 13, color: '#E65100',
+                cursor: 'pointer', fontFamily: 'inherit',
+              }}
+            >{item.label}</button>
+          ))}
+          {/* やっぱり①②③を選ぶ */}
+          <button
+            onClick={() => { setShowAlternativeReplies(false); setShowSoudanReplies(true) }}
+            style={{
+              background: '#F3E5F5', border: '1.5px solid #CE93D8', borderRadius: 20,
+              padding: '7px 14px', fontSize: 13, color: '#7B1FA2',
+              cursor: 'pointer', fontFamily: 'inherit',
+            }}
+          >やっぱり①②③から選ぶ</button>
         </div>
       )}
 
