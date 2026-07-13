@@ -38,7 +38,7 @@ export default function TermsPage() {
         </Section>
 
         <Section title="第4条（解約・退会・返金）">
-          <Item n="1">サブスクリプションの解約は <a href="https://billing.stripe.com/p/login" target="_blank" rel="noreferrer" style={{ color: '#E91E63' }}>billing.stripe.com</a> からいつでも可能です。解約後は次回更新日まで引き続きご利用いただけます。日割り返金は行いません。</Item>
+          <Item n="1">サブスクリプションの解約はアプリの<a href="/app/settings" style={{ color: '#E91E63' }}>設定ページ</a>内「サブスク管理・解約」からいつでも可能です。解約後は次回更新日まで引き続きご利用いただけます。日割り返金は行いません。</Item>
           <Item n="2">アカウント退会（設定ページ）を行った場合、サービスは即日終了します。退会前にサブスクリプションの解約手続きを完了してください。退会後の残存期間に対する返金は行いません。</Item>
           <Item n="3">チケットの返金はfuu.support@gmail.comへのお問い合わせにより、購入後24時間以内かつ未使用の場合のみ対応します。</Item>
         </Section>

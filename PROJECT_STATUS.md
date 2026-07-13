@@ -66,7 +66,11 @@
 
 ## アイコン
 - ログイン画面：/public/icons/icon_c.png（三日月・センター配置）変更済
-- アプリアイコン：ios/android 用は assets.xcassets/AppIcon にデフォルトのまま
+- アプリアイコン（iOS）：AppIcon-512@2x.png 1024x1024 設定済 ✅（2026/7/12）
+- アプリアイコン（Android）：mipmap-mdpi〜xxxhdpi 全サイズ設定済 ✅（2026/7/12）
+- [ ] 🔴 Google Play Console アイコンアップロード未実施
+  - ファイル：ios/App/App/Assets.xcassets/AppIcon.appiconset/google_play_icon_512.png（512x512）
+  - 手順：Play Console → ストアの掲載情報 → アイコン → アップロード
 
 ## 2026-06-08 午後の修正内容
 - [x] STTプレミアム判定をlocalStorage→Supabase profilesに修正（ChatClient.tsx）

@@ -411,6 +411,28 @@ export default function SettingsPage() {
               </p>
             )}
             <button onClick={()=>router.push('/app/plans')} style={{ marginTop:12,background:'none',border:'1px solid #F48FB1',borderRadius:20,padding:'8px 16px',fontSize:13,color:'#E91E63',cursor:'pointer',fontFamily:'inherit' }}>プランを見る →</button>
+            {(userPlan === 'standard' || userPlan === 'premium') && (
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await fetch('/api/stripe/portal')
+                    const data = await res.json()
+                    if (data.url) {
+                      window.open(data.url, '_blank')
+                    } else if (data.redirect) {
+                      router.push(data.redirect)
+                    } else {
+                      alert('エラーが発生しました。しばらくしてから再試行してください。')
+                    }
+                  } catch {
+                    alert('エラーが発生しました。しばらくしてから再試行してください。')
+                  }
+                }}
+                style={{ display:'block',marginTop:8,background:'none',border:'1px solid #F48FB1',borderRadius:20,padding:'8px 16px',fontSize:13,color:'#888',cursor:'pointer',fontFamily:'inherit' }}
+              >
+                サブスク管理・解約 →
+              </button>
+            )}
           </div>
         </div>
 
