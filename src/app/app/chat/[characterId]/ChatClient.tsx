@@ -287,11 +287,16 @@ export default function ChatPage() {
   }, [])
 
   // visualViewport でキーボード上端までの高さをリアルタイム計測 → CSS変数に反映
+  // キーボード出現でコンテナが縮んだ後、最新メッセージが見えるよう再スクロール
   useEffect(() => {
     const vv = window.visualViewport
     const update = () => {
       const h = vv?.height ?? window.innerHeight
       document.documentElement.style.setProperty('--chat-height', `${h}px`)
+      // レイアウト更新後にメッセージ末尾へスクロール（キャラの最後の返信が入力欄直上に来る）
+      setTimeout(() => {
+        bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+      }, 50)
     }
     vv?.addEventListener('resize', update)
     update()
