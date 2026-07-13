@@ -1094,14 +1094,18 @@ export default function ChatPage() {
               }}
             />
 
-            <button onClick={() => handleSend()} disabled={!input.trim() || loading || !journalLoaded} style={{
-              width: 44, height: 44, borderRadius: '50%', border: 'none',
-              background: input.trim() && !loading && journalLoaded ? 'linear-gradient(135deg,#E91E63,#C2185B)' : '#F8BBD9',
-              color: '#fff', fontSize: 18,
-              cursor: input.trim() && !loading && journalLoaded ? 'pointer' : 'not-allowed',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexShrink: 0, transition: 'background 0.2s',
-            }}>↑</button>
+            <button
+              onPointerDown={e => e.preventDefault()}  // textareaのblur→キーボード閉じを防ぐ
+              onClick={() => handleSend()}
+              disabled={!input.trim() || loading || !journalLoaded}
+              style={{
+                width: 44, height: 44, borderRadius: '50%', border: 'none',
+                background: input.trim() && !loading && journalLoaded ? 'linear-gradient(135deg,#E91E63,#C2185B)' : '#F8BBD9',
+                color: '#fff', fontSize: 18,
+                cursor: input.trim() && !loading && journalLoaded ? 'pointer' : 'not-allowed',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                flexShrink: 0, transition: 'background 0.2s',
+              }}>↑</button>
           </div>
 
           {/* そろそろ終わりにするボタン（愚痴モード） */}
