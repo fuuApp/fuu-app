@@ -51,7 +51,13 @@ function DeleteAccountModal({ onImmediate, onScheduled, onCancel, isDeleting, is
           <>
             <div style={{ fontSize:28,textAlign:'center',marginBottom:10 }}>🚪</div>
             <div style={{ fontWeight:700,fontSize:17,color:'#333',textAlign:'center',marginBottom:6 }}>退会方法を選んでください</div>
-            <div style={{ fontSize:12,color:'#aaa',textAlign:'center',marginBottom:20 }}>どちらの方法でも料金の返金はありません</div>
+            <div style={{ fontSize:12,color:'#aaa',textAlign:'center',marginBottom:12 }}>どちらの方法でも料金の返金はありません</div>
+
+            {/* 共通注意事項 */}
+            <div style={{ background:'#FFF3E0',border:'1px solid #FFCC80',borderRadius:12,padding:'10px 14px',marginBottom:16,fontSize:12,color:'#E65100',lineHeight:1.8 }}>
+              ⚠️ どちらの方法でも、<strong>月額課金の解約</strong>と、<strong>アカウント・会話履歴・設定情報の削除</strong>が行われます。<br />
+              課金だけを止めてアカウントを残したい場合は、設定画面の「課金を停止する」をお使いください。
+            </div>
 
             {/* カードA: 次回更新日まで使って退会 */}
             <div style={{ background:'#F3F8FF',border:'2px solid #90CAF9',borderRadius:16,padding:'16px 18px',marginBottom:12 }}>
@@ -60,7 +66,7 @@ function DeleteAccountModal({ onImmediate, onScheduled, onCancel, isDeleting, is
               </div>
               <div style={{ fontSize:12,color:'#555',lineHeight:1.8,marginBottom:14 }}>
                 残りの期間は引き続きご利用いただけます。<br />
-                {periodEndFormatted}にアカウントが<strong>自動削除</strong>されます。
+                {periodEndFormatted}に月額課金が停止し、アカウントと会話履歴が<strong>自動削除</strong>されます。
               </div>
               <button
                 onClick={() => handleChoose('scheduled')}
@@ -76,8 +82,8 @@ function DeleteAccountModal({ onImmediate, onScheduled, onCancel, isDeleting, is
                 🚪 今すぐ退会する
               </div>
               <div style={{ fontSize:12,color:'#555',lineHeight:1.8,marginBottom:14 }}>
-                サブスクを即時キャンセルし、<br />
-                アカウントをすぐに削除します。
+                月額課金を即時停止し、アカウントと会話履歴をすぐに削除します。<br />
+                <strong style={{ color:'#C62828' }}>この操作は取り消せません。</strong>
               </div>
               <button
                 onClick={() => handleChoose('immediate')}
@@ -411,27 +417,28 @@ export default function SettingsPage() {
               </p>
             )}
             <button onClick={()=>router.push('/app/plans')} style={{ marginTop:12,background:'none',border:'1px solid #F48FB1',borderRadius:20,padding:'8px 16px',fontSize:13,color:'#E91E63',cursor:'pointer',fontFamily:'inherit' }}>プランを見る →</button>
-            {(userPlan === 'standard' || userPlan === 'premium') && (
-              <button
-                onClick={async () => {
-                  try {
-                    const res = await fetch('/api/stripe/portal')
-                    const data = await res.json()
-                    if (data.url) {
-                      window.open(data.url, '_blank')
-                    } else if (data.redirect) {
-                      router.push(data.redirect)
-                    } else {
-                      alert('エラーが発生しました。しばらくしてから再試行してください。')
-                    }
-                  } catch {
-                    alert('エラーが発生しました。しばらくしてから再試行してください。')
-                  }
-                }}
-                style={{ display:'block',marginTop:8,background:'none',border:'1px solid #F48FB1',borderRadius:20,padding:'8px 16px',fontSize:13,color:'#888',cursor:'pointer',fontFamily:'inherit' }}
-              >
-                サブスク管理・解約 →
-              </button>
+            {(userPlan === 'standard' || userPlan === 'premium') && !withdrawalScheduled && (
+              <div style={{ marginTop:14,background:'#F5F5F5',border:'1.5px solid #E0E0E0',borderRadius:16,padding:'14px 16px' }}>
+                <div style={{ fontWeight:700,fontSize:13,color:'#555',marginBottom:4 }}>💳 課金だけを止める（解約のみ）</div>
+                <div style={{ fontSize:12,color:'#888',lineHeight:1.8,marginBottom:12 }}>
+                  月額の請求を停止します。<strong style={{ color:'#555' }}>アカウントと会話履歴はそのまま残ります。</strong><br />
+                  次回更新日まで引き続き利用でき、またいつでも再登録できます。
+                </div>
+                <button
+                  onClick={async () => {
+                    try {
+                      const res = await fetch('/api/stripe/portal')
+                      const data = await res.json()
+                      if (data.url) { window.open(data.url, '_blank') }
+                      else if (data.redirect) { router.push(data.redirect) }
+                      else { alert('エラーが発生しました。しばらくしてから再試行してください。') }
+                    } catch { alert('エラーが発生しました。しばらくしてから再試行してください。') }
+                  }}
+                  style={{ width:'100%',padding:'11px',background:'none',border:'1.5px solid #BDBDBD',borderRadius:50,fontSize:13,color:'#555',cursor:'pointer',fontFamily:'inherit',fontWeight:600 }}
+                >
+                  課金を停止する →
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -452,14 +459,20 @@ export default function SettingsPage() {
             style={{ width:'100%',padding:'14px 16px',background:'none',border:'none',fontSize:14,color:'#E57373',cursor:'pointer',textAlign:'left',fontFamily:'inherit',borderBottom:'1px solid #fdf4f7' }}
           >ログアウト</button>
           {withdrawalScheduled ? (
-            <div style={{ width:'100%',padding:'14px 16px',fontSize:14,color:'#FFB74D',textAlign:'left' }}>
-              🚪 退会予約済み{withdrawalDate ? `（${new Date(withdrawalDate).toLocaleDateString('ja-JP', { month: 'long', day: 'numeric' })}に削除）` : ''}
+            <div style={{ padding:'14px 16px',borderTop:'1px solid #fdf4f7',fontSize:13,color:'#FFB74D' }}>
+              🚪 退会予約済み{withdrawalDate ? `（${new Date(withdrawalDate).toLocaleDateString('ja-JP', { month: 'long', day: 'numeric' })}にアカウント削除）` : ''}
             </div>
           ) : (
-            <button onClick={()=>setShowDeleteModal(true)}
-              style={{ width:'100%',padding:'14px 16px',background:'none',border:'none',fontSize:14,color:'#bbb',cursor:'pointer',textAlign:'left',fontFamily:'inherit' }}>
-              退会する
-            </button>
+            <div style={{ padding:'14px 16px',borderTop:'1px solid #fdf4f7' }}>
+              <div style={{ fontWeight:700,fontSize:13,color:'#E57373',marginBottom:4 }}>🚪 アカウントを削除する（退会）</div>
+              <div style={{ fontSize:12,color:'#aaa',lineHeight:1.8,marginBottom:10 }}>
+                会話履歴・ニックネーム・設定・アカウント情報がすべて削除されます。サブスクも同時に解約されます。<strong style={{ color:'#E57373' }}>この操作は取り消せません。</strong>
+              </div>
+              <button onClick={()=>setShowDeleteModal(true)}
+                style={{ width:'100%',padding:'11px',background:'none',border:'1.5px solid #FFCDD2',borderRadius:50,fontSize:13,color:'#E57373',cursor:'pointer',fontFamily:'inherit',fontWeight:600 }}>
+                退会する →
+              </button>
+            </div>
           )}
         </div>
 
