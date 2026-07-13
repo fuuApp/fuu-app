@@ -263,6 +263,21 @@ export default function ChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, guchiSummary])
 
+  // Capacitor iOS: キーボード表示時に visualViewport で高さを追従
+  // （WKWebView は 100dvh がキーボード分縮まらないため、ページスクロールが起きて会話が消える問題を修正）
+  useEffect(() => {
+    const vv = window.visualViewport
+    const update = () => {
+      document.documentElement.style.setProperty(
+        '--chat-height',
+        `${vv?.height ?? window.innerHeight}px`
+      )
+    }
+    vv?.addEventListener('resize', update)
+    update()
+    return () => vv?.removeEventListener('resize', update)
+  }, [])
+
   useEffect(() => {
     if (nicknamePhase === 'asking' || nicknamePhase === 'confirming') {
       nicknameInputRef.current?.focus()
@@ -613,7 +628,9 @@ export default function ChatPage() {
     <div style={{
       maxWidth: 480, margin: '0 auto',
       display: 'flex', flexDirection: 'column',
-      height: '100dvh', background: '#fdf4f7',
+      height: 'var(--chat-height, 100dvh)',
+      overflow: 'hidden',  // iOSがページ全体をスクロールするのを防ぐ
+      background: '#fdf4f7',
     }}>
       {/* ヘッダー（safe-area-inset-top でステータスバー重なり防止） */}
       <div style={{
