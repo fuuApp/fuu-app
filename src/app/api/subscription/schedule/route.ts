@@ -10,9 +10,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 // - scheduledDowngradeAt: ダウングレード予約日（Stripeスケジュール）
 // - pendingWithdrawal: 退会予約中かどうか（cancel_at_period_end + pending_deletion）
 // - withdrawalDate: 退会（アカウント削除）予定日
+// - cancelAtPeriodEnd: 通常解約予約中（期末まで利用可能）
+// - cancelDate: 解約後の利用終了日
 export async function GET(req: NextRequest) {
   const userId = req.nextUrl.searchParams.get('userId')
-  if (!userId) return NextResponse.json({ scheduledDowngradeAt: null, pendingWithdrawal: false, withdrawalDate: null })
+  const empty = { scheduledDowngradeAt: null, pendingWithdrawal: false, withdrawalDate: null, cancelAtPeriodEnd: false, cancelDate: null }
+  if (!userId) return NextResponse.json(empty)
 
   try {
     const supabase = createAdminClient()
@@ -23,7 +26,7 @@ export async function GET(req: NextRequest) {
       .single()
 
     if (!profile?.stripe_customer_id) {
-      return NextResponse.json({ scheduledDowngradeAt: null, pendingWithdrawal: false, withdrawalDate: null })
+      return NextResponse.json(empty)
     }
 
     // アクティブなサブスクを取得
@@ -34,7 +37,7 @@ export async function GET(req: NextRequest) {
     })
 
     if (!subs.data.length) {
-      return NextResponse.json({ scheduledDowngradeAt: null, pendingWithdrawal: false, withdrawalDate: null })
+      return NextResponse.json(empty)
     }
 
     const sub = subs.data[0]
@@ -45,9 +48,17 @@ export async function GET(req: NextRequest) {
       ? new Date(sub.cancel_at * 1000).toISOString()
       : null
 
+    // ── 通常の解約予約チェック（Stripe Customer Portal からキャンセル）──
+    // cancel_at_period_end: true だが pending_deletion メタデータはなし
+    // → 期末まで利用可能で、そのまま終了
+    const cancelAtPeriodEnd = sub.cancel_at_period_end === true && sub.metadata?.pending_deletion !== 'true'
+    const cancelDate = cancelAtPeriodEnd && sub.cancel_at
+      ? new Date(sub.cancel_at * 1000).toISOString()
+      : null
+
     // スケジュールがない場合はダウングレード予約なし
     if (!sub.schedule) {
-      return NextResponse.json({ scheduledDowngradeAt: null, pendingWithdrawal, withdrawalDate })
+      return NextResponse.json({ scheduledDowngradeAt: null, pendingWithdrawal, withdrawalDate, cancelAtPeriodEnd, cancelDate })
     }
 
     // ── ダウングレード予約チェック（Stripeスケジュール）──
@@ -69,9 +80,11 @@ export async function GET(req: NextRequest) {
         : null,
       pendingWithdrawal,
       withdrawalDate,
+      cancelAtPeriodEnd,
+      cancelDate,
     })
   } catch (error: any) {
     console.error('Schedule fetch error:', error)
-    return NextResponse.json({ scheduledDowngradeAt: null, pendingWithdrawal: false, withdrawalDate: null })
+    return NextResponse.json({ scheduledDowngradeAt: null, pendingWithdrawal: false, withdrawalDate: null, cancelAtPeriodEnd: false, cancelDate: null })
   }
 }

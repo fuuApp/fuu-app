@@ -71,6 +71,8 @@ function PlansContent() {
   const [scheduledDowngradeAt, setScheduledDowngradeAt] = useState<string | null>(null)
   const [pendingWithdrawal, setPendingWithdrawal] = useState(false)
   const [withdrawalDate, setWithdrawalDate] = useState<string | null>(null)
+  const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false)
+  const [cancelDate, setCancelDate] = useState<string | null>(null)
   const [justSubscribed, setJustSubscribed] = useState(false)
 
   // ── プラン・チケット状態をSupabaseから取得する共通関数 ──────────────
@@ -107,6 +109,8 @@ function PlansContent() {
           setScheduledDowngradeAt(schedData.scheduledDowngradeAt ?? null)
           setPendingWithdrawal(schedData.pendingWithdrawal ?? false)
           setWithdrawalDate(schedData.withdrawalDate ?? null)
+          setCancelAtPeriodEnd(schedData.cancelAtPeriodEnd ?? false)
+          setCancelDate(schedData.cancelDate ?? null)
         }
       } catch { /* スケジュール取得失敗時は無視 */ }
     } catch { /* 取得失敗時はそのまま */ }
@@ -398,6 +402,32 @@ function PlansContent() {
               </>
             ) : (
               '次回更新日まで引き続きご利用いただけます。次回更新日にアカウントが削除されます。'
+            )}
+          </div>
+        )}
+
+        {/* 解約予約バナー：期末まで利用可能（常時表示・アプリ・Web 両方） */}
+        {cancelAtPeriodEnd && !pendingWithdrawal && (
+          <div style={{
+            background: '#E8F5E9', border: '1.5px solid #66BB6A',
+            borderRadius: 14, padding: '14px 16px',
+            fontSize: 13, color: '#2E7D32',
+            textAlign: 'center', lineHeight: 1.9,
+          }}>
+            <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>✅ 解約手続きが完了しました</div>
+            {cancelDate ? (
+              <>
+                <strong style={{ fontSize: 15 }}>
+                  {new Date(cancelDate).toLocaleDateString('ja-JP', { month: 'long', day: 'numeric' })}
+                </strong>
+                {'まで引き続き'}
+                <strong>
+                  {currentPlan === 'premium' ? 'プレミアム' : currentPlan === 'standard' ? 'スタンダード' : '現在のプラン'}
+                </strong>
+                {'をご利用いただけます。'}
+              </>
+            ) : (
+              '次回更新日まで引き続きご利用いただけます。'
             )}
           </div>
         )}
