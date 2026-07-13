@@ -41,7 +41,6 @@ export default function ChatPage() {
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const nicknameInputRef = useRef<HTMLInputElement>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
   // refで最新値を保持（handleSend時に非同期タイミングのズレを防ぐ）
   const journalContextRef = useRef<string>('')
 
@@ -264,23 +263,10 @@ export default function ChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, guchiSummary])
 
-  // Capacitor iOS キーボード対策: position:fixed + visualViewport.height で高さをリアルタイム追従
-  // - position:fixed により iOS のページスクロールの影響を受けない
-  // - visualViewport.height がキーボード出現時に縮小するので、それに合わせてコンテナを縮める
   useEffect(() => {
-    const vv = window.visualViewport
-    const el = containerRef.current
-    if (!vv || !el) return
-    const update = () => { el.style.height = `${vv.height}px` }
-    vv.addEventListener('resize', update)
-    update()
-    return () => vv.removeEventListener('resize', update)
-  }, [])
-
-  useEffect(() => {
-    if (nicknamePhase === 'asking' || nicknamePhase === 'confirming') {
-      nicknameInputRef.current?.focus()
-    }
+    // iOS でキーボードが自動で開いて挨拶メッセージが見えなくなるため auto-focus を無効化
+    // （@capacitor/keyboard の resize:body が有効になれば不要だが、UX上もタップで開始が自然）
+    // nicknameInputRef.current?.focus()
   }, [nicknamePhase])
 
   if (!character) {
@@ -624,12 +610,10 @@ export default function ChatPage() {
   }
 
   return (
-    <div ref={containerRef} style={{
-      position: 'fixed', top: 0, left: '50%', transform: 'translateX(-50%)',
-      width: '100%', maxWidth: 480,
+    <div style={{
+      maxWidth: 480, margin: '0 auto',
       display: 'flex', flexDirection: 'column',
-      height: '100dvh',  // visualViewport useEffect が上書きするのでフォールバック値
-      background: '#fdf4f7',
+      height: '100dvh', background: '#fdf4f7',
     }}>
       {/* ヘッダー（safe-area-inset-top でステータスバー重なり防止） */}
       <div style={{

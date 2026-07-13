@@ -32,6 +32,15 @@ const config: CapacitorConfig = {
     // ※ Supabase Dashboard → Auth → URL Configuration → Redirect URLs に
     //   「fuu://auth/callback」を追加すること
 
+    // ─── キーボード ────────────────────────────────────────────
+    // resize:'body' により、キーボード出現時に body がリサイズされ
+    // 100dvh がキーボード上端までの高さを正しく示すようになる
+    Keyboard: {
+      resize: 'body',
+      style: 'dark',
+      resizeOnFullScreen: true,
+    },
+
     // ─── ステータスバー ────────────────────────────────────────
     StatusBar: {
       style: 'light',  // ステータスバーのテキスト色（light = 白）
