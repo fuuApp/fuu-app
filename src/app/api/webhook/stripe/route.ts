@@ -87,19 +87,36 @@ export async function POST(req: NextRequest) {
         }
 
         if (profile) {
-          await supabase.from('profiles').update({
+          // ── profiles.plan を更新（最重要） ──
+          const { error: profileUpdateError } = await supabase.from('profiles').update({
             plan,
             updated_at: new Date().toISOString(),
           }).eq('user_id', profile.user_id)
+          if (profileUpdateError) {
+            console.error('[webhook] profiles.update failed:', profileUpdateError)
+          }
 
-          await supabase.from('subscriptions').upsert({
-            user_id: profile.user_id,
-            stripe_subscription_id: sub.id,
-            plan,
-            status: sub.status,
-            current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
-            updated_at: new Date().toISOString(),
-          }, { onConflict: 'stripe_subscription_id' })
+          // ── subscriptions テーブルを更新（失敗しても200を返す） ──
+          try {
+            const periodEnd = sub.current_period_end
+              ? new Date(sub.current_period_end * 1000).toISOString()
+              : new Date().toISOString()
+            const { error: upsertError } = await supabase.from('subscriptions').upsert({
+              user_id: profile.user_id,
+              stripe_subscription_id: sub.id,
+              plan,
+              status: sub.status,
+              current_period_end: periodEnd,
+              updated_at: new Date().toISOString(),
+            }, { onConflict: 'stripe_subscription_id' })
+            if (upsertError) {
+              console.error('[webhook] subscriptions.upsert failed:', upsertError)
+            }
+          } catch (upsertErr) {
+            console.error('[webhook] subscriptions.upsert threw:', upsertErr)
+          }
+        } else {
+          console.warn('[webhook] profile not found for customer:', customerId, 'metadata:', sub.metadata)
         }
         break
       }
@@ -210,9 +227,11 @@ export async function POST(req: NextRequest) {
         // 未処理イベントは無視
         break
     }
-  } catch (error) {
-    console.error('Webhook processing error:', error)
-    return NextResponse.json({ error: 'Processing failed' }, { status: 500 })
+  } catch (error: any) {
+    const detail = error?.message ?? String(error)
+    console.error('Webhook processing error:', { type: event.type, detail, stack: error?.stack })
+    // エラー内容をレスポンスに含める（Stripeダッシュボードで直接確認可能）
+    return NextResponse.json({ error: 'Processing failed', detail }, { status: 500 })
   }
 
   return NextResponse.json({ received: true })
