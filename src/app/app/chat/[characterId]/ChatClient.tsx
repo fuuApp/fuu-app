@@ -906,7 +906,8 @@ export default function ChatPage() {
                 content: again[characterId] ?? 'またね！',
                 createdAt: new Date().toISOString(),
               }])
-              setShowSoudanReplies(true)
+              setShowSoudanReplies(false)
+              setShowAlternativeReplies(false)
             }} style={{
               marginTop: 12, background: 'none', border: '1px solid #CE93D8',
               borderRadius: 16, padding: '6px 16px', fontSize: 12,
