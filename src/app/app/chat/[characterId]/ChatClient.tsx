@@ -263,6 +263,31 @@ export default function ChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, guchiSummary])
 
+  // チャット画面滞在中: html/body に chat-active クラスを付与してページスクロールを封じる
+  // iOS はキーボード出現時にページをスクロールしようとするが overflow:hidden で阻止
+  useEffect(() => {
+    document.documentElement.classList.add('chat-active')
+    document.body.classList.add('chat-active')
+    return () => {
+      document.documentElement.classList.remove('chat-active')
+      document.body.classList.remove('chat-active')
+    }
+  }, [])
+
+  // visualViewport でキーボード上端までの高さをリアルタイム計測 → CSS変数に反映
+  // overflow:hidden でページスクロールを封じた上でこれを使うと
+  // コンテナがキーボード分だけ縮み、会話が見えたまま入力できる
+  useEffect(() => {
+    const vv = window.visualViewport
+    const update = () => {
+      const h = vv?.height ?? window.innerHeight
+      document.documentElement.style.setProperty('--chat-height', `${h}px`)
+    }
+    vv?.addEventListener('resize', update)
+    update()
+    return () => vv?.removeEventListener('resize', update)
+  }, [])
+
   useEffect(() => {
     // iOS でキーボードが自動で開いて挨拶メッセージが見えなくなるため auto-focus を無効化
     // （@capacitor/keyboard の resize:body が有効になれば不要だが、UX上もタップで開始が自然）
@@ -613,7 +638,7 @@ export default function ChatPage() {
     <div style={{
       maxWidth: 480, margin: '0 auto',
       display: 'flex', flexDirection: 'column',
-      height: '100dvh', background: '#fdf4f7',
+      height: 'var(--chat-height, 100dvh)', background: '#fdf4f7',
     }}>
       {/* ヘッダー（safe-area-inset-top でステータスバー重なり防止） */}
       <div style={{

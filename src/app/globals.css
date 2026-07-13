@@ -24,6 +24,14 @@ html {
   scroll-behavior: smooth;
 }
 
+/* チャット画面専用: iOSキーボード出現時のページスクロールを防止
+   ChatClient.tsx で html/body に .chat-active クラスを付与・削除する */
+html.chat-active,
+body.chat-active {
+  overflow: hidden;
+  height: 100%;
+}
+
 /* スクロールバーを細く（webkit） */
 ::-webkit-scrollbar {
   width: 4px;
