@@ -74,6 +74,7 @@ function PlansContent() {
   const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false)
   const [cancelDate, setCancelDate] = useState<string | null>(null)
   const [justSubscribed, setJustSubscribed] = useState(false)
+  const [upgradeConfirmPlan, setUpgradeConfirmPlan] = useState<string | null>(null)
 
   // ── プラン・チケット状態をSupabaseから取得する共通関数 ──────────────
   // 初回マウント時 + ネイティブアプリでSafari/Chrome決済後にアプリ復帰した際の
@@ -283,11 +284,9 @@ function PlansContent() {
     }
   }
 
-  // サブスクリプション開始ハンドラ
-
-  const handleSubscribe = async (planId: string) => {
+  // サブスクリプション開始ハンドラ（実行）
+  const executeSubscribe = async (planId: string) => {
     if (!isSupabaseConfigured) {
-      // デモモード：Stripe未設定を案内
       setToastMessage({
         type: 'error',
         text: '⚙️ デモモード：Stripe設定後に決済が使えます（STRIPE_SETUP.md を参照）',
@@ -330,8 +329,76 @@ function PlansContent() {
     }
   }
 
+  // サブスクリプション開始ハンドラ（確認モーダルを挟む）
+  const handleSubscribe = (planId: string) => {
+    // 既存の有料プランから変更する場合（アップグレード・ダウングレード）は確認モーダルを表示
+    // トライアル/解約済みは Stripe Checkout に直接進む（Stripe 側で確認画面が出る）
+    if (currentPlan === 'standard' || currentPlan === 'premium') {
+      setUpgradeConfirmPlan(planId)
+      return
+    }
+    executeSubscribe(planId)
+  }
+
   return (
     <>
+    {/* プラン変更確認モーダル（既存サブスク持ちユーザーのワンクリック誤課金防止） */}
+    {upgradeConfirmPlan && (() => {
+      const plan = PLANS.find(p => p.id === upgradeConfirmPlan)
+      const isUpgrade = upgradeConfirmPlan === 'premium' && currentPlan === 'standard'
+      const isDowngrade = upgradeConfirmPlan === 'standard' && currentPlan === 'premium'
+      return (
+        <div style={{ position:'fixed',inset:0,zIndex:100,background:'rgba(0,0,0,0.55)',display:'flex',alignItems:'flex-end',justifyContent:'center' }}>
+          <div style={{ width:'100%',maxWidth:480,background:'#fff',borderRadius:'20px 20px 0 0',padding:'28px 24px 44px',boxShadow:'0 -4px 20px rgba(0,0,0,0.15)' }}>
+            <div style={{ fontSize:28,textAlign:'center',marginBottom:10 }}>💳</div>
+            <div style={{ fontWeight:700,fontSize:17,color:'#333',textAlign:'center',marginBottom:8 }}>
+              {isUpgrade ? 'プレミアムにアップグレード' : isDowngrade ? 'スタンダードにダウングレード' : 'プラン変更の確認'}
+            </div>
+
+            {/* 変更内容サマリー */}
+            <div style={{ background:'#FCE4EC',border:'1px solid #F48FB1',borderRadius:14,padding:'14px 16px',marginBottom:14,fontSize:13,color:'#C2185B',lineHeight:1.9,textAlign:'center' }}>
+              <div style={{ fontSize:15,fontWeight:700,marginBottom:4 }}>
+                {currentPlan === 'premium' ? 'プレミアム（¥980/月）' : 'スタンダード（¥300/月）'}
+                {' → '}
+                {plan?.name}（¥{plan?.price.toLocaleString()}/月）
+              </div>
+              {isUpgrade && (
+                <div style={{ fontSize:12,color:'#E91E63' }}>
+                  今月の日割り分が即時請求されます。<br />
+                  次回更新日から¥{plan?.price.toLocaleString()}/月になります。
+                </div>
+              )}
+              {isDowngrade && (
+                <div style={{ fontSize:12,color:'#E91E63' }}>
+                  今の期間終了後にスタンダードへ切り替わります。<br />
+                  それまでプレミアムを引き続きご利用いただけます。
+                </div>
+              )}
+            </div>
+
+            <div style={{ display:'flex',gap:10,marginTop:4 }}>
+              <button
+                onClick={() => setUpgradeConfirmPlan(null)}
+                style={{ flex:1,background:'#f5f5f5',border:'none',borderRadius:14,padding:'14px 0',fontSize:14,color:'#666',cursor:'pointer',fontFamily:'inherit' }}
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={() => {
+                  const planId = upgradeConfirmPlan
+                  setUpgradeConfirmPlan(null)
+                  executeSubscribe(planId)
+                }}
+                style={{ flex:1,background:'linear-gradient(135deg,#C2185B,#880E4F)',border:'none',borderRadius:14,padding:'14px 0',fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:'inherit' }}
+              >
+                {isUpgrade ? 'アップグレードする' : isDowngrade ? 'ダウングレードを予約' : '変更する'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )
+    })()}
+
     <div style={{ maxWidth: 480, margin: '0 auto', background: '#fdf4f7', minHeight: '100dvh' }}>
 
       {/* ヘッダー */}
