@@ -141,7 +141,7 @@ export async function POST(req: NextRequest) {
         }
         await stripe.subscriptions.update(existingSubscriptionId, {
           items: [{ id: currentSub.items.data[0].id, price: priceId }],
-          proration_behavior: 'create_prorations',
+          proration_behavior: 'none',
           metadata: { userId: userId ?? '', plan },
         })
         return NextResponse.json({ updated: true })
