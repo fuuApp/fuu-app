@@ -154,10 +154,22 @@ export async function POST(req: NextRequest) {
           promotionCodeId = codes.data[0].id
         }
 
+        // 顧客のデフォルト支払い方法を取得してサブスクに明示的に設定
+        // （Apple Pay / 別カードに変更した場合も確実に反映させるため）
+        let defaultPaymentMethodId: string | undefined
+        if (existingCustomerId) {
+          const customer = await stripe.customers.retrieve(existingCustomerId)
+          if (customer && !('deleted' in customer)) {
+            const pm = customer.invoice_settings?.default_payment_method
+            if (pm) defaultPaymentMethodId = typeof pm === 'string' ? pm : pm.id
+          }
+        }
+
         await stripe.subscriptions.update(existingSubscriptionId, {
           items: [{ id: currentSub.items.data[0].id, price: priceId }],
           proration_behavior: 'none',
           ...(promotionCodeId ? { promotion_code: promotionCodeId } : {}),
+          ...(defaultPaymentMethodId ? { default_payment_method: defaultPaymentMethodId } : {}),
           metadata: { userId: userId ?? '', plan },
         })
         return NextResponse.json({ updated: true })
