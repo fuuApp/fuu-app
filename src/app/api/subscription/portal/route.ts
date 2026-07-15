@@ -8,7 +8,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId, email, upgradeTo } = await req.json()
+    const { userId, email, upgradeTo, returnTo } = await req.json()
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://fuu-app.vercel.app'
 
     let customerId: string | null = null
@@ -34,7 +34,9 @@ export async function POST(req: NextRequest) {
     // 決済手段の変更のみ（サブスク更新機能は不要）
     const session = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${baseUrl}/app/plans?payment_updated=true${upgradeTo ? `&upgrade_to=${upgradeTo}` : ''}`,
+      return_url: returnTo === 'settings'
+        ? `${baseUrl}/app/settings`
+        : `${baseUrl}/app/plans?payment_updated=true${upgradeTo ? `&upgrade_to=${upgradeTo}` : ''}`,
       flow_data: {
         type: 'payment_method_update',
       },
