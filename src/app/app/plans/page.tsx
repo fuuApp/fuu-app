@@ -364,8 +364,8 @@ function PlansContent() {
               </div>
               {isUpgrade && (
                 <div style={{ fontSize:12,color:'#E91E63' }}>
-                  今月の日割り分が即時請求されます。<br />
-                  次回更新日から¥{plan?.price.toLocaleString()}/月になります。
+                  今すぐプレミアム機能が使えます。<br />
+                  次回更新日から¥{plan?.price.toLocaleString()}/月になります。日割り請求はありません。
                 </div>
               )}
               {isDowngrade && (
