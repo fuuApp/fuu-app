@@ -102,7 +102,8 @@ export default function JournalPage() {
           </div>
         )}
         {!loading && journals.map((journal,index) => {
-          const isSoudan = journal.reframed.includes('📝')
+          const reframed = journal.reframed.replace(/\*\*([^*]*)\*\*/g, '$1')
+          const isSoudan = reframed.includes('📝')
           const accent = isSoudan ? '#7B1FA2' : '#E91E63'
           const accentLight = isSoudan ? '#CE93D8' : '#F48FB1'
           const bgLight = isSoudan ? '#F3E5F5' : '#FCE4EC'
@@ -151,14 +152,14 @@ export default function JournalPage() {
             {expandedId !== journal.id && (
               <div style={{ padding:'8px 16px 12px' }}>
                 <div style={{ fontSize:13,color:'#888',lineHeight:1.6,overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical' }}>
-                  {journal.reframed}
+                  {reframed}
                 </div>
               </div>
             )}
             {expandedId === journal.id && (
               <div style={{ padding:16 }}>
                 <div style={{ fontSize:14,color:'#555',lineHeight:1.8,background:bgCard,borderRadius:12,padding:14,borderLeft:`3px solid ${accent}` }}>
-                  {journal.reframed}
+                  {reframed}
                 </div>
               </div>
             )}

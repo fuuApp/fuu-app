@@ -514,7 +514,7 @@ export default function ChatPage() {
         body: JSON.stringify({
           characterId,
           isGuchiSummary: true,  // キャラ人格を使わない中立サマリーモード
-          message: `ユーザーが今日話してくれた内容から、感じていた気持ちを3つの絵文字と一言でまとめてください。形式：\n💭 [感情1]\n💭 [感情2]\n💭 [感情3]\n\nそして最後に一言で締めてください。全体100文字以内。${prevContext}\n\n【ユーザーが話した内容】\n${userMessages}`,
+          message: `ユーザーが今日話してくれた内容から、感じていた気持ちを3つの絵文字と一言でまとめてください。形式：\n💭 [感情1]\n💭 [感情2]\n💭 [感情3]\n\nそして最後に一言で締めてください。全体100文字以内。マークダウン記号（**など）は絶対に使わないでください。${prevContext}\n\n【ユーザーが話した内容】\n${userMessages}`,
           conversationHistory: [],
         }),
       })
@@ -578,7 +578,7 @@ export default function ChatPage() {
         body: JSON.stringify({
           characterId,
           isGuchiSummary: true,
-          message: `ユーザーが今日相談してくれた内容を3つのポイントで整理してください。形式：\n📝 [ポイント1]\n📝 [ポイント2]\n📝 [ポイント3]\n\nそして最後に一言で締めてください。全体100文字以内。\n\n【ユーザーが相談した内容】\n${userMessages}`,
+          message: `ユーザーが今日相談してくれた内容を3つのポイントで整理してください。形式：\n📝 [ポイント1]\n📝 [ポイント2]\n📝 [ポイント3]\n\nそして最後に一言で締めてください。全体100文字以内。マークダウン記号（**など）は絶対に使わないでください。\n\n【ユーザーが相談した内容】\n${userMessages}`,
           conversationHistory: [],
         }),
       })
