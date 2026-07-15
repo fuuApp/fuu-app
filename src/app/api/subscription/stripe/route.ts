@@ -131,7 +131,8 @@ export async function POST(req: NextRequest) {
         const effectiveDate = new Date(currentSub.current_period_end * 1000).toISOString()
         return NextResponse.json({ scheduled: true, effectiveDate })
       } else {
-        // ── アップグレード：即時適用（日割り精算あり） ──────────
+        // ── アップグレード：Billing Portal の確認画面を経由 ──
+        // カード変更・Apple Pay / Google Pay への切り替えも可能
         // スケジュール管理下（ダウングレード予約中 or フェーズ2稼働中）の場合は先にリリース
         if (currentSub.schedule) {
           const schedId = typeof currentSub.schedule === 'string'
@@ -139,12 +140,18 @@ export async function POST(req: NextRequest) {
             : (currentSub.schedule as { id: string }).id
           await stripe.subscriptionSchedules.release(schedId)
         }
-        await stripe.subscriptions.update(existingSubscriptionId, {
-          items: [{ id: currentSub.items.data[0].id, price: priceId }],
-          proration_behavior: 'none',
-          metadata: { userId: userId ?? '', plan },
+        const portalSession = await stripe.billingPortal.sessions.create({
+          customer: existingCustomerId!,
+          return_url: `${baseUrl}/app/plans?success=true&plan=${plan}`,
+          flow_data: {
+            type: 'subscription_update_confirm',
+            subscription_update_confirm: {
+              subscription: existingSubscriptionId,
+              items: [{ id: currentSub.items.data[0].id, price: priceId, quantity: 1 }],
+            },
+          },
         })
-        return NextResponse.json({ updated: true })
+        return NextResponse.json({ url: portalSession.url })
       }
     }
 

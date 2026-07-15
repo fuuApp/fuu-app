@@ -357,15 +357,15 @@ function PlansContent() {
 
             {/* 変更内容サマリー */}
             <div style={{ background:'#FCE4EC',border:'1px solid #F48FB1',borderRadius:14,padding:'14px 16px',marginBottom:14,fontSize:13,color:'#C2185B',lineHeight:1.9,textAlign:'center' }}>
-              <div style={{ fontSize:15,fontWeight:700,marginBottom:4 }}>
+              <div style={{ fontSize:15,fontWeight:700,marginBottom:4,whiteSpace:'nowrap' }}>
                 {currentPlan === 'premium' ? 'プレミアム（¥980/月）' : 'スタンダード（¥300/月）'}
                 {' → '}
                 {plan?.name}（¥{plan?.price.toLocaleString()}/月）
               </div>
               {isUpgrade && (
                 <div style={{ fontSize:12,color:'#E91E63' }}>
-                  今すぐプレミアム機能が使えます。<br />
-                  次回更新日から¥{plan?.price.toLocaleString()}/月になります。日割り請求はありません。
+                  Stripeの確認画面が開きます。<br />
+                  カードの変更・Apple Pay / Google Pay への切り替えも可能です。
                 </div>
               )}
               {isDowngrade && (
@@ -391,7 +391,7 @@ function PlansContent() {
                 }}
                 style={{ flex:1,background:'linear-gradient(135deg,#C2185B,#880E4F)',border:'none',borderRadius:14,padding:'14px 0',fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:'inherit' }}
               >
-                {isUpgrade ? 'アップグレードする' : isDowngrade ? 'ダウングレードを予約' : '変更する'}
+                {isUpgrade ? '決済画面へ進む →' : isDowngrade ? 'ダウングレードを予約' : '変更する'}
               </button>
             </div>
           </div>
