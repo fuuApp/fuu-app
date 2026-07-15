@@ -421,10 +421,13 @@ function PlansContent() {
                 </div>
                 <button
                   onClick={handleOpenPaymentMethodPortal}
-                  style={{ width:'100%',background:'none',border:'1px solid #ddd',borderRadius:10,padding:'10px 0',fontSize:13,color:'#666',cursor:'pointer',fontFamily:'inherit',marginBottom:10 }}
+                  style={{ width:'100%',background:'none',border:'1px solid #ddd',borderRadius:10,padding:'10px 0',fontSize:13,color:'#666',cursor:'pointer',fontFamily:'inherit',marginBottom:4 }}
                 >
                   💳 支払い方法を変更する →
                 </button>
+                <p style={{ fontSize:11,color:'#aaa',textAlign:'center',margin:'0 0 10px',lineHeight:1.5 }}>
+                  変更後は「fuu ふぅに戻る」をタップしてアプリに戻ってください
+                </p>
               </>
             )}
             <div style={{ display:'flex',gap:10,marginTop:4 }}>
