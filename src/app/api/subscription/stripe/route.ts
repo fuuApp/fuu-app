@@ -21,7 +21,7 @@ const PLAN_AMOUNTS: Record<string, number> = {
 
 export async function POST(req: NextRequest) {
   try {
-    const { plan, userId, email } = await req.json()
+    const { plan, userId, email, promoCode } = await req.json()
 
     const priceId = PRICE_MAP[plan]
     if (!priceId) {
@@ -131,8 +131,7 @@ export async function POST(req: NextRequest) {
         const effectiveDate = new Date(currentSub.current_period_end * 1000).toISOString()
         return NextResponse.json({ scheduled: true, effectiveDate })
       } else {
-        // ── アップグレード：Billing Portal の確認画面を経由 ──
-        // カード変更・Apple Pay / Google Pay への切り替えも可能
+        // ── アップグレード：即時適用 ──────────────────────────
         // スケジュール管理下（ダウングレード予約中 or フェーズ2稼働中）の場合は先にリリース
         if (currentSub.schedule) {
           const schedId = typeof currentSub.schedule === 'string'
@@ -140,18 +139,28 @@ export async function POST(req: NextRequest) {
             : (currentSub.schedule as { id: string }).id
           await stripe.subscriptionSchedules.release(schedId)
         }
-        const portalSession = await stripe.billingPortal.sessions.create({
-          customer: existingCustomerId!,
-          return_url: `${baseUrl}/app/plans?success=true&plan=${plan}`,
-          flow_data: {
-            type: 'subscription_update_confirm',
-            subscription_update_confirm: {
-              subscription: existingSubscriptionId,
-              items: [{ id: currentSub.items.data[0].id, price: priceId, quantity: 1 }],
-            },
-          },
+
+        // プロモコードが入力されていれば検索して適用
+        let promotionCodeId: string | undefined
+        if (promoCode) {
+          const codes = await stripe.promotionCodes.list({
+            code: String(promoCode).trim(),
+            active: true,
+            limit: 1,
+          })
+          if (codes.data.length === 0) {
+            return NextResponse.json({ error: '無効なキャンペーンコードです' }, { status: 400 })
+          }
+          promotionCodeId = codes.data[0].id
+        }
+
+        await stripe.subscriptions.update(existingSubscriptionId, {
+          items: [{ id: currentSub.items.data[0].id, price: priceId }],
+          proration_behavior: 'none',
+          ...(promotionCodeId ? { promotion_code: promotionCodeId } : {}),
+          metadata: { userId: userId ?? '', plan },
         })
-        return NextResponse.json({ url: portalSession.url })
+        return NextResponse.json({ updated: true })
       }
     }
 

@@ -75,6 +75,7 @@ function PlansContent() {
   const [cancelDate, setCancelDate] = useState<string | null>(null)
   const [justSubscribed, setJustSubscribed] = useState(false)
   const [upgradeConfirmPlan, setUpgradeConfirmPlan] = useState<string | null>(null)
+  const [promoCode, setPromoCode] = useState('')
 
   // ── プラン・チケット状態をSupabaseから取得する共通関数 ──────────────
   // 初回マウント時 + ネイティブアプリでSafari/Chrome決済後にアプリ復帰した際の
@@ -285,7 +286,24 @@ function PlansContent() {
   }
 
   // サブスクリプション開始ハンドラ（実行）
-  const executeSubscribe = async (planId: string) => {
+  const handleOpenPaymentMethodPortal = async () => {
+    try {
+      const res = await fetch('/api/subscription/portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, email: userEmail }),
+      })
+      const data = await res.json()
+      if (data.url) {
+        setUpgradeConfirmPlan(null)
+        await openStripeCheckout(data.url)
+      }
+    } catch (err) {
+      console.error('Portal error:', err)
+    }
+  }
+
+  const executeSubscribe = async (planId: string, code?: string) => {
     if (!isSupabaseConfigured) {
       setToastMessage({
         type: 'error',
@@ -299,7 +317,7 @@ function PlansContent() {
       const res = await fetch('/api/subscription/stripe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: planId, userId, email: userEmail }),
+        body: JSON.stringify({ plan: planId, userId, email: userEmail, promoCode: code || undefined }),
       })
 
       const data = await res.json()
@@ -364,8 +382,8 @@ function PlansContent() {
               </div>
               {isUpgrade && (
                 <div style={{ fontSize:12,color:'#E91E63' }}>
-                  Stripeの確認画面が開きます。<br />
-                  カードの変更・Apple Pay / Google Pay への切り替えも可能です。
+                  今すぐプレミアム機能が使えます。<br />
+                  次回更新日から¥{plan?.price.toLocaleString()}/月になります。日割り請求はありません。
                 </div>
               )}
               {isDowngrade && (
@@ -376,9 +394,31 @@ function PlansContent() {
               )}
             </div>
 
+            {isUpgrade && (
+              <>
+                {/* プロモコード入力 */}
+                <div style={{ marginBottom:10 }}>
+                  <div style={{ fontSize:11,color:'#999',marginBottom:4 }}>キャンペーンコード（任意）</div>
+                  <input
+                    type="text"
+                    placeholder="コードを入力"
+                    value={promoCode}
+                    onChange={e => setPromoCode(e.target.value.toUpperCase())}
+                    style={{ width:'100%',boxSizing:'border-box',padding:'10px 12px',border:'1px solid #ddd',borderRadius:10,fontSize:14,fontFamily:'inherit',outline:'none' }}
+                  />
+                </div>
+                {/* 別カード・Apple Pay */}
+                <button
+                  onClick={handleOpenPaymentMethodPortal}
+                  style={{ width:'100%',background:'none',border:'1px solid #ddd',borderRadius:10,padding:'10px 0',fontSize:13,color:'#666',cursor:'pointer',fontFamily:'inherit',marginBottom:10 }}
+                >
+                  💳 別のカード・Apple Pay / Google Pay で支払う →
+                </button>
+              </>
+            )}
             <div style={{ display:'flex',gap:10,marginTop:4 }}>
               <button
-                onClick={() => setUpgradeConfirmPlan(null)}
+                onClick={() => { setUpgradeConfirmPlan(null); setPromoCode('') }}
                 style={{ flex:1,background:'#f5f5f5',border:'none',borderRadius:14,padding:'14px 0',fontSize:14,color:'#666',cursor:'pointer',fontFamily:'inherit' }}
               >
                 キャンセル
@@ -386,12 +426,14 @@ function PlansContent() {
               <button
                 onClick={() => {
                   const planId = upgradeConfirmPlan
+                  const code = promoCode.trim() || undefined
                   setUpgradeConfirmPlan(null)
-                  executeSubscribe(planId)
+                  setPromoCode('')
+                  executeSubscribe(planId, code)
                 }}
                 style={{ flex:1,background:'linear-gradient(135deg,#C2185B,#880E4F)',border:'none',borderRadius:14,padding:'14px 0',fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:'inherit' }}
               >
-                {isUpgrade ? '決済画面へ進む →' : isDowngrade ? 'ダウングレードを予約' : '変更する'}
+                {isUpgrade ? 'アップグレードする' : isDowngrade ? 'ダウングレードを予約' : '変更する'}
               </button>
             </div>
           </div>
