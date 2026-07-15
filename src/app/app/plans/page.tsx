@@ -395,16 +395,24 @@ function PlansContent() {
             </div>
 
             {isUpgrade && (
-              <div style={{ marginBottom:10 }}>
-                <div style={{ fontSize:11,color:'#999',marginBottom:4 }}>キャンペーンコード（任意）</div>
-                <input
-                  type="text"
-                  placeholder="コードを入力"
-                  value={promoCode}
-                  onChange={e => setPromoCode(e.target.value.toUpperCase())}
-                  style={{ width:'100%',boxSizing:'border-box',padding:'10px 12px',border:'1px solid #ddd',borderRadius:10,fontSize:14,fontFamily:'inherit',outline:'none' }}
-                />
-              </div>
+              <>
+                <div style={{ marginBottom:10 }}>
+                  <div style={{ fontSize:11,color:'#999',marginBottom:4 }}>キャンペーンコード（任意）</div>
+                  <input
+                    type="text"
+                    placeholder="コードを入力"
+                    value={promoCode}
+                    onChange={e => setPromoCode(e.target.value.toUpperCase())}
+                    style={{ width:'100%',boxSizing:'border-box',padding:'10px 12px',border:'1px solid #ddd',borderRadius:10,fontSize:14,fontFamily:'inherit',outline:'none' }}
+                  />
+                </div>
+                <button
+                  onClick={handleOpenPaymentMethodPortal}
+                  style={{ width:'100%',background:'none',border:'1px solid #ddd',borderRadius:10,padding:'10px 0',fontSize:13,color:'#666',cursor:'pointer',fontFamily:'inherit',marginBottom:10 }}
+                >
+                  💳 支払い方法を変更する →
+                </button>
+              </>
             )}
             <div style={{ display:'flex',gap:10,marginTop:4 }}>
               <button
@@ -421,9 +429,9 @@ function PlansContent() {
                   setPromoCode('')
                   executeSubscribe(planId, code)
                 }}
-                style={{ flex:1,background:'linear-gradient(135deg,#C2185B,#880E4F)',border:'none',borderRadius:14,padding:'14px 0',fontSize:14,fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:'inherit' }}
+                style={{ flex:1,background:'linear-gradient(135deg,#C2185B,#880E4F)',border:'none',borderRadius:14,padding:'14px 0',fontSize:13,fontWeight:700,color:'#fff',cursor:'pointer',fontFamily:'inherit',lineHeight:1.4 }}
               >
-                {isUpgrade ? '登録済み支払い方法でアップグレード' : isDowngrade ? 'ダウングレードを予約' : '変更する'}
+                {isUpgrade ? <>登録済み支払い方法で<br />アップグレードする</> : isDowngrade ? 'ダウングレードを予約' : '変更する'}
               </button>
             </div>
           </div>
