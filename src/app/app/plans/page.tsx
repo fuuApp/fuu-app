@@ -425,8 +425,8 @@ function PlansContent() {
                 >
                   💳 支払い方法を変更する →
                 </button>
-                <p style={{ fontSize:11,color:'#aaa',textAlign:'center',margin:'0 0 10px',lineHeight:1.5 }}>
-                  変更後は「fuu ふぅに戻る」をタップしてアプリに戻ってください
+                <p style={{ fontSize:13,color:'#e53935',textAlign:'center',margin:'0 0 10px',lineHeight:1.6,fontWeight:600 }}>
+                  ⚠️ 変更後は「fuu ふぅに戻る」をタップして<br />アプリに戻ってください
                 </p>
               </>
             )}
