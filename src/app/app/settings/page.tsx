@@ -440,6 +440,35 @@ export default function SettingsPage() {
                 </button>
               </div>
             )}
+            {(userPlan === 'standard' || userPlan === 'premium') && !withdrawalScheduled && (
+              <div style={{ marginTop:10,background:'#F5F5F5',border:'1.5px solid #E0E0E0',borderRadius:16,padding:'14px 16px' }}>
+                <div style={{ fontWeight:700,fontSize:13,color:'#555',marginBottom:4 }}>🔄 決済方法を変更する</div>
+                <div style={{ fontSize:12,color:'#888',lineHeight:1.8,marginBottom:12 }}>
+                  カード・Apple Pay・Google Pay を追加・変更できます。<br />
+                  変更後、プランページからアップグレードすると新しい決済方法が使われます。
+                </div>
+                <button
+                  onClick={async () => {
+                    try {
+                      const { createClient } = await import('@/lib/supabase')
+                      const supabase = createClient()
+                      const { data: { user } } = await supabase.auth.getUser()
+                      const res = await fetch('/api/subscription/portal', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId: user?.id, email: user?.email }),
+                      })
+                      const data = await res.json()
+                      if (data.url) { window.open(data.url, '_blank') }
+                      else { alert('エラーが発生しました。しばらくしてから再試行してください。') }
+                    } catch { alert('エラーが発生しました。しばらくしてから再試行してください。') }
+                  }}
+                  style={{ width:'100%',padding:'11px',background:'none',border:'1.5px solid #BDBDBD',borderRadius:50,fontSize:13,color:'#555',cursor:'pointer',fontFamily:'inherit',fontWeight:600 }}
+                >
+                  決済方法を変更する →
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
