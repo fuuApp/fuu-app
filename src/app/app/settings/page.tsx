@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { openStripeCheckout } from '@/lib/platform'
 
 const NICKNAME_KEY = 'fuu_nickname'
 const NICKNAME_SET_KEY = 'fuu_nickname_set'
@@ -459,7 +460,7 @@ export default function SettingsPage() {
                         body: JSON.stringify({ userId: user?.id, email: user?.email }),
                       })
                       const data = await res.json()
-                      if (data.url) { window.open(data.url, '_blank') }
+                      if (data.url) { await openStripeCheckout(data.url) }
                       else { alert('エラーが発生しました。しばらくしてから再試行してください。') }
                     } catch { alert('エラーが発生しました。しばらくしてから再試行してください。') }
                   }}
