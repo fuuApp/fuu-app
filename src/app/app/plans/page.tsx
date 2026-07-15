@@ -217,6 +217,15 @@ function PlansContent() {
     } else if (canceled === 'true') {
       setToastMessage({ type: 'error', text: '決済をキャンセルしました。いつでも再開できます。' })
       router.replace('/app/plans')
+    } else if (searchParams.get('payment_updated') === 'true') {
+      // 決済方法変更後にアプリへ戻ってきた → モーダルを自動表示・プロモコード復元
+      const upgradeTo = searchParams.get('upgrade_to') ?? 'premium'
+      const savedPromo = sessionStorage.getItem('fuu_pending_promo') ?? ''
+      sessionStorage.removeItem('fuu_pending_promo')
+      router.replace('/app/plans')
+      setToastMessage({ type: 'success', text: '✅ 決済方法を更新しました。そのままアップグレードできます。' })
+      if (savedPromo) setPromoCode(savedPromo)
+      setUpgradeConfirmPlan(upgradeTo)
     }
   }, [searchParams, router])
 
@@ -288,14 +297,18 @@ function PlansContent() {
   // サブスクリプション開始ハンドラ（実行）
   const handleOpenPaymentMethodPortal = async () => {
     try {
+      // 戻ってきたときのためにプロモコードを保存
+      if (promoCode) sessionStorage.setItem('fuu_pending_promo', promoCode)
+      const targetPlan = upgradeConfirmPlan ?? 'premium'
       const res = await fetch('/api/subscription/portal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, email: userEmail }),
+        body: JSON.stringify({ userId, email: userEmail, upgradeTo: targetPlan }),
       })
       const data = await res.json()
       if (data.url) {
         setUpgradeConfirmPlan(null)
+        setPromoCode('')
         await openStripeCheckout(data.url)
       }
     } catch (err) {
