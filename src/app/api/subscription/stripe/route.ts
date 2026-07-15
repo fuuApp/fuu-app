@@ -167,7 +167,7 @@ export async function POST(req: NextRequest) {
 
         await stripe.subscriptions.update(existingSubscriptionId, {
           items: [{ id: currentSub.items.data[0].id, price: priceId }],
-          proration_behavior: 'none',
+          proration_behavior: 'always_invoice',
           ...(promotionCodeId ? { promotion_code: promotionCodeId } : {}),
           ...(defaultPaymentMethodId ? { default_payment_method: defaultPaymentMethodId } : {}),
           metadata: { userId: userId ?? '', plan },

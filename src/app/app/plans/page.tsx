@@ -396,7 +396,8 @@ function PlansContent() {
               {isUpgrade && (
                 <div style={{ fontSize:12,color:'#E91E63' }}>
                   今すぐプレミアム機能が使えます。<br />
-                  次回更新日から¥{plan?.price.toLocaleString()}/月になります。日割り請求はありません。
+                  ¥980と¥300の差額（¥680）を残り日数で日割りした金額が即時請求されます。<br />
+                  次回更新日から¥980/月になります。
                 </div>
               )}
               {isDowngrade && (
