@@ -4,9 +4,9 @@ type CapacitorConfig = any;
 
 const config: CapacitorConfig = {
   // App Store / Google Play の Bundle ID（逆ドメイン形式）
-  // 例：com.ogdstudio.fuu
+  // 例：com.ogawave.fuu
   // ※ Apple Developer / Google Play に登録するIDと完全一致させること
-  appId: 'com.ogdstudio.fuu',
+  appId: 'com.ogawave.fuu',
 
   appName: 'fuu ふぅ',
 
