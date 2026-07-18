@@ -987,140 +987,130 @@ export default function ChatPage() {
         </div>
       )}
 
-      {/* モード切り替えトグル */}
+      {/* 通常入力エリア（モード切替・選択肢ボタン含む） */}
       {nicknamePhase === 'done' && (
         <div style={{
-          padding: '8px 12px 4px', display: 'flex', gap: 8, background: '#fdf4f7',
-        }}>
-          <button
-            onClick={() => { setChatMode('guchi'); setShowSoudanReplies(false) }}
-            style={{
-              flex: 1, padding: '7px 0', borderRadius: 20, fontSize: 12, fontWeight: 700,
-              border: chatMode === 'guchi' ? '1.5px solid #E91E63' : '1.5px solid #eee',
-              background: chatMode === 'guchi' ? '#FCE4EC' : '#fff',
-              color: chatMode === 'guchi' ? '#E91E63' : '#bbb',
-              cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s',
-            }}
-          >💬 愚痴聞きモード</button>
-          <button
-            onClick={() => { setChatMode('soudan'); setShowSoudanReplies(false) }}
-            style={{
-              flex: 1, padding: '7px 0', borderRadius: 20, fontSize: 12, fontWeight: 700,
-              border: chatMode === 'soudan' ? '1.5px solid #7B1FA2' : '1.5px solid #eee',
-              background: chatMode === 'soudan' ? '#F3E5F5' : '#fff',
-              color: chatMode === 'soudan' ? '#7B1FA2' : '#bbb',
-              cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s',
-            }}
-          >💡 相談モード</button>
-        </div>
-      )}
-
-      {/* クイック返信（愚痴聞きモード）- キーボード表示中は非表示で会話エリアを確保 */}
-      {nicknamePhase === 'done' && showQuickReplies && !loading && chatMode === 'guchi' && !inputFocused && (
-        <div style={{
-          padding: '4px 12px 4px',
-          display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center',
-          background: '#fdf4f7',
-        }}>
-          {quickReplies.map(reply => (
-            <button key={reply} onClick={() => journalLoaded && handleSend(reply)} style={{
-              background: '#fff', border: '1.5px solid #F48FB1', borderRadius: 20,
-              padding: '7px 14px', fontSize: 13, color: '#E91E63',
-              cursor: journalLoaded ? 'pointer' : 'not-allowed',
-              fontFamily: 'inherit', opacity: journalLoaded ? 1 : 0.6,
-            }}
-              onMouseEnter={e => { if (journalLoaded) e.currentTarget.style.background = '#FCE4EC' }}
-              onMouseLeave={e => { e.currentTarget.style.background = '#fff' }}
-            >{reply}</button>
-          ))}
-        </div>
-      )}
-
-      {/* 相談モード：深掘りクイック返信（①②③が出た後に表示）- キーボード表示中は非表示 */}
-      {nicknamePhase === 'done' && showSoudanReplies && !loading && chatMode === 'soudan' && !inputFocused && (
-        <div style={{
-          padding: '4px 12px 4px',
-          display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center',
-          background: '#fdf4f7',
-        }}>
-          {/* ①②③ 深掘りボタン */}
-          {[
-            { label: '①を詳しく', msg: '①について詳しく教えて' },
-            { label: '②を詳しく', msg: '②について詳しく教えて' },
-            { label: '③を詳しく', msg: '③について詳しく教えて' },
-          ].map(item => (
-            <button key={item.label}
-              onClick={() => { handleSend(item.msg); setShowSoudanReplies(false) }}
-              style={{
-                background: '#F3E5F5', border: '1.5px solid #CE93D8', borderRadius: 20,
-                padding: '7px 14px', fontSize: 13, color: '#7B1FA2',
-                cursor: 'pointer', fontFamily: 'inherit',
-              }}
-            >{item.label}</button>
-          ))}
-          {/* ④⑤⑥ 別の提案ボタン */}
-          <button
-            onClick={() => { handleSend('さっきとは全く違う視点で、④⑤⑥として別の提案を3つ出してほしい'); setShowSoudanReplies(false) }}
-            style={{
-              background: '#FFF8E1', border: '1.5px solid #FFD54F', borderRadius: 20,
-              padding: '7px 14px', fontSize: 13, color: '#F57F17',
-              cursor: 'pointer', fontFamily: 'inherit',
-            }}
-          >④⑤⑥ 他の提案ももらう</button>
-          {/* 愚痴聞きモードに戻る */}
-          <button
-            onClick={() => { setChatMode('guchi'); setShowSoudanReplies(false) }}
-            style={{
-              background: '#fff', border: '1.5px solid #ddd', borderRadius: 20,
-              padding: '7px 14px', fontSize: 12, color: '#aaa',
-              cursor: 'pointer', fontFamily: 'inherit',
-            }}
-          >やっぱり聞いてほしいだけ</button>
-        </div>
-      )}
-
-      {/* 相談モード：④⑤⑥追加提案後の深掘りクイック返信 */}
-      {nicknamePhase === 'done' && showAlternativeReplies && !loading && chatMode === 'soudan' && !inputFocused && (
-        <div style={{
-          padding: '4px 12px 4px',
-          display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center',
-          background: '#fdf4f7',
-        }}>
-          {[
-            { label: '④を詳しく', msg: '④について詳しく教えて' },
-            { label: '⑤を詳しく', msg: '⑤について詳しく教えて' },
-            { label: '⑥を詳しく', msg: '⑥について詳しく教えて' },
-          ].map(item => (
-            <button key={item.label}
-              onClick={() => { handleSend(item.msg); setShowAlternativeReplies(false) }}
-              style={{
-                background: '#FFF3E0', border: '1.5px solid #FFB74D', borderRadius: 20,
-                padding: '7px 14px', fontSize: 13, color: '#E65100',
-                cursor: 'pointer', fontFamily: 'inherit',
-              }}
-            >{item.label}</button>
-          ))}
-          {/* やっぱり①②③を選ぶ */}
-          <button
-            onClick={() => { setShowAlternativeReplies(false); setShowSoudanReplies(true) }}
-            style={{
-              background: '#F3E5F5', border: '1.5px solid #CE93D8', borderRadius: 20,
-              padding: '7px 14px', fontSize: 13, color: '#7B1FA2',
-              cursor: 'pointer', fontFamily: 'inherit',
-            }}
-          >やっぱり①②③から選ぶ</button>
-        </div>
-      )}
-
-      {/* 通常入力エリア */}
-      {nicknamePhase === 'done' && (
-        <div style={{
-          background: '#fff', borderTop: '1px solid #FCE4EC',
-          // キーボード表示中はsafe-area-inset-bottomが不要（キーボードがその領域をカバー）
+          background: '#fdf4f7', borderTop: '1px solid #FCE4EC',
           paddingBottom: inputFocused ? 4 : 'max(4px, env(safe-area-inset-bottom))', flexShrink: 0,
         }}>
+          {/* モード切り替えトグル */}
+          <div style={{
+            padding: '8px 12px 4px', display: 'flex', gap: 8,
+          }}>
+            <button
+              onClick={() => { setChatMode('guchi'); setShowSoudanReplies(false) }}
+              style={{
+                flex: 1, padding: '7px 0', borderRadius: 20, fontSize: 12, fontWeight: 700,
+                border: chatMode === 'guchi' ? '1.5px solid #E91E63' : '1.5px solid #eee',
+                background: chatMode === 'guchi' ? '#FCE4EC' : '#fff',
+                color: chatMode === 'guchi' ? '#E91E63' : '#bbb',
+                cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s',
+              }}
+            >💬 愚痴聞きモード</button>
+            <button
+              onClick={() => { setChatMode('soudan'); setShowSoudanReplies(false) }}
+              style={{
+                flex: 1, padding: '7px 0', borderRadius: 20, fontSize: 12, fontWeight: 700,
+                border: chatMode === 'soudan' ? '1.5px solid #7B1FA2' : '1.5px solid #eee',
+                background: chatMode === 'soudan' ? '#F3E5F5' : '#fff',
+                color: chatMode === 'soudan' ? '#7B1FA2' : '#bbb',
+                cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s',
+              }}
+            >💡 相談モード</button>
+          </div>
+
+          {/* クイック返信（愚痴聞きモード）- キーボード表示中も常に表示 */}
+          {showQuickReplies && !loading && chatMode === 'guchi' && (
+            <div style={{
+              padding: '4px 12px 4px',
+              display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center',
+            }}>
+              {quickReplies.map(reply => (
+                <button key={reply} onClick={() => journalLoaded && handleSend(reply)} style={{
+                  background: '#fff', border: '1.5px solid #F48FB1', borderRadius: 20,
+                  padding: '7px 14px', fontSize: 13, color: '#E91E63',
+                  cursor: journalLoaded ? 'pointer' : 'not-allowed',
+                  fontFamily: 'inherit', opacity: journalLoaded ? 1 : 0.6,
+                }}
+                  onMouseEnter={e => { if (journalLoaded) e.currentTarget.style.background = '#FCE4EC' }}
+                  onMouseLeave={e => { e.currentTarget.style.background = '#fff' }}
+                >{reply}</button>
+              ))}
+            </div>
+          )}
+
+          {/* 相談モード：深掘りクイック返信（①②③）- キーボード表示中も常に表示 */}
+          {showSoudanReplies && !loading && chatMode === 'soudan' && (
+            <div style={{
+              padding: '4px 12px 4px',
+              display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center',
+            }}>
+              {[
+                { label: '①を詳しく', msg: '①について詳しく教えて' },
+                { label: '②を詳しく', msg: '②について詳しく教えて' },
+                { label: '③を詳しく', msg: '③について詳しく教えて' },
+              ].map(item => (
+                <button key={item.label}
+                  onClick={() => { handleSend(item.msg); setShowSoudanReplies(false) }}
+                  style={{
+                    background: '#F3E5F5', border: '1.5px solid #CE93D8', borderRadius: 20,
+                    padding: '7px 14px', fontSize: 13, color: '#7B1FA2',
+                    cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >{item.label}</button>
+              ))}
+              <button
+                onClick={() => { handleSend('さっきとは全く違う視点で、④⑤⑥として別の提案を3つ出してほしい'); setShowSoudanReplies(false) }}
+                style={{
+                  background: '#FFF8E1', border: '1.5px solid #FFD54F', borderRadius: 20,
+                  padding: '7px 14px', fontSize: 13, color: '#F57F17',
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }}
+              >④⑤⑥ 他の提案ももらう</button>
+              <button
+                onClick={() => { setChatMode('guchi'); setShowSoudanReplies(false) }}
+                style={{
+                  background: '#fff', border: '1.5px solid #ddd', borderRadius: 20,
+                  padding: '7px 14px', fontSize: 12, color: '#aaa',
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }}
+              >やっぱり聞いてほしいだけ</button>
+            </div>
+          )}
+
+          {/* 相談モード：④⑤⑥追加提案後の深掘り - キーボード表示中も常に表示 */}
+          {showAlternativeReplies && !loading && chatMode === 'soudan' && (
+            <div style={{
+              padding: '4px 12px 4px',
+              display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center',
+            }}>
+              {[
+                { label: '④を詳しく', msg: '④について詳しく教えて' },
+                { label: '⑤を詳しく', msg: '⑤について詳しく教えて' },
+                { label: '⑥を詳しく', msg: '⑥について詳しく教えて' },
+              ].map(item => (
+                <button key={item.label}
+                  onClick={() => { handleSend(item.msg); setShowAlternativeReplies(false) }}
+                  style={{
+                    background: '#FFF3E0', border: '1.5px solid #FFB74D', borderRadius: 20,
+                    padding: '7px 14px', fontSize: 13, color: '#E65100',
+                    cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >{item.label}</button>
+              ))}
+              <button
+                onClick={() => { setShowAlternativeReplies(false); setShowSoudanReplies(true) }}
+                style={{
+                  background: '#F3E5F5', border: '1.5px solid #CE93D8', borderRadius: 20,
+                  padding: '7px 14px', fontSize: 13, color: '#7B1FA2',
+                  cursor: 'pointer', fontFamily: 'inherit',
+                }}
+              >やっぱり①②③から選ぶ</button>
+            </div>
+          )}
+
           {/* 入力行 */}
-          <div style={{ padding: '10px 12px 6px', display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+          <div style={{ padding: '10px 12px 6px', display: 'flex', gap: 8, alignItems: 'flex-end', background: '#fff' }}>
             <textarea
               ref={inputRef}
               value={input}
