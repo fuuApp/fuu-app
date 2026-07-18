@@ -3,6 +3,10 @@
 import Link from 'next/link'
 import Image from 'next/image'
 
+// TODO: リリース後にストアURLを更新する
+const APP_STORE_URL = '#'      // App Store URL（例: https://apps.apple.com/app/fuu/id1234567890）
+const GOOGLE_PLAY_URL = '#'    // Google Play URL（例: https://play.google.com/store/apps/details?id=com.fuu.app）
+
 export default function LandingPage() {
   return (
     <main style={{ maxWidth: 480, margin: '0 auto', background: '#fdf4f7', minHeight: '100vh' }}>
@@ -38,9 +42,73 @@ export default function LandingPage() {
         <p style={{ fontSize: 17, color: '#555', lineHeight: 1.8, margin: '0 0 8px' }}>
           育児中のママが、<br />遠慮なく話せる場所。
         </p>
-        <p style={{ fontSize: 14, color: '#888', marginBottom: 28 }}>
+        <p style={{ fontSize: 14, color: '#888', marginBottom: 20 }}>
           AIのママ友が、いつでもそばにいます。
         </p>
+
+        {/* ── アプリダウンロード ── */}
+        <p style={{ fontSize: 12, color: '#aaa', marginBottom: 10 }}>アプリから始める</p>
+        <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
+          {/* iOS App Store */}
+          <a
+            href={APP_STORE_URL}
+            onClick={APP_STORE_URL === '#' ? (e) => e.preventDefault() : undefined}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              background: '#1a1a1a', color: '#fff',
+              padding: '10px 18px', borderRadius: 10,
+              textDecoration: 'none',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+              minWidth: 140, opacity: APP_STORE_URL === '#' ? 0.55 : 1,
+              cursor: APP_STORE_URL === '#' ? 'default' : 'pointer',
+            }}
+            title={APP_STORE_URL === '#' ? '近日公開予定' : 'App Storeでダウンロード'}
+          >
+            <svg width="16" height="20" viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+              <path d="M11.182.008C11.148-.03 9.923.023 8.857 1.18c-1.066 1.156-.902 2.482-.878 2.516.024.034 1.52.087 2.475-1.258.955-1.345.762-2.391.728-2.43zm3.314 11.733c-.048-.096-2.325-1.234-2.113-3.422.212-2.189 1.675-2.789 1.698-2.854.023-.065-.597-.79-1.254-1.157a3.692 3.692 0 0 0-1.563-.434c-.108-.003-.483-.095-1.254.116-.508.139-1.653.589-1.968.607-.316.018-1.256-.522-2.267-.665-.647-.125-1.333.131-1.824.328-.49.196-1.422.754-2.074 2.237-.652 1.482-.311 3.83-.067 4.56.244.729.625 1.924 1.273 2.796.576.984 1.34 1.667 1.659 1.899.319.232 1.219.386 1.843.067.502-.308 1.408-.485 1.766-.472.357.013 1.061.154 1.782.539.571.197 1.111.115 1.652-.105.541-.221 1.324-1.059 2.238-2.758.347-.79.505-1.217.473-1.282z"/>
+            </svg>
+            <div style={{ textAlign: 'left', lineHeight: 1.3 }}>
+              <div style={{ fontSize: 9, opacity: 0.8 }}>
+                {APP_STORE_URL === '#' ? '近日公開予定' : 'Download on the'}
+              </div>
+              <div style={{ fontSize: 15, fontWeight: 700 }}>App Store</div>
+            </div>
+          </a>
+
+          {/* Android Google Play */}
+          <a
+            href={GOOGLE_PLAY_URL}
+            onClick={GOOGLE_PLAY_URL === '#' ? (e) => e.preventDefault() : undefined}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              background: '#1a1a1a', color: '#fff',
+              padding: '10px 18px', borderRadius: 10,
+              textDecoration: 'none',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+              minWidth: 140, opacity: GOOGLE_PLAY_URL === '#' ? 0.55 : 1,
+              cursor: GOOGLE_PLAY_URL === '#' ? 'default' : 'pointer',
+            }}
+            title={GOOGLE_PLAY_URL === '#' ? '近日公開予定' : 'Google Playでダウンロード'}
+          >
+            <svg width="18" height="20" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3.18 23.76c.3.17.64.24.99.2L14.9 12 11.1 8.2 3.18 23.76zm17.14-10.98L17.4 11.3l-3.64 3.64 3.67 3.67 2.87-1.62c.82-.47.82-1.55-.02-2.01zM2.34.27C2.13.5 2 .84 2 1.27v21.46c0 .43.13.77.35 1l.1.09 12.02-12.02v-.27L2.44.18l-.1.09zM14.9 12l2.5-2.5-2.87-1.62c-.84-.47-1.77-.02-2.08.87L14.9 12z"/>
+            </svg>
+            <div style={{ textAlign: 'left', lineHeight: 1.3 }}>
+              <div style={{ fontSize: 9, opacity: 0.8 }}>
+                {GOOGLE_PLAY_URL === '#' ? '近日公開予定' : 'GET IT ON'}
+              </div>
+              <div style={{ fontSize: 15, fontWeight: 700 }}>Google Play</div>
+            </div>
+          </a>
+        </div>
+
+        {/* Webとの仕切り */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, padding: '0 8px' }}>
+          <div style={{ flex: 1, height: 1, background: '#e8c8d4' }}></div>
+          <span style={{ fontSize: 12, color: '#c0a0b0', whiteSpace: 'nowrap' }}>または Web で</span>
+          <div style={{ flex: 1, height: 1, background: '#e8c8d4' }}></div>
+        </div>
+
         <Link href="/signin" style={{
           display: 'inline-block',
           background: 'linear-gradient(135deg,#E91E63,#C2185B)',
