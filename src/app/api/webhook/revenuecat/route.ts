@@ -12,6 +12,9 @@ const PRODUCT_TO_PLAN: Record<string, string> = {
   fuu_standard_monthly: 'standard',
 }
 
+// Consumable products (handled separately from subscriptions)
+const CONSUMABLE_PRODUCTS = new Set(['fuu_ticket_daily'])
+
 // These event types mean the user has an active subscription
 const ACTIVATE_EVENTS = new Set([
   'INITIAL_PURCHASE',
@@ -49,11 +52,35 @@ export async function POST(req: NextRequest) {
     if (ACTIVATE_EVENTS.has(type)) {
       const plan = PRODUCT_TO_PLAN[product_id as string]
       if (plan) {
+        // サブスクリプション購入 → プラン更新
         const { error } = await supabaseAdmin
           .from('profiles')
           .update({ plan })
           .eq('user_id', app_user_id)
         if (error) throw error
+      } else if (type === 'INITIAL_PURCHASE' && CONSUMABLE_PRODUCTS.has(product_id as string)) {
+        // 消耗型チケット購入 → ticketsテーブルに挿入
+        const transactionId = event.transaction_id ?? event.original_transaction_id ?? `rc_${Date.now()}`
+        // 重複挿入を防ぐため既存チェック
+        const { data: existing } = await supabaseAdmin
+          .from('tickets')
+          .select('id')
+          .eq('stripe_payment_intent_id', transactionId)
+          .maybeSingle()
+        if (!existing) {
+          const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+          const { error } = await supabaseAdmin
+            .from('tickets')
+            .insert({
+              user_id: app_user_id,
+              quantity: 1,
+              used: 0,
+              stripe_payment_intent_id: transactionId, // RevenueCat transaction ID を流用
+              expires_at: expiresAt,
+              purchased_at: new Date().toISOString(),
+            })
+          if (error) throw error
+        }
       }
     } else if (type === 'EXPIRATION') {
       // Subscription fully expired — revoke access

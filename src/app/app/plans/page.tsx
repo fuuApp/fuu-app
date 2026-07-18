@@ -346,7 +346,32 @@ function PlansContent() {
     }
   }, [toastMessage])
 
-  // チケット購入ハンドラ
+  // iOSチケット購入ハンドラ（RevenueCat IAP 消耗型）
+  const handleTicketIOS = async () => {
+    setLoadingTicket(true)
+    try {
+      const { Purchases } = await import('@revenuecat/purchases-capacitor')
+      const { products } = await Purchases.getProducts({
+        productIdentifiers: ['fuu_ticket_daily'],
+      })
+      if (products.length === 0) throw new Error('商品情報を取得できませんでした。しばらく経ってから再試行してください。')
+      await Purchases.purchaseStoreProduct({ product: products[0] })
+      // Webhook処理が完了するまで「確認中」表示にして、10秒後にポーリング
+      setIsTicketJustPurchased(true)
+      setToastMessage({ type: 'success', text: '🎫 チケットを購入しました！確認中...' })
+      setTimeout(() => fetchPlanStatus(), 10000)
+    } catch (err: any) {
+      // ユーザーが購入ダイアログをキャンセルした場合は何もしない
+      const msg: string = err?.message ?? ''
+      const code = err?.code ?? err?.underlyingErrorMessage ?? ''
+      if (msg.toLowerCase().includes('cancel') || code === '1' || code === 'USER_CANCELLED') return
+      setToastMessage({ type: 'error', text: msg || 'チケット購入に失敗しました' })
+    } finally {
+      setLoadingTicket(false)
+    }
+  }
+
+  // Webチケット購入ハンドラ（Stripe）
   const handleTicket = async () => {
     setLoadingTicket(true)
     try {
@@ -911,8 +936,8 @@ function PlansContent() {
           )
         })}
 
-        {/* ─── チケット購入カード（ウェブ版のみ） ─── */}
-        {!isNative() && (currentPlan === 'standard' || currentPlan === 'premium') && (
+        {/* ─── チケット購入カード（Web: Stripe / iOS: RevenueCat IAP） ─── */}
+        {(currentPlan === 'standard' || currentPlan === 'premium') && (
           <div style={{
             background: 'linear-gradient(135deg,#FFF8E1,#FFF3E0)',
             border: '2px solid #FFB300',
@@ -985,7 +1010,7 @@ function PlansContent() {
             ) : null}
 
             <button
-              onClick={handleTicket}
+              onClick={isNative() ? handleTicketIOS : handleTicket}
               disabled={loadingTicket}
               style={{
                 width: '100%', padding: '13px',
