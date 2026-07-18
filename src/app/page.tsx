@@ -51,6 +51,7 @@ export default function LandingPage() {
           10日間 無料で始める →
         </Link>
         <p style={{ fontSize: 12, color: '#aaa', marginTop: 10 }}>
+          クレジットカード不要・自動課金なし
         </p>
       </section>
 
@@ -371,7 +372,7 @@ export default function LandingPage() {
           { icon: '🔐', text: '会話はAI学習に使いません' },
           { icon: '🗑️', text: '退会後、個人情報を段階的に速やかに削除' },
           { icon: '👀', text: '会話の記録は残りません。会話を閉じたら削除されます。' },
-          { icon: '💳', text: '安全な決済システム（Stripe）' },
+          { icon: '💳', text: '安全な決済システム（App Store / Google Play対応）' },
           { icon: '🔒', text: '全通信SSL暗号化' },
         ].map((item, i) => (
           <div key={i} style={{

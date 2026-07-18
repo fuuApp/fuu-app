@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { openStripeCheckout } from '@/lib/platform'
+import { isNative, openStripeCheckout } from '@/lib/platform'
 
 const NICKNAME_KEY = 'fuu_nickname'
 const NICKNAME_SET_KEY = 'fuu_nickname_set'
@@ -418,7 +418,7 @@ export default function SettingsPage() {
               </p>
             )}
             <button onClick={()=>router.push('/app/plans')} style={{ marginTop:12,background:'none',border:'1px solid #F48FB1',borderRadius:20,padding:'8px 16px',fontSize:13,color:'#E91E63',cursor:'pointer',fontFamily:'inherit' }}>プランを見る →</button>
-            {(userPlan === 'standard' || userPlan === 'premium') && !withdrawalScheduled && (
+            {(userPlan === 'standard' || userPlan === 'premium') && !withdrawalScheduled && !isNative() && (
               <div style={{ marginTop:14,background:'#F5F5F5',border:'1.5px solid #E0E0E0',borderRadius:16,padding:'14px 16px' }}>
                 <div style={{ fontWeight:700,fontSize:13,color:'#555',marginBottom:4 }}>💳 課金だけを止める（解約のみ）</div>
                 <div style={{ fontSize:12,color:'#888',lineHeight:1.8,marginBottom:12 }}>
@@ -441,7 +441,7 @@ export default function SettingsPage() {
                 </button>
               </div>
             )}
-            {(userPlan === 'standard' || userPlan === 'premium') && !withdrawalScheduled && (
+            {(userPlan === 'standard' || userPlan === 'premium') && !withdrawalScheduled && !isNative() && (
               <div style={{ marginTop:10,background:'#F5F5F5',border:'1.5px solid #E0E0E0',borderRadius:16,padding:'14px 16px' }}>
                 <div style={{ fontWeight:700,fontSize:13,color:'#555',marginBottom:4 }}>🔄 決済方法を変更する</div>
                 <div style={{ fontSize:12,color:'#888',lineHeight:1.8,marginBottom:12 }}>

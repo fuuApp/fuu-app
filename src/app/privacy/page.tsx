@@ -24,7 +24,7 @@ export default function PrivacyPage() {
           <BulletItem>利用プラン情報（無料・スタンダード・プレミアム）</BulletItem>
           <BulletItem>チャット履歴（サービス提供目的。AI学習には使用しません）</BulletItem>
           <BulletItem>アプリ利用状況（改善目的・匿名化処理済み）</BulletItem>
-          <BulletItem>決済情報（Stripe Inc.が管理。当社はカード番号を保持しません）</BulletItem>
+          <BulletItem>決済情報（Web版：Stripe Inc.が管理、iOS版：Apple Inc.が管理、Android版：Google LLCが管理。当社はカード番号等の決済情報を保持しません）</BulletItem>
         </Section>
 
         <Section title="第2条（利用目的）">
@@ -56,7 +56,9 @@ export default function PrivacyPage() {
                 ['Supabase Inc.', '認証・データベース管理'],
                 ['Anthropic, PBC', 'AIチャット（Claude Haiku）'],
                 ['OpenAI, Inc.', 'AIチャット補助処理'],
-                ['Stripe Inc.', '決済処理'],
+                ['Stripe Inc.', '決済処理（Web版）'],
+                ['Apple Inc.', '決済処理（iOS版・App Store）'],
+                ['Google LLC', '決済処理（Android版・Google Play）'],
                 ['Vercel Inc.', 'Webホスティング'],
               ].map(([name, use], i) => (
                 <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#fdf4f7' }}>
