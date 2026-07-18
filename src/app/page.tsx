@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
+import { isNative } from '@/lib/platform'
 
 // TODO: リリース後にストアURLを更新する
 const APP_STORE_URL = '#'      // App Store URL（例: https://apps.apple.com/app/fuu/id1234567890）
@@ -46,9 +47,9 @@ export default function LandingPage() {
           AIのママ友が、いつでもそばにいます。
         </p>
 
-        {/* ── アプリダウンロード ── */}
-        <p style={{ fontSize: 12, color: '#aaa', marginBottom: 10 }}>アプリから始める</p>
-        <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
+        {/* ── アプリダウンロード（Webのみ表示） ── */}
+        {!isNative() && <p style={{ fontSize: 12, color: '#aaa', marginBottom: 10 }}>アプリから始める</p>}
+        {!isNative() && <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
           {/* iOS App Store */}
           <a
             href={APP_STORE_URL}
@@ -100,14 +101,14 @@ export default function LandingPage() {
               <div style={{ fontSize: 15, fontWeight: 700 }}>Google Play</div>
             </div>
           </a>
-        </div>
+        </div>}
 
-        {/* Webとの仕切り */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, padding: '0 8px' }}>
+        {/* Webとの仕切り（Webのみ表示） */}
+        {!isNative() && <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, padding: '0 8px' }}>
           <div style={{ flex: 1, height: 1, background: '#e8c8d4' }}></div>
           <span style={{ fontSize: 12, color: '#c0a0b0', whiteSpace: 'nowrap' }}>または Web で</span>
           <div style={{ flex: 1, height: 1, background: '#e8c8d4' }}></div>
-        </div>
+        </div>}
 
         <Link href="/signin" style={{
           display: 'inline-block',
