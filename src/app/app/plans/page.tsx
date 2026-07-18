@@ -76,6 +76,8 @@ function PlansContent() {
   const [justSubscribed, setJustSubscribed] = useState(false)
   const [upgradeConfirmPlan, setUpgradeConfirmPlan] = useState<string | null>(null)
   const [promoCode, setPromoCode] = useState('')
+  const [rcLoading, setRcLoading] = useState(false)
+  const [rcPrices, setRcPrices] = useState<Record<string, string>>({})
 
   // ── プラン・チケット状態をSupabaseから取得する共通関数 ──────────────
   // 初回マウント時 + ネイティブアプリでSafari/Chrome決済後にアプリ復帰した際の
@@ -118,6 +120,105 @@ function PlansContent() {
     } catch { /* 取得失敗時はそのまま */ }
   }
 
+  // ── RevenueCat 初期化（ネイティブのみ）──────────────────────────────
+  const initRevenueCat = async (uid: string) => {
+    try {
+      const { Purchases } = await import('@revenuecat/purchases-capacitor')
+      const { Capacitor } = await import('@capacitor/core')
+      const platform = Capacitor.getPlatform()
+      const apiKey = platform === 'android'
+        ? (process.env.NEXT_PUBLIC_REVENUECAT_ANDROID_KEY ?? '')
+        : (process.env.NEXT_PUBLIC_REVENUECAT_IOS_KEY ?? '')
+      if (!apiKey) return
+      await Purchases.configure({ apiKey, appUserID: uid })
+
+      // App Store の実際の価格文字列を取得
+      const offeringsResult = await Purchases.getOfferings()
+      const current = (offeringsResult as any)?.current
+      if (current?.availablePackages) {
+        const prices: Record<string, string> = {}
+        for (const pkg of current.availablePackages) {
+          prices[pkg.product.productIdentifier] = pkg.product.priceString
+        }
+        setRcPrices(prices)
+      }
+
+      // RevenueCat のエンタイトルメントでプランを同期
+      const { customerInfo } = await Purchases.getCustomerInfo()
+      const active = (customerInfo as any).entitlements?.active ?? {}
+      if (active['premium']) setCurrentPlan('premium')
+      else if (active['standard']) setCurrentPlan('standard')
+    } catch (err) {
+      console.error('[RevenueCat] init error:', err)
+    }
+  }
+
+  // ── RevenueCat 購入（ネイティブのみ）────────────────────────────────
+  const handleIAPPurchase = async (planId: string) => {
+    setRcLoading(true)
+    try {
+      const { Purchases } = await import('@revenuecat/purchases-capacitor')
+      const targetProductId = planId === 'premium' ? 'fuu_premium_monthly' : 'fuu_standard_monthly'
+      const offeringsResult = await Purchases.getOfferings()
+      const current = (offeringsResult as any)?.current
+      const pkg = current?.availablePackages?.find(
+        (p: any) => p.product.productIdentifier === targetProductId
+      )
+      if (!pkg) throw new Error('商品が見つかりませんでした。しばらく経ってから再試行してください。')
+      const { customerInfo } = await Purchases.purchasePackage({ aPackage: pkg })
+      const active = (customerInfo as any).entitlements?.active ?? {}
+      if (active['premium']) {
+        setCurrentPlan('premium')
+        setToastMessage({ type: 'success', text: '🎉 プレミアムプランに登録しました！' })
+      } else if (active['standard']) {
+        setCurrentPlan('standard')
+        setToastMessage({ type: 'success', text: '🎉 スタンダードプランに登録しました！' })
+      }
+    } catch (err: any) {
+      // ユーザーが自分でキャンセルした場合はエラー表示しない
+      if (!err?.userCancelled && err?.code !== 'PURCHASE_CANCELLED') {
+        setToastMessage({ type: 'error', text: err?.message ?? '購入に失敗しました' })
+      }
+    } finally {
+      setRcLoading(false)
+    }
+  }
+
+  // ── 購入を復元（App Store ガイドライン必須）───────────────────────
+  const handleRestorePurchases = async () => {
+    setRcLoading(true)
+    try {
+      const { Purchases } = await import('@revenuecat/purchases-capacitor')
+      const { customerInfo } = await Purchases.restorePurchases()
+      const active = (customerInfo as any).entitlements?.active ?? {}
+      if (active['premium']) {
+        setCurrentPlan('premium')
+        setToastMessage({ type: 'success', text: '✅ プレミアムプランを復元しました' })
+      } else if (active['standard']) {
+        setCurrentPlan('standard')
+        setToastMessage({ type: 'success', text: '✅ スタンダードプランを復元しました' })
+      } else {
+        setToastMessage({ type: 'error', text: '有効なサブスクリプションが見つかりませんでした' })
+      }
+    } catch {
+      setToastMessage({ type: 'error', text: '復元に失敗しました。しばらく経ってから再試行してください。' })
+    } finally {
+      setRcLoading(false)
+    }
+  }
+
+  // ── App Store / Google Play サブスク管理画面を開く ──────────────
+  const handleManageSubscription = async () => {
+    try {
+      const { Browser } = await import('@capacitor/browser')
+      const { Capacitor } = await import('@capacitor/core')
+      const url = Capacitor.getPlatform() === 'android'
+        ? 'https://play.google.com/store/account/subscriptions'
+        : 'https://apps.apple.com/account/subscriptions'
+      await Browser.open({ url })
+    } catch { /* fallback: do nothing */ }
+  }
+
   // Supabaseから現在のプランとチケット状態を取得（初回）
   useEffect(() => {
     ;(async () => {
@@ -128,6 +229,7 @@ function PlansContent() {
           setUserId(user.id)
           setUserEmail(user.email ?? '')
           await fetchPlanStatus(user.id)
+          if (isNative()) initRevenueCat(user.id)
         } else {
           // Safari外部ブラウザ経由: URLパラメータからuserId/emailを取得
           const uidParam = searchParams.get('uid')
@@ -153,10 +255,17 @@ function PlansContent() {
 
     ;(async () => {
       const { App } = await import('@capacitor/app')
-      const handle = await App.addListener('appStateChange', (state) => {
+      const handle = await App.addListener('appStateChange', async (state) => {
         if (state.isActive) {
-          // アプリがフォアグラウンドに戻ったらプラン状態を再取得
           fetchPlanStatus()
+          // RevenueCat からも最新エンタイトルメントを同期
+          try {
+            const { Purchases } = await import('@revenuecat/purchases-capacitor')
+            const { customerInfo } = await Purchases.getCustomerInfo()
+            const active = (customerInfo as any).entitlements?.active ?? {}
+            if (active['premium']) setCurrentPlan('premium')
+            else if (active['standard']) setCurrentPlan('standard')
+          } catch { /* RC sync failed - Supabase が source of truth */ }
         }
       })
       removeListener = () => handle.remove()
@@ -236,24 +345,6 @@ function PlansContent() {
       return () => clearTimeout(timer)
     }
   }, [toastMessage])
-
-  // ── iOSネイティブ：外部ブラウザでプランページを開く（Strategy C）──
-  // Strategy C: /app/plans 直接リンク → Apple審査で問題があれば Strategy B（/app）に変更
-  // 変更箇所：この関数の url を 'https://fuu-app.vercel.app/app' に変えるだけで B に切替可
-  const handleOpenWebPlans = async () => {
-    // userId/emailをURLパラメータで渡す（Safari側でSupabase認証が取れないため）
-    const params = new URLSearchParams()
-    if (userId) params.set('uid', userId)
-    if (userEmail) params.set('email', userEmail)
-    const query = params.toString() ? `?${params.toString()}` : ''
-    const url = `https://fuu-app.vercel.app/app/plans${query}`
-    try {
-      const { Browser } = await import('@capacitor/browser')
-      await Browser.open({ url })
-    } catch {
-      window.open(url, '_blank')
-    }
-  }
 
   // チケット購入ハンドラ
   const handleTicket = async () => {
@@ -373,8 +464,8 @@ function PlansContent() {
 
   return (
     <>
-    {/* プラン変更確認モーダル（既存サブスク持ちユーザーのワンクリック誤課金防止） */}
-    {upgradeConfirmPlan && (() => {
+    {/* プラン変更確認モーダル（既存サブスク持ちユーザーのワンクリック誤課金防止・Webのみ） */}
+    {!isNative() && upgradeConfirmPlan && (() => {
       const plan = PLANS.find(p => p.id === upgradeConfirmPlan)
       const isUpgrade = upgradeConfirmPlan === 'premium' && currentPlan === 'standard'
       const isDowngrade = upgradeConfirmPlan === 'standard' && currentPlan === 'premium'
@@ -568,75 +659,100 @@ function PlansContent() {
           </div>
         )}
 
-        {/* ── iOSネイティブ：Strategy C（プランページ直接ボタン） ── */}
-        {/* 購入はSafari外部ブラウザで行うため Apple 3.1.1 非対象。 */}
-        {/* 審査で問題が出た場合は handleOpenWebPlans の url を /app に変えて再申請（Strategy B）。 */}
-        {isNative() && (
-          <div style={{
-            background: 'linear-gradient(135deg,#FCE4EC,#FFF8F9)',
-            border: '1.5px solid #F48FB1',
-            borderRadius: 20, padding: '20px 18px',
-          }}>
-            <div style={{ fontWeight: 700, fontSize: 15, color: '#C2185B', marginBottom: 4 }}>
-              💳 プランを登録・変更する
-            </div>
-            <div style={{ fontSize: 12, color: '#888', marginBottom: 16, lineHeight: 1.7 }}>
-              Safariで安全に手続きできます。<br />
-              ふぅと同じメールアドレスでログインしてください。
-            </div>
+        {/* ── ネイティブ：RevenueCat IAP プランカード ── */}
+        {isNative() && PLANS.map(plan => {
+          const isCurrentPlan = currentPlan === plan.id
+          const productId = plan.id === 'premium' ? 'fuu_premium_monthly' : 'fuu_standard_monthly'
+          const priceStr = rcPrices[productId] ?? `¥${plan.price.toLocaleString()}`
 
-            {/* ミニプランカード */}
-            <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-              {/* スタンダード */}
-              <div style={{
-                flex: 1, background: '#fff', borderRadius: 12, padding: '12px 10px',
-                border: '1.5px solid #FCE4EC', textAlign: 'center',
-              }}>
-                <div style={{ fontSize: 11, color: '#E91E63', fontWeight: 700, marginBottom: 2 }}>スタンダード</div>
-                <div style={{ fontSize: 22, fontWeight: 800, color: '#333' }}>¥300</div>
-                <div style={{ fontSize: 10, color: '#aaa', marginBottom: 6 }}>/月（税込）</div>
-                <div style={{ fontSize: 10, color: '#666', lineHeight: 1.6 }}>
-                  月200会話<br />4人のキャラ
-                </div>
-              </div>
-              {/* プレミアム */}
-              <div style={{
-                flex: 1, background: 'linear-gradient(160deg,#FFF0F5,#FFE4EF)',
-                borderRadius: 12, padding: '12px 10px',
-                border: '2px solid #E91E63', textAlign: 'center',
-                position: 'relative',
-              }}>
+          return (
+            <div key={plan.id} style={{
+              background: '#fff', borderRadius: 20,
+              border: plan.id === 'premium' ? '2px solid #E91E63' : '1.5px solid #FCE4EC',
+              overflow: 'hidden',
+              boxShadow: plan.id === 'premium'
+                ? '0 4px 20px rgba(233,30,99,0.15)'
+                : '0 2px 10px rgba(233,30,99,0.07)',
+              position: 'relative',
+            }}>
+              {plan.badge && (
                 <div style={{
-                  position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)',
+                  position: 'absolute', top: 14, right: 14,
                   background: 'linear-gradient(135deg,#E91E63,#C2185B)',
-                  color: '#fff', fontSize: 9, fontWeight: 700,
-                  padding: '2px 10px', borderRadius: 20, whiteSpace: 'nowrap',
-                }}>おすすめ</div>
-                <div style={{ fontSize: 11, color: '#C2185B', fontWeight: 700, marginBottom: 2, marginTop: 4 }}>プレミアム</div>
-                <div style={{ fontSize: 22, fontWeight: 800, color: '#333' }}>¥980</div>
-                <div style={{ fontSize: 10, color: '#aaa', marginBottom: 6 }}>/月（税込）</div>
-                <div style={{ fontSize: 10, color: '#666', lineHeight: 1.6 }}>
-                  月900会話<br />全キャラ＋専用
+                  color: '#fff', fontSize: 10, fontWeight: 700,
+                  padding: '3px 10px', borderRadius: 20,
+                }}>
+                  {plan.badge}
+                </div>
+              )}
+              <div style={{ background: plan.color, padding: '18px 20px' }}>
+                <div style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 2 }}>{plan.name}</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.75)', marginBottom: 6 }}>{plan.subtitle}</div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                  <span style={{ fontSize: 28, fontWeight: 800, color: '#fff' }}>{priceStr}</span>
+                  <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>/月</span>
                 </div>
               </div>
+              <div style={{ padding: '16px 20px' }}>
+                {plan.features.map((f, i) => (
+                  <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:8, marginBottom:8, fontSize:13, color:'#444' }}>
+                    <span style={{ color:'#E91E63', flexShrink:0, marginTop:1 }}>✓</span>
+                    <span>{f}</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ padding: '0 20px 20px' }}>
+                {isCurrentPlan ? (
+                  <div style={{ textAlign:'center', padding:'12px', background:'#f5f5f5', borderRadius:50, fontSize:13, color:'#aaa' }}>
+                    現在のプラン
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => handleIAPPurchase(plan.id)}
+                    disabled={rcLoading}
+                    style={{
+                      width:'100%', padding:'14px',
+                      background: rcLoading ? '#F8BBD9'
+                        : plan.id === 'premium'
+                        ? 'linear-gradient(135deg,#C2185B,#880E4F)'
+                        : 'linear-gradient(135deg,#E91E63,#F48FB1)',
+                      color:'#fff', border:'none', borderRadius:50,
+                      fontSize:15, fontWeight:700,
+                      cursor: rcLoading ? 'not-allowed' : 'pointer',
+                      fontFamily:'inherit',
+                    }}
+                  >
+                    {rcLoading ? '処理中...' : `${plan.name}にする →`}
+                  </button>
+                )}
+              </div>
             </div>
+          )
+        })}
 
-            {/* プランページを開くボタン */}
-            <button
-              onClick={handleOpenWebPlans}
-              style={{
-                width: '100%', padding: '14px',
-                background: 'linear-gradient(135deg,#E91E63,#C2185B)',
-                color: '#fff', border: 'none', borderRadius: 50,
-                fontSize: 15, fontWeight: 700, cursor: 'pointer',
-                fontFamily: 'inherit',
-              }}
-            >
-              🌐 プランを見る →
-            </button>
-            <div style={{ fontSize: 10, color: '#bbb', textAlign: 'center', marginTop: 8, lineHeight: 1.6 }}>
-              Safariで開きます · いつでも解約できます
+        {/* ネイティブ：App Store 必須テキスト・復元・管理 */}
+        {isNative() && (
+          <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+            <div style={{ fontSize:10, color:'#bbb', textAlign:'center', lineHeight:1.9 }}>
+              ・サブスクリプションは自動更新されます<br />
+              ・次の更新日の24時間前までにApp Storeでキャンセルできます<br />
+              ・価格はApp Storeに表示される金額が適用されます
             </div>
+            <button
+              onClick={handleRestorePurchases}
+              disabled={rcLoading}
+              style={{ background:'none', border:'none', color:'#E91E63', fontSize:13, cursor:'pointer', fontFamily:'inherit', textDecoration:'underline' }}
+            >
+              購入を復元する
+            </button>
+            {(currentPlan === 'standard' || currentPlan === 'premium') && (
+              <button
+                onClick={handleManageSubscription}
+                style={{ background:'none', border:'none', color:'#aaa', fontSize:12, cursor:'pointer', fontFamily:'inherit', textDecoration:'underline' }}
+              >
+                App Storeでサブスクを管理する（解約はこちら）
+              </button>
+            )}
           </div>
         )}
 
@@ -908,15 +1024,24 @@ function PlansContent() {
           </div>
         )}
 
-        {/* 解約・退会は設定画面から */}
+        {/* 解約・退会 */}
         {(currentPlan === 'standard' || currentPlan === 'premium') && (
           <div style={{ marginTop: 32, paddingTop: 24, borderTop: '1px solid #FCE4EC', textAlign: 'center' }}>
-            <button
-              onClick={() => router.push('/app/settings')}
-              style={{ background: 'none', border: 'none', color: '#aaa', fontSize: 13, cursor: 'pointer', textDecoration: 'underline', fontFamily: 'inherit' }}
-            >
-              解約・退会は設定画面から
-            </button>
+            {isNative() ? (
+              <button
+                onClick={handleManageSubscription}
+                style={{ background: 'none', border: 'none', color: '#aaa', fontSize: 13, cursor: 'pointer', textDecoration: 'underline', fontFamily: 'inherit' }}
+              >
+                App Storeでサブスクを管理する（解約はこちら）
+              </button>
+            ) : (
+              <button
+                onClick={() => router.push('/app/settings')}
+                style={{ background: 'none', border: 'none', color: '#aaa', fontSize: 13, cursor: 'pointer', textDecoration: 'underline', fontFamily: 'inherit' }}
+              >
+                解約・退会は設定画面から
+              </button>
+            )}
           </div>
         )}
 

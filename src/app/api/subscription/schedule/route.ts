@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createAdminClient } from '@/lib/supabase'
 
+// Capacitorビルド（output: export）時は force-static でビルドエラーを回避
+// Vercel通常デプロイ時は force-dynamic でリクエストパラメータを使用
+export const dynamic = process.env.CAPACITOR_BUILD === 'true' ? 'force-static' : 'force-dynamic'
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-04-10',
 })

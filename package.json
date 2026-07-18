@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.24.3",
+    "@revenuecat/purchases-capacitor": "^9.0.0",
     "@capacitor/browser": "^6.0.6",
     "@supabase/ssr": "^0.4.0",
     "@supabase/supabase-js": "^2.43.4",
