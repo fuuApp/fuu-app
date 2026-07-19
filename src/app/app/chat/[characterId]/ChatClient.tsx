@@ -36,7 +36,15 @@ export default function ChatPage() {
   // チャットモード
   const [chatMode, setChatMode] = useState<'guchi' | 'soudan' | 'hybrid'>('guchi')
   const [showSoudanReplies, setShowSoudanReplies] = useState(false)
-  const [showAlternativeReplies, setShowAlternativeReplies] = useState(false) // ④⑤⑥追加提案後
+  const [showAlternativeReplies, setShowAlternativeReplies] = useState(false)
+  const [altRound, setAltRound] = useState(0) // 0=未取得, 1=④⑤⑥取得済, 2=⑦⑧⑨取得済, ...
+
+  // 追加提案セット定義（最大3セット）
+  const ALT_SETS = [
+    { nums: ['④','⑤','⑥'] as const, label: '④⑤⑥', msgNums: '④⑤⑥' },
+    { nums: ['⑦','⑧','⑨'] as const, label: '⑦⑧⑨', msgNums: '⑦⑧⑨' },
+    { nums: ['⑩','⑪','⑫'] as const, label: '⑩⑪⑫', msgNums: '⑩⑪⑫' },
+  ]
   const [inputFocused, setInputFocused] = useState(false)
 
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -908,6 +916,7 @@ export default function ChatPage() {
               }])
               setShowSoudanReplies(false)
               setShowAlternativeReplies(false)
+              setAltRound(0)
             }} style={{
               marginTop: 12, background: 'none', border: '1px solid #CE93D8',
               borderRadius: 16, padding: '6px 16px', fontSize: 12,
@@ -1059,14 +1068,22 @@ export default function ChatPage() {
                   }}
                 >{item.label}</button>
               ))}
-              <button
-                onClick={() => { handleSend('さっきとは全く違う視点で、④⑤⑥として別の提案を3つ出してほしい'); setShowSoudanReplies(false) }}
-                style={{
-                  background: '#FFF8E1', border: '1.5px solid #FFD54F', borderRadius: 20,
-                  padding: '7px 14px', fontSize: 13, color: '#F57F17',
-                  cursor: 'pointer', fontFamily: 'inherit',
-                }}
-              >④⑤⑥ 他の提案ももらう</button>
+              {/* 次の追加提案セットボタン（④⑤⑥ → ⑦⑧⑨ → ⑩⑪⑫） */}
+              {altRound < ALT_SETS.length && (
+                <button
+                  onClick={() => {
+                    const set = ALT_SETS[altRound]
+                    handleSend(`さっきとは全く違う視点で、${set.msgNums}として別の提案を3つ出してほしい`)
+                    setAltRound(prev => prev + 1)
+                    setShowSoudanReplies(false)
+                  }}
+                  style={{
+                    background: '#FFF8E1', border: '1.5px solid #FFD54F', borderRadius: 20,
+                    padding: '7px 14px', fontSize: 13, color: '#F57F17',
+                    cursor: 'pointer', fontFamily: 'inherit',
+                  }}
+                >{ALT_SETS[altRound].label} 他の提案ももらう</button>
+              )}
               <button
                 onClick={() => { setChatMode('guchi'); setShowSoudanReplies(false) }}
                 style={{
@@ -1078,26 +1095,40 @@ export default function ChatPage() {
             </div>
           )}
 
-          {/* 相談モード：④⑤⑥追加提案後の深掘り - キーボード表示中も常に表示 */}
-          {showAlternativeReplies && !loading && chatMode === 'soudan' && (
+          {/* 相談モード：追加提案後の深掘り（④⑤⑥ / ⑦⑧⑨ / ⑩⑪⑫）- キーボード表示中も常に表示 */}
+          {showAlternativeReplies && !loading && chatMode === 'soudan' && altRound > 0 && (
             <div style={{
               padding: '4px 12px 4px',
               display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center',
             }}>
-              {[
-                { label: '④を詳しく', msg: '④について詳しく教えて' },
-                { label: '⑤を詳しく', msg: '⑤について詳しく教えて' },
-                { label: '⑥を詳しく', msg: '⑥について詳しく教えて' },
-              ].map(item => (
-                <button key={item.label}
-                  onClick={() => { handleSend(item.msg); setShowAlternativeReplies(false) }}
+              {ALT_SETS[altRound - 1].nums.map((num, i) => {
+                const labels = ['を詳しく', 'を詳しく', 'を詳しく']
+                return (
+                  <button key={num}
+                    onClick={() => { handleSend(`${num}について詳しく教えて`); setShowAlternativeReplies(false) }}
+                    style={{
+                      background: '#FFF3E0', border: '1.5px solid #FFB74D', borderRadius: 20,
+                      padding: '7px 14px', fontSize: 13, color: '#E65100',
+                      cursor: 'pointer', fontFamily: 'inherit',
+                    }}
+                  >{num}{labels[i]}</button>
+                )
+              })}
+              {/* さらに追加提案（⑦⑧⑨以降） */}
+              {altRound < ALT_SETS.length && (
+                <button
+                  onClick={() => {
+                    const set = ALT_SETS[altRound]
+                    handleSend(`さっきとは全く違う視点で、${set.msgNums}として別の提案を3つ出してほしい`)
+                    setAltRound(prev => prev + 1)
+                  }}
                   style={{
-                    background: '#FFF3E0', border: '1.5px solid #FFB74D', borderRadius: 20,
-                    padding: '7px 14px', fontSize: 13, color: '#E65100',
+                    background: '#FFF8E1', border: '1.5px solid #FFD54F', borderRadius: 20,
+                    padding: '7px 14px', fontSize: 13, color: '#F57F17',
                     cursor: 'pointer', fontFamily: 'inherit',
                   }}
-                >{item.label}</button>
-              ))}
+                >{ALT_SETS[altRound].label} さらに別の提案</button>
+              )}
               <button
                 onClick={() => { setShowAlternativeReplies(false); setShowSoudanReplies(true) }}
                 style={{
