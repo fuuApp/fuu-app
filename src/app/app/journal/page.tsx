@@ -17,7 +17,9 @@ const charNames: Record<string, string> = {
 }
 
 function formatDate(dateStr: string): string {
-  const d = new Date(dateStr + 'T00:00:00')
+  // "2026-07-25 19:30:45" または "2026-07-25" どちらの形式にも対応
+  const dateOnly = dateStr.substring(0, 10)
+  const d = new Date(dateOnly + 'T00:00:00')
   const nowLocal = new Date()
   const now = new Date(nowLocal.getFullYear(), nowLocal.getMonth(), nowLocal.getDate())
   const diff = Math.floor((now.getTime()-d.getTime())/86400000)
@@ -91,6 +93,7 @@ export default function JournalPage() {
         <div style={{ background:'linear-gradient(135deg,#FFF0F5,#FCE4EC)',borderRadius:16,padding:'16px 18px',marginBottom:20,border:'1px solid #F8BBD9' }}>
           <div style={{ fontSize:13,color:'#880E4F',fontWeight:700,marginBottom:6 }}>✨ 気持ちの箱って何？</div>
           <div style={{ fontSize:13,color:'#555',lineHeight:1.7 }}>その日話した愚痴や気持ちを、AIがポジティブな「気持ちの箱」に変換して保存したものです。<br />見返すたびに、あなたが頑張っていたことを思い出せます。</div>
+          <div style={{ fontSize:11,color:'#aaa',marginTop:8 }}>📦 気持ちの箱は最大30個です。31個目から古いものから削除されます。</div>
         </div>
         {loading && <div style={{ textAlign:'center',padding:'40px 20px',color:'#aaa' }}><div style={{ fontSize:24,marginBottom:10 }}>⏳</div><div style={{ fontSize:14 }}>読み込み中...</div></div>}
         {!loading && journals.length===0 && (

@@ -550,16 +550,25 @@ export default function ChatPage() {
         setJournalContext(lines)
       } catch { /* ignore */ }
 
-      // ── Supabase guchi_journals に保存 ──
+      // ── Supabase guchi_journals に保存（押した回数ごとに新規レコード・最大30件） ──
       try {
         const supabase = createClient()
         const { data: { user } } = await supabase.auth.getUser()
         if (user) {
-          // original_content は保存しない（PP第5条「会話はサーバーに保存されない」との整合性を維持）
-          await supabase.from('guchi_journals').upsert(
-            { user_id: user.id, date: today, reframed: summary, original_content: '', character_id: characterId },
-            { onConflict: 'user_id,date,character_id' }
+          // upsert→insert に変更：押した回数ごとに新規レコードとして保存
+          await supabase.from('guchi_journals').insert(
+            { user_id: user.id, date: today, reframed: summary, original_content: '', character_id: characterId }
           )
+          // 30件超えたら古いものから削除
+          const { data: allRecords } = await supabase
+            .from('guchi_journals')
+            .select('id')
+            .eq('user_id', user.id)
+            .order('date', { ascending: false })
+          if (allRecords && allRecords.length > 30) {
+            const toDelete = allRecords.slice(30).map((r: any) => r.id)
+            await supabase.from('guchi_journals').delete().in('id', toDelete)
+          }
         }
       } catch { /* DB保存失敗はサイレント。sessionStorageにはある */ }
 
@@ -606,10 +615,18 @@ export default function ChatPage() {
         const supabase = createClient()
         const { data: { user } } = await supabase.auth.getUser()
         if (user) {
-          await supabase.from('guchi_journals').upsert(
-            { user_id: user.id, date: today, reframed: summary, original_content: '', character_id: characterId },
-            { onConflict: 'user_id,date,character_id' }
+          await supabase.from('guchi_journals').insert(
+            { user_id: user.id, date: today, reframed: summary, original_content: '', character_id: characterId }
           )
+          const { data: allRecords } = await supabase
+            .from('guchi_journals')
+            .select('id')
+            .eq('user_id', user.id)
+            .order('date', { ascending: false })
+          if (allRecords && allRecords.length > 30) {
+            const toDelete = allRecords.slice(30).map((r: any) => r.id)
+            await supabase.from('guchi_journals').delete().in('id', toDelete)
+          }
         }
       } catch { /* ignore */ }
     } catch {
@@ -718,6 +735,7 @@ export default function ChatPage() {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 700, fontSize: 15, color: '#333', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{character.name}</div>
           <div style={{ fontSize: 11, color: '#E91E63' }}>{character.role}</div>
+          <div style={{ fontSize: 10, color: '#aaa', whiteSpace: 'nowrap' }}>🎵 会話を始めるとBGMが流れます</div>
         </div>
         {/* 右セクション：flexShrink:0 で縮まらないように */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
