@@ -170,7 +170,10 @@ function PlansContent() {
       const pkg = current?.availablePackages?.find(
         (p: any) => p.product.productIdentifier === targetProductId
       )
-      if (!pkg) throw new Error('商品が見つかりませんでした。しばらく経ってから再試行してください。')
+      if (!pkg) {
+        const available = current?.availablePackages?.map((p: any) => p.product.productIdentifier).join(', ') ?? 'なし'
+        throw new Error(`商品が見つかりませんでした。\n取得済み: [${available}]\n検索中: ${targetProductId}`)
+      }
       const { customerInfo } = await Purchases.purchasePackage({ aPackage: pkg })
       const active = (customerInfo as any).entitlements?.active ?? {}
       if (active['premium']) {
