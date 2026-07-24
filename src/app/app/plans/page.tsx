@@ -138,7 +138,7 @@ function PlansContent() {
       if (current?.availablePackages) {
         const prices: Record<string, string> = {}
         for (const pkg of current.availablePackages) {
-          prices[pkg.product.productIdentifier] = pkg.product.priceString
+          prices[pkg.product.identifier] = pkg.product.priceString
         }
         setRcPrices(prices)
       }
@@ -168,12 +168,9 @@ function PlansContent() {
       const offeringsResult = await Purchases.getOfferings()
       const current = (offeringsResult as any)?.current
       const pkg = current?.availablePackages?.find(
-        (p: any) => p.product.productIdentifier === targetProductId
+        (p: any) => p.product.identifier === targetProductId
       )
-      if (!pkg) {
-        const available = current?.availablePackages?.map((p: any) => p.product.productIdentifier).join(', ') ?? 'なし'
-        throw new Error(`商品が見つかりませんでした。\n取得済み: [${available}]\n検索中: ${targetProductId}`)
-      }
+      if (!pkg) throw new Error('商品が見つかりませんでした。しばらく経ってから再試行してください。')
       const { customerInfo } = await Purchases.purchasePackage({ aPackage: pkg })
       const active = (customerInfo as any).entitlements?.active ?? {}
       if (active['premium']) {
