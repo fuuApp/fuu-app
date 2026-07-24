@@ -789,7 +789,9 @@ export default function ChatPage() {
                 boxShadow: '0 1px 4px rgba(0,0,0,0.08)', whiteSpace: 'pre-wrap',
                 wordBreak: 'break-word', overflowWrap: 'break-word', minWidth: 0,
               }}>
-                {msg.content}
+                {msg.role === 'assistant'
+                  ? msg.content.replace(new RegExp(`^${character.name}[：:][「]?`), '')
+                  : msg.content}
               </div>
             </div>
           )
