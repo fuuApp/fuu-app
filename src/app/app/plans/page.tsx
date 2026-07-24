@@ -158,6 +158,12 @@ function PlansContent() {
     setRcLoading(true)
     try {
       const { Purchases } = await import('@revenuecat/purchases-capacitor')
+      const { Capacitor } = await import('@capacitor/core')
+      // initRevenueCat完了前に押された場合に備えてここでも確実にconfigure
+      const apiKey = Capacitor.getPlatform() === 'android'
+        ? (process.env.NEXT_PUBLIC_REVENUECAT_ANDROID_KEY ?? '')
+        : (process.env.NEXT_PUBLIC_REVENUECAT_IOS_KEY ?? '')
+      if (apiKey) await Purchases.configure({ apiKey, appUserID: userId })
       const targetProductId = planId === 'premium' ? 'fuu_premium_monthly' : 'fuu_standard_monthly'
       const offeringsResult = await Purchases.getOfferings()
       const current = (offeringsResult as any)?.current
