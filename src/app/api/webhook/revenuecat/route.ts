@@ -43,14 +43,16 @@ export async function POST(req: NextRequest) {
   const event = body?.event
   if (!event) return NextResponse.json({ received: true })
 
-  const { type, app_user_id, product_id } = event
+  const { type, app_user_id, product_id, new_product_id } = event
+  // PRODUCT_CHANGE は new_product_id が新しいプラン、product_id は旧プラン
+  const effectiveProductId = type === 'PRODUCT_CHANGE' ? (new_product_id ?? product_id) : product_id
 
   // app_user_id is the Supabase user UUID we passed as appUserID to Purchases.configure()
   if (!app_user_id) return NextResponse.json({ received: true })
 
   try {
     if (ACTIVATE_EVENTS.has(type)) {
-      const plan = PRODUCT_TO_PLAN[product_id as string]
+      const plan = PRODUCT_TO_PLAN[effectiveProductId as string]
       if (plan) {
         // サブスクリプション購入 → プラン更新
         const { error } = await supabaseAdmin
