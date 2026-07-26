@@ -200,12 +200,17 @@ export default function SettingsPage() {
   const [withdrawalScheduled, setWithdrawalScheduled] = useState(false)
   const [withdrawalDate, setWithdrawalDate] = useState<string | null>(null)
   const [forceImmediate, setForceImmediate] = useState(false)
+  const [isIos, setIsIos] = useState(false)
 
   useEffect(() => {
     const n = localStorage.getItem(NICKNAME_KEY) ?? ''
     setNickname(n); setNicknameInput(n)
     const bgm = localStorage.getItem(BGM_KEY)
     setBgmEnabled(bgm === null ? true : bgm === 'true')
+    // iOS判定
+    import('@capacitor/core').then(({ Capacitor }) => {
+      setIsIos(Capacitor.getPlatform() === 'ios')
+    }).catch(() => {})
     // Supabase からプラン設定を取得
     ;(async () => {
       try {
@@ -418,6 +423,21 @@ export default function SettingsPage() {
               </p>
             )}
             <button onClick={()=>router.push('/app/plans')} style={{ marginTop:12,background:'none',border:'1px solid #F48FB1',borderRadius:20,padding:'8px 16px',fontSize:13,color:'#E91E63',cursor:'pointer',fontFamily:'inherit' }}>プランを見る →</button>
+            {isIos && (
+              <button
+                onClick={async () => {
+                  try {
+                    const { Purchases } = await import('@revenuecat/purchases-capacitor')
+                    await Purchases.presentCodeRedemptionSheet()
+                  } catch (e) {
+                    console.error('Offer Code redemption failed', e)
+                  }
+                }}
+                style={{ marginTop:8,marginLeft:8,background:'none',border:'1px solid #F48FB1',borderRadius:20,padding:'8px 16px',fontSize:13,color:'#E91E63',cursor:'pointer',fontFamily:'inherit' }}
+              >
+                🎁 コードを使用する
+              </button>
+            )}
             {(userPlan === 'standard' || userPlan === 'premium') && !withdrawalScheduled && !isNative() && (
               <div style={{ marginTop:14,background:'#F5F5F5',border:'1.5px solid #E0E0E0',borderRadius:16,padding:'14px 16px' }}>
                 <div style={{ fontWeight:700,fontSize:13,color:'#555',marginBottom:4 }}>💳 課金だけを止める（解約のみ）</div>
