@@ -435,7 +435,7 @@ export default function SettingsPage() {
                 }}
                 style={{ marginTop:8,marginLeft:8,background:'none',border:'1px solid #F48FB1',borderRadius:20,padding:'8px 16px',fontSize:13,color:'#E91E63',cursor:'pointer',fontFamily:'inherit' }}
               >
-                🎁 コードを使用する
+                🎁 クーポンコード
               </button>
             )}
             {(userPlan === 'standard' || userPlan === 'premium') && !withdrawalScheduled && !isNative() && (
