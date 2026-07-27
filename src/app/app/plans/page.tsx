@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Fragment } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import { isNative, openStripeCheckout } from '@/lib/platform'
@@ -694,13 +694,14 @@ function PlansContent() {
         )}
 
         {/* ── ネイティブ：RevenueCat IAP プランカード ── */}
-        {isNative() && PLANS.map(plan => {
+        {isNative() && PLANS.map((plan, index) => {
           const isCurrentPlan = currentPlan === plan.id
           const productId = plan.id === 'premium' ? 'fuu_premium_monthly' : 'fuu_standard_monthly'
           const priceStr = rcPrices[productId] ?? `¥${plan.price.toLocaleString()}`
 
           return (
-            <div key={plan.id} style={{
+            <Fragment key={plan.id}>
+            <div style={{
               background: '#fff', borderRadius: 20,
               border: plan.id === 'premium' ? '2px solid #E91E63' : '1.5px solid #FCE4EC',
               overflow: 'hidden',
@@ -761,25 +762,24 @@ function PlansContent() {
                 )}
               </div>
             </div>
+            {index === 0 && (
+              <button
+                onClick={async () => {
+                  try {
+                    const { Purchases } = await import('@revenuecat/purchases-capacitor')
+                    await Purchases.presentCodeRedemptionSheet()
+                  } catch (e) {
+                    console.error('Offer Code redemption failed', e)
+                  }
+                }}
+                style={{ width:'100%', padding:'14px', background:'none', border:'1.5px solid #F48FB1', borderRadius:50, fontSize:15, fontWeight:700, color:'#E91E63', cursor:'pointer', fontFamily:'inherit' }}
+              >
+                🎁 クーポンコードを使う
+              </button>
+            )}
+            </Fragment>
           )
         })}
-
-        {/* ネイティブ：クーポンコードボタン */}
-        {isNative() && (
-          <button
-            onClick={async () => {
-              try {
-                const { Purchases } = await import('@revenuecat/purchases-capacitor')
-                await Purchases.presentCodeRedemptionSheet()
-              } catch (e) {
-                console.error('Offer Code redemption failed', e)
-              }
-            }}
-            style={{ width:'100%', padding:'14px', background:'none', border:'1.5px solid #F48FB1', borderRadius:50, fontSize:15, fontWeight:700, color:'#E91E63', cursor:'pointer', fontFamily:'inherit' }}
-          >
-            🎁 クーポンコードを使う
-          </button>
-        )}
 
         {/* ネイティブ：App Store 必須テキスト・復元・管理 */}
         {isNative() && (
