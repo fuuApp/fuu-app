@@ -40,8 +40,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
+  console.log('[RC webhook] raw body keys:', JSON.stringify(Object.keys(body || {})))
+  console.log('[RC webhook] raw body:', JSON.stringify(body))
+
   const event = body?.event
-  if (!event) return NextResponse.json({ received: true })
+  if (!event) {
+    console.log('[RC webhook] SKIPPED: no event field in body')
+    return NextResponse.json({ received: true })
+  }
 
   const { type, app_user_id, product_id, new_product_id } = event
   // PRODUCT_CHANGE は new_product_id が新しいプラン、product_id は旧プラン
