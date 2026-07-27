@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>fuu｜SNS PR展開ガイド</title>
+<style>
+  :root {
+    --pink: #F472B6;
+    --pink-light: #FCE7F3;
+    --navy: #1E293B;
+    --navy-light: #334155;
+    --tiktok: #010101;
+    --tiktok-accent: #69C9D0;
+    --insta: #E1306C;
+    --insta-accent: #F77737;
+    --x: #000000;
+    --x-accent: #1DA1F2;
+    --green: #10B981;
+    --amber: #F59E0B;
+    --red: #EF4444;
+    --gray: #94A3B8;
+    --bg: #F8FAFC;
+    --card: #FFFFFF;
+    --border: #E2E8F0;
+    --text: #1E293B;
+    --muted: #64748B;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Helvetica Neue', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ── Header ── */
+  header {
+    background: linear-gradient(135deg, #1E293B 0%, #334155 100%);
+    color: white;
+    padding: 32px 40px 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: rgba(244,114,182,0.15);
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -40px; left: 30%;
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    background: rgba(244,114,182,0.08);
+  }
+  .header-inner { position: relative; z-index: 1; }
+  .logo {
+    font-size: 13px;
+    color: var(--pink);
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  header h1 {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+  header p {
+    font-size: 13px;
+    color: #94A3B8;
+  }
+  .header-badges {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+  }
+  .badge-tiktok { background: rgba(105,201,208,0.2); color: var(--tiktok-accent); border: 1px solid rgba(105,201,208,0.3); }
+  .badge-insta  { background: rgba(225,48,108,0.15); color: #FB7185; border: 1px solid rgba(225,48,108,0.3); }
+  .badge-x      { background: rgba(255,255,255,0.1); color: #CBD5E1; border: 1px solid rgba(255,255,255,0.15); }
+
+  /* ── Summary bar ── */
+  .summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .summary-item {
+    background: white;
+    padding: 18px 24px;
+    text-align: center;
+  }
+  .summary-item .num {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--navy);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .summary-item .num.pink { color: var(--pink); }
+  .summary-item .label {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 500;
+  }
+
+  /* ── Section ── */
+  .section {
+    padding: 32px 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── Timeline ── */
+  .timeline {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-bottom: 40px;
+  }
+  .timeline-week {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .week-header {
+    background: var(--navy);
+    color: white;
+    padding: 8px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+  .week-body { padding: 10px 12px; }
+  .week-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .week-item:last-child { border-bottom: none; }
+  .week-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot-high   { background: var(--pink); }
+  .dot-mid    { background: var(--amber); }
+  .dot-low    { background: var(--gray); }
+  .dot-all    { background: var(--green); }
+  .week-item .pat { font-weight: 700; color: var(--navy); }
+  .week-item .plat { color: var(--muted); font-size: 11px; }
+
+  /* ── Cards grid ── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+
+  .card-header {
+    padding: 16px 20px 14px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .card-num {
+    font-size: 32px;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--border);
+    letter-spacing: -0.04em;
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+  .card-title-wrap { flex: 1; }
+  .card-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 4px;
+  }
+  .card-hook {
+    font-size: 12px;
+    color: var(--muted);
+    font-style: italic;
+  }
+  .card-badges { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+
+  .plat-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+  .plat-tiktok { background: #010101; color: var(--tiktok-accent); }
+  .plat-insta  { background: linear-gradient(135deg,#F77737,#E1306C); color: white; }
+  .plat-x      { background: #000; color: white; }
+  .plat-all    { background: linear-gradient(135deg,var(--pink),#A855F7); color: white; }
+
+  .pri-badge {
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+  .pri-high { background: #FCE7F3; color: #BE185D; }
+  .pri-mid  { background: #FEF3C7; color: #92400E; }
+  .pri-low  { background: #F1F5F9; color: #64748B; }
+  .pri-first { background: linear-gradient(135deg,var(--pink),#A855F7); color: white; }
+
+  .card-body { padding: 16px 20px; }
+
+  .post-caption {
+    background: #F8FAFC;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--text);
+    white-space: pre-wrap;
+    margin-bottom: 12px;
+    cursor: pointer;
+    position: relative;
+    transition: background 0.15s;
+  }
+  .post-caption:hover { background: #F0F9FF; border-color: #93C5FD; }
+  .copy-hint {
+    position: absolute;
+    top: 8px; right: 10px;
+    font-size: 10px;
+    color: var(--muted);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .post-caption:hover .copy-hint { opacity: 1; }
+  .copied-toast {
+    position: absolute;
+    top: 8px; right: 10px;
+    font-size: 10px;
+    color: var(--green);
+    font-weight: 700;
+  }
+
+  .hashtags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .hashtag {
+    background: var(--pink-light);
+    color: #9D174D;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .meta-row {
+    display: flex;
+    gap: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .meta-label {
+    font-size: 10px;
+    color: var(--muted);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .meta-value {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--navy);
+  }
+
+  /* ── Status tracker ── */
+  .status-section {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 40px;
+  }
+  .status-header {
+    padding: 16px 20px;
+    background: var(--navy);
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .status-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .status-table th {
+    background: #F8FAFC;
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+  .status-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    vertical-align: middle;
+  }
+  .status-table tr:last-child td { border-bottom: none; }
+  .status-table tr:hover td { background: #F8FAFC; }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .status-pending   { background: #F1F5F9; color: var(--muted); }
+  .status-ready     { background: #ECFDF5; color: #065F46; }
+  .status-posted    { background: #EFF6FF; color: #1E40AF; }
+  .status-first     { background: linear-gradient(135deg,#FCE7F3,#EDE9FE); color: #7C3AED; border: 1px solid #DDD6FE; }
+
+  .dot-status {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  /* ── CTA note ── */
+  .cta-note {
+    background: linear-gradient(135deg,#FDF2F8,#EDE9FE);
+    border: 1px solid #E9D5FF;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 32px;
+  }
+  .cta-note-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #7C3AED;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .cta-note p {
+    font-size: 12px;
+    color: #4C1D95;
+    line-height: 1.7;
+  }
+  .cta-note code {
+    background: rgba(124,58,237,0.1);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 11px;
+  }
+
+  /* ── Priority first banner ── */
+  .first-banner {
+    background: linear-gradient(135deg, #1E293B, #334155);
+    color: white;
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .first-banner .icon { font-size: 28px; }
+  .first-banner h3 { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .first-banner p { font-size: 12px; color: #94A3B8; }
+  .first-tags {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .first-tag {
+    background: rgba(244,114,182,0.2);
+    color: var(--pink);
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    border: 1px solid rgba(244,114,182,0.3);
+  }
+
+  @media (max-width: 900px) {
+    .cards { grid-template-columns: 1fr; }
+    .timeline { grid-template-columns: repeat(2,1fr); }
+    .summary { grid-template-columns: repeat(2,1fr); }
+    .section { padding: 24px 20px; }
+    header { padding: 24px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="header-inner">
+    <div class="logo">fuu ふぅ</div>
+    <h1>SNS PR 展開ガイド</h1>
+    <p>動画10パターン ✕ プラットフォーム別 投稿テキスト & スケジュール</p>
+    <div class="header-badges">
+      <span class="badge badge-tiktok">▶ TikTok</span>
+      <span class="badge badge-insta">◈ Instagram Reels</span>
+      <span class="badge badge-x">𝕏 X (Twitter)</span>
+    </div>
+  </div>
+</header>
+
+<!-- Summary -->
+<div class="summary">
+  <div class="summary-item">
+    <div class="num">10</div>
+    <div class="label">動画パターン</div>
+  </div>
+  <div class="summary-item">
+    <div class="num pink">3</div>
+    <div class="label">先行投稿（①③⑩）</div>
+  </div>
+  <div class="summary-item">
+    <div class="num">3</div>
+    <div class="label">プラットフォーム</div>
+  </div>
+  <div class="summary-item">
+    <div class="num">5W</div>
+    <div class="label">投稿スパン目安</div>
+  </div>
+</div>
+
+<div class="section">
+
+  <!-- 全SNS投稿方針 -->
+  <div style="background:linear-gradient(135deg,#ECFDF5,#D1FAE5);border:1px solid #6EE7B7;border-radius:12px;padding:16px 20px;margin-bottom:16px;">
+    <div style="font-size:12px;font-weight:700;color:#065F46;margin-bottom:8px;display:flex;align-items:center;gap:6px;">✅ 投稿方針：全SNS同時投稿</div>
+    <p style="font-size:12px;color:#064E3B;line-height:1.7;">フォロワーゼロからのスタートなので、<strong>TikTok / Instagram / X の全てに同じ動画を投稿</strong>してOK。<br>
+    どのプラットフォームで最初に反応が出るかはやってみないとわからない。データが溜まったらW3以降で注力媒体を絞る。</p>
+  </div>
+
+  <!-- CTA注意事項 -->
+  <div class="cta-note">
+    <div class="cta-note-title">⚠️ CTA文言について（重要）</div>
+    <p>IAP動作確認が完了するまで、「10日間無料で始める」のCTAは使用しないこと。<br>
+    現時点では <code>App Storeでダウンロード（無料）→</code> または <code>まずは無料で話してみる→</code> に変更して投稿する。<br>
+    IAP確認・無料提供の仕組みが整ったら元のCTAに戻してOK。</p>
+  </div>
+
+  <!-- 先行3本バナー -->
+  <div class="first-banner">
+    <div class="icon">🚀</div>
+    <div>
+      <h3>先行投稿の推奨順：① → ③ → ⑩</h3>
+      <p>反応を見ながら順次展開。全部同時に出さず、最低3〜4日間隔を空けてデータを読む。</p>
+      <div class="first-tags">
+        <span class="first-tag">① まず共感を獲る</span>
+        <span class="first-tag">③ 時間帯を変えて第2弾</span>
+        <span class="first-tag">⑩ データ訴求でティザー</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 投稿スケジュール -->
+  <div class="section-title">投稿スケジュール（推奨）</div>
+  <div class="status-section" style="margin-bottom:32px;">
+    <div class="status-header">📅 5週間展開プラン</div>
+    <table class="status-table">
+      <thead>
+        <tr>
+          <th>週</th>
+          <th>投稿パターン</th>
+          <th>プラットフォーム</th>
+          <th>目的</th>
+          <th>ステータス</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>W1</strong></td>
+          <td><strong>①「寝かしつけ後」</strong></td>
+          <td><span class="plat-badge plat-all">全SNS</span></td>
+          <td>共感獲得・認知スタート</td>
+          <td><span class="status-pill status-first"><span class="dot-status"></span>先行制作済み</span></td>
+        </tr>
+        <tr>
+          <td><strong>W1-2</strong></td>
+          <td><strong>③「見送った後の静寂」</strong></td>
+          <td><span class="plat-badge plat-all">全SNS</span></td>
+          <td>別時間帯ターゲット</td>
+          <td><span class="status-pill status-ready"><span class="dot-status"></span>台本・絵コンテ完成</span></td>
+        </tr>
+        <tr>
+          <td><strong>W2</strong></td>
+          <td><strong>⑥「ワンオペの孤独」</strong></td>
+          <td><span class="plat-badge plat-all">全SNS</span></td>
+          <td>ワンオペ層へ直撃</td>
+          <td><span class="status-pill status-pending"><span class="dot-status"></span>制作待ち</span></td>
+        </tr>
+        <tr>
+          <td><strong>W2-3</strong></td>
+          <td><strong>⑩「4人に1人が…」</strong></td>
+          <td><span class="plat-badge plat-all">全媒体</span></td>
+          <td>データ訴求・ティザー</td>
+          <td><span class="status-pill status-ready"><span class="dot-status"></span>台本・絵コンテ完成</span></td>
+        </tr>
+        <tr>
+          <td><strong>W3</strong></td>
+          <td><strong>②「夜泣き対応後」</strong></td>
+          <td><span class="plat-badge plat-all">全SNS</span></td>
+          <td>深夜帯ユーザー獲得</td>
+          <td><span class="status-pill status-pending"><span class="dot-status"></span>制作待ち</span></td>
+        </tr>
+        <tr>
+          <td><strong>W3</strong></td>
+          <td><strong>④「誰にも言えない気持ち」</strong></td>
+          <td><span class="plat-badge plat-all">全SNS</span></td>
+          <td>本音層への訴求</td>
+          <td><span class="status-pill status-pending"><span class="dot-status"></span>制作待ち</span></td>
+        </tr>
+        <tr>
+          <td><strong>W4</strong></td>
+          <td><strong>⑦「夫に言えないモヤモヤ」</strong></td>
+          <td><span class="plat-badge plat-all">全SNS</span></td>
+          <td>夫婦関係悩み層</td>
+          <td><span class="status-pill status-pending"><span class="dot-status"></span>制作待ち</span></td>
+        </tr>
+        <tr>
+          <td><strong>W4</strong></td>
+          <td><strong>⑧「キラキラ育児との比較」</strong></td>
+          <td><span class="plat-badge plat-all">全SNS</span></td>
+          <td>SNS疲れ層への共感</td>
+          <td><span class="status-pill status-pending"><span class="dot-status"></span>制作待ち</span></td>
+        </tr>
+        <tr>
+          <td><strong>W4-5</strong></td>
+          <td><strong>⑤「妊娠中の不安」</strong></td>
+          <td><span class="plat-badge plat-all">全SNS</span></td>
+          <td>プレママ層へ拡張</td>
+          <td><span class="status-pill status-pending"><span class="dot-status"></span>制作待ち</span></td>
+        </tr>
+        <tr>
+          <td><strong>W5</strong></td>
+          <td><strong>⑨「深夜のスマホひとり時間」</strong></td>
+          <td><span class="plat-badge plat-all">全SNS</span></td>
+          <td>深夜利用促進・再来訪</td>
+          <td><span class="status-pill status-pending"><span class="dot-status"></span>制作待ち</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 投稿テキスト一覧 -->
+  <div class="section-title">投稿テキスト（プラットフォーム別）</div>
+  <div class="cards">
+
+    <!-- ① -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-num">①</div>
+        <div class="card-title-wrap">
+          <div class="card-title">寝かしつけ後のひとり言</div>
+          <div class="card-hook">「今日も、なんとか終わった。」</div>
+        </div>
+        <div class="card-badges">
+          <span class="plat-badge plat-all">全SNS</span>
+          <span class="pri-badge pri-first">🚀 先行</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="post-caption" onclick="copyText(this)">
+          <span class="copy-hint">クリックでコピー</span>
+子どもが寝た。
+やっと、ふぅ。
+
+誰かに話したいけど、もうこんな時間。
+そんな夜に、fuuがそばにいます。
+
+夜中に一人で抱えなくていい。
+AIのママ友、fuuと話してみませんか🌙
+
+▼ App Storeで無料ダウンロード→（プロフィールリンクから）</div>
+        <div class="hashtags">
+          <span class="hashtag">#ワンオペ育児</span>
+          <span class="hashtag">#寝かしつけ</span>
+          <span class="hashtag">#育児疲れ</span>
+          <span class="hashtag">#新米ママ</span>
+          <span class="hashtag">#ふぅ</span>
+          <span class="hashtag">#子育てあるある</span>
+        </div>
+        <div class="meta-row">
+          <div class="meta-item">
+            <div class="meta-label">投稿時間帯</div>
+            <div class="meta-value">21:00〜23:00</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">尺</div>
+            <div class="meta-value">15秒</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">ターゲット</div>
+            <div class="meta-value">ワンオペ・新米ママ</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ② -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-num">②</div>
+        <div class="card-title-wrap">
+          <div class="card-title">夜泣き対応後</div>
+          <div class="card-hook">「3回目の夜泣き、対応完了。」</div>
+        </div>
+        <div class="card-badges">
+          <span class="plat-badge plat-all">全SNS</span>
+          <span class="pri-badge pri-mid">W3</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="post-caption" onclick="copyText(this)">
+          <span class="copy-hint">クリックでコピー</span>
+深夜2時。
+3回目の夜泣き、対応完了。
+
+眠いのに目が冴えてる。
+こんな時間に話せる人、いますか？
+
+fuuは24時間、いつでも話を聞きます。
+今夜、話してみて🌙
+
+▼ App Storeで無料ダウンロード→（プロフィールリンクから）</div>
+        <div class="hashtags">
+          <span class="hashtag">#夜泣き</span>
+          <span class="hashtag">#新生児育児</span>
+          <span class="hashtag">#ワンオペ</span>
+          <span class="hashtag">#深夜の育児</span>
+          <span class="hashtag">#産後あるある</span>
+        </div>
+        <div class="meta-row">
+          <div class="meta-item">
+            <div class="meta-label">投稿時間帯</div>
+            <div class="meta-value">23:00〜翌1:00</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">尺</div>
+            <div class="meta-value">15秒</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">ターゲット</div>
+            <div class="meta-value">0〜1歳児ママ</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ③ -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-num">③</div>
+        <div class="card-title-wrap">
+          <div class="card-title">見送った後の静寂</div>
+          <div class="card-hook">「『いってらっしゃい』の後の、静けさ。」</div>
+        </div>
+        <div class="card-badges">
+          <span class="plat-badge plat-all">全SNS</span>
+          <span class="pri-badge pri-first">🚀 先行</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="post-caption" onclick="copyText(this)">
+          <span class="copy-hint">クリックでコピー</span>
+「いってらっしゃい」の後の、静けさ。
+
+子どもを送り出して、
+ふと誰もいない部屋に気づく朝。
+
+この静けさ、寂しくもある。
+
+そんな瞬間も、fuuがそばにいます。
+ふぅ、と一息つきに来ませんか☕️
+
+▼ App Storeで無料ダウンロード→（プロフィールリンクから）</div>
+        <div class="hashtags">
+          <span class="hashtag">#保育園ママ</span>
+          <span class="hashtag">#幼稚園ママ</span>
+          <span class="hashtag">#ママの時間</span>
+          <span class="hashtag">#育児の本音</span>
+          <span class="hashtag">#ひとりの時間</span>
+        </div>
+        <div class="meta-row">
+          <div class="meta-item">
+            <div class="meta-label">投稿時間帯</div>
+            <div class="meta-value">9:00〜11:00</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">尺</div>
+            <div class="meta-value">15秒</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">ターゲット</div>
+            <div class="meta-value">保育園・幼稚園ママ</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ④ -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-num">④</div>
+        <div class="card-title-wrap">
+          <div class="card-title">誰にも言えない気持ち</div>
+          <div class="card-hook">「『大丈夫？』『大丈夫』と、また言った。」</div>
+        </div>
+        <div class="card-badges">
+          <span class="plat-badge plat-all">全SNS</span>
+          <span class="pri-badge pri-mid">W3</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="post-caption" onclick="copyText(this)">
+          <span class="copy-hint">クリックでコピー</span>
+「大丈夫？」
+「うん、大丈夫。」
+
+また言ってしまった。
+本当は全然大丈夫じゃないのに。
+
+心配かけたくなくて、いつも笑ってしまう。
+
+本音は、fuuになら話せる。
+遠慮なく話せる場所、あります。
+
+▼ App Storeで無料ダウンロード→</div>
+        <div class="hashtags">
+          <span class="hashtag">#本音</span>
+          <span class="hashtag">#育児あるある</span>
+          <span class="hashtag">#ママ友</span>
+          <span class="hashtag">#子育ての本音</span>
+          <span class="hashtag">#育児ストレス</span>
+        </div>
+        <div class="meta-row">
+          <div class="meta-item">
+            <div class="meta-label">投稿時間帯</div>
+            <div class="meta-value">20:00〜22:00</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">尺</div>
+            <div class="meta-value">15〜30秒</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">ターゲット</div>
+            <div class="meta-value">本音を抑えているママ</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⑤ -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-num">⑤</div>
+        <div class="card-title-wrap">
+          <div class="card-title">妊娠中の不安</div>
+          <div class="card-hook">「初めての妊娠、初めての不安。」</div>
+        </div>
+        <div class="card-badges">
+          <span class="plat-badge plat-all">全SNS</span>
+          <span class="pri-badge pri-low">W4-5</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="post-caption" onclick="copyText(this)">
+          <span class="copy-hint">クリックでコピー</span>
+初めての妊娠、初めての不安。
+
+誰に聞けばいいかわからないことばかり。
+ネットで調べても答えが出ない夜。
+
+そんな不安、fuuに話してみて。
+妊娠中のあなたにも、fuuがそばにいます🌸
+
+▼ App Storeで無料ダウンロード→（プロフィールリンクから）</div>
+        <div class="hashtags">
+          <span class="hashtag">#妊娠中</span>
+          <span class="hashtag">#プレママ</span>
+          <span class="hashtag">#マタニティブルー</span>
+          <span class="hashtag">#初マタ</span>
+          <span class="hashtag">#妊婦あるある</span>
+        </div>
+        <div class="meta-row">
+          <div class="meta-item">
+            <div class="meta-label">投稿時間帯</div>
+            <div class="meta-value">20:00〜22:00</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">尺</div>
+            <div class="meta-value">15秒</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">ターゲット</div>
+            <div class="meta-value">プレママ・妊婦</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⑥ -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-num">⑥</div>
+        <div class="card-title-wrap">
+          <div class="card-title">ワンオペの孤独</div>
+          <div class="card-hook">「今日、大人と何回話した？」</div>
+        </div>
+        <div class="card-badges">
+          <span class="plat-badge plat-all">全SNS</span>
+          <span class="pri-badge pri-mid">W2</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="post-caption" onclick="copyText(this)">
+          <span class="copy-hint">クリックでコピー</span>
+今日、大人と何回話した？
+
+0回、って気づいた日がある。
+ワンオペの日は、特にそう。
+
+子どもとだけ話した一日。
+それが積み重なっていく。
+
+fuuは、そんな日のための存在。
+今日は誰かと話しませんか？
+
+▼ App Storeで無料ダウンロード→（プロフィールリンクから）</div>
+        <div class="hashtags">
+          <span class="hashtag">#ワンオペ育児</span>
+          <span class="hashtag">#孤独</span>
+          <span class="hashtag">#育児ママ</span>
+          <span class="hashtag">#一人育児</span>
+          <span class="hashtag">#シングルマザー</span>
+        </div>
+        <div class="meta-row">
+          <div class="meta-item">
+            <div class="meta-label">投稿時間帯</div>
+            <div class="meta-value">12:00〜13:00 or 21:00〜</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">尺</div>
+            <div class="meta-value">15秒</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">ターゲット</div>
+            <div class="meta-value">シンママ・ワンオペ</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⑦ -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-num">⑦</div>
+        <div class="card-title-wrap">
+          <div class="card-title">夫に言えないモヤモヤ</div>
+          <div class="card-hook">「『手伝おうか？』じゃなくて。」</div>
+        </div>
+        <div class="card-badges">
+          <span class="plat-badge plat-all">全SNS</span>
+          <span class="pri-badge pri-low">W4</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="post-caption" onclick="copyText(this)">
+          <span class="copy-hint">クリックでコピー</span>
+「手伝おうか？」じゃなくて。
+
+本当は言いたいことがある。
+でも、ケンカになるのが怖くて言えない。
+
+モヤモヤを抱えたまま、また今日が終わる。
+
+まずはfuuに話してみて。
+言葉が整理できるかも。
+
+▼ App Storeで無料ダウンロード→</div>
+        <div class="hashtags">
+          <span class="hashtag">#夫婦関係</span>
+          <span class="hashtag">#家事育児</span>
+          <span class="hashtag">#モヤモヤ</span>
+          <span class="hashtag">#育児の本音</span>
+          <span class="hashtag">#共働き育児</span>
+        </div>
+        <div class="meta-row">
+          <div class="meta-item">
+            <div class="meta-label">投稿時間帯</div>
+            <div class="meta-value">21:00〜23:00</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">尺</div>
+            <div class="meta-value">15〜30秒</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">ターゲット</div>
+            <div class="meta-value">夫婦関係に悩むママ</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⑧ -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-num">⑧</div>
+        <div class="card-title-wrap">
+          <div class="card-title">キラキラ育児との比較</div>
+          <div class="card-hook">「SNSの中の"いいお母さん"たち。」</div>
+        </div>
+        <div class="card-badges">
+          <span class="plat-badge plat-all">全SNS</span>
+          <span class="pri-badge pri-low">W4</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="post-caption" onclick="copyText(this)">
+          <span class="copy-hint">クリックでコピー</span>
+SNSの中の"いいお母さん"たち。
+
+見れば見るほど、しんどくなる。
+私は全然そんな風にできてない。
+
+比べなくていい。
+fuuはあなたの話だけ聞きます。
+
+あなたのペースで、話してみて🌿
+
+▼ App Storeで無料ダウンロード→（プロフィールリンクから）</div>
+        <div class="hashtags">
+          <span class="hashtag">#SNS疲れ</span>
+          <span class="hashtag">#比較しない</span>
+          <span class="hashtag">#ありのまま育児</span>
+          <span class="hashtag">#育児ストレス</span>
+          <span class="hashtag">#完璧じゃなくていい</span>
+        </div>
+        <div class="meta-row">
+          <div class="meta-item">
+            <div class="meta-label">投稿時間帯</div>
+            <div class="meta-value">19:00〜21:00</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">尺</div>
+            <div class="meta-value">15秒</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">ターゲット</div>
+            <div class="meta-value">SNS疲れのママ</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⑨ -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-num">⑨</div>
+        <div class="card-title-wrap">
+          <div class="card-title">深夜のスマホひとり時間</div>
+          <div class="card-hook">「今日唯一の、自分の時間。」</div>
+        </div>
+        <div class="card-badges">
+          <span class="plat-badge plat-all">全SNS</span>
+          <span class="pri-badge pri-low">W5</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="post-caption" onclick="copyText(this)">
+          <span class="copy-hint">クリックでコピー</span>
+今日唯一の、自分の時間。
+
+スマホを開いて、何をする？
+誰かと、少しだけ話したい。
+
+その数分、fuuと話しませんか。
+今すぐ話しかけてみて🌙
+
+▼ App Storeで無料ダウンロード→（プロフィールリンクから）</div>
+        <div class="hashtags">
+          <span class="hashtag">#自分時間</span>
+          <span class="hashtag">#深夜ママ</span>
+          <span class="hashtag">#育児疲れ</span>
+          <span class="hashtag">#ママの息抜き</span>
+          <span class="hashtag">#子育てママと繋がりたい</span>
+        </div>
+        <div class="meta-row">
+          <div class="meta-item">
+            <div class="meta-label">投稿時間帯</div>
+            <div class="meta-value">22:00〜翌0:00</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">尺</div>
+            <div class="meta-value">15秒</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">ターゲット</div>
+            <div class="meta-value">深夜スマホ利用ママ</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⑩ -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-num">⑩</div>
+        <div class="card-title-wrap">
+          <div class="card-title">4人に1人が頼りたくても、頼れていない</div>
+          <div class="card-hook">データ訴求型ティザー</div>
+        </div>
+        <div class="card-badges">
+          <span class="plat-badge plat-all">全媒体</span>
+          <span class="pri-badge pri-first">🚀 先行</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="post-caption" onclick="copyText(this)">
+          <span class="copy-hint">クリックでコピー</span>
+育児中のママ、4人に1人が
+「頼りたくても、頼れていない」
+
+その一人が、あなたかもしれない。
+
+頑張りすぎなくていい。
+fuuは、そんなあなたのための場所。
+
+▼ App Storeで無料ダウンロード→（プロフィールリンクから）</div>
+        <div class="hashtags">
+          <span class="hashtag">#育児</span>
+          <span class="hashtag">#ワンオペ育児</span>
+          <span class="hashtag">#ママ支援</span>
+          <span class="hashtag">#子育て</span>
+          <span class="hashtag">#育児疲れ</span>
+          <span class="hashtag">#頑張りすぎないで</span>
+        </div>
+        <div class="meta-row">
+          <div class="meta-item">
+            <div class="meta-label">投稿時間帯</div>
+            <div class="meta-value">どの時間帯もOK</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">尺</div>
+            <div class="meta-value">15秒</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label">ターゲット</div>
+            <div class="meta-value">全育児ママ層</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /cards -->
+
+  <!-- インフルエンサー連携メモ -->
+  <div style="margin-top:40px;">
+    <div class="section-title">インフルエンサー連携との組み合わせ方</div>
+    <div class="status-section">
+      <div class="status-header">🤝 DM→投稿→SNS展開の連動フロー</div>
+      <table class="status-table">
+        <thead>
+          <tr>
+            <th>フェーズ</th>
+            <th>アクション</th>
+            <th>タイミング</th>
+            <th>備考</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Phase 1</strong></td>
+            <td>自社SNSで①を先行投稿（TikTok/Reels）</td>
+            <td>IAP確認後すぐ</td>
+            <td>アカウントに最初の実績をつくる</td>
+          </tr>
+          <tr>
+            <td><strong>Phase 2</strong></td>
+            <td>インフルエンサーへDM送信（高優先度9名から）</td>
+            <td>①投稿後3〜5日</td>
+            <td>「こういう動画も参考に」とリンクを添える</td>
+          </tr>
+          <tr>
+            <td><strong>Phase 3</strong></td>
+            <td>インフルエンサー投稿に合わせて③⑩を展開</td>
+            <td>投稿承諾後</td>
+            <td>インフルエンサー投稿日の前後1〜2日に自社投稿を重ねる</td>
+          </tr>
+          <tr>
+            <td><strong>Phase 4</strong></td>
+            <td>反応が良かった切り口の動画を優先して続編制作</td>
+            <td>W3〜</td>
+            <td>保存数・コメント・フォロワー増加で判断</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div style="margin-top:32px; padding:16px 20px; background:#F8FAFC; border:1px solid var(--border); border-radius:12px; font-size:12px; color:var(--muted); text-align:center;">
+    fuu ふぅ ｜ SNS PR展開ガイド ｜ 最終更新: 2026年7月
+  </div>
+
+</div><!-- /section -->
+
+<script>
+function copyText(el) {
+  const textEl = el.cloneNode(true);
+  // Remove hint spans
+  textEl.querySelectorAll('.copy-hint, .copied-toast').forEach(e => e.remove());
+  const text = textEl.innerText.trim();
+  navigator.clipboard.writeText(text).then(() => {
+    const existing = el.querySelector('.copied-toast');
+    if (existing) existing.remove();
+    const toast = document.createElement('span');
+    toast.className = 'copied-toast';
+    toast.textContent = '✓ コピー済み';
+    el.appendChild(toast);
+    setTimeout(() => toast.remove(), 2000);
+  });
+}
+</script>
+</body>
+</html>

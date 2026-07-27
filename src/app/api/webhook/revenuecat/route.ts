@@ -47,12 +47,18 @@ export async function POST(req: NextRequest) {
   // PRODUCT_CHANGE は new_product_id が新しいプラン、product_id は旧プラン
   const effectiveProductId = type === 'PRODUCT_CHANGE' ? (new_product_id ?? product_id) : product_id
 
+  console.log('[RC webhook]', JSON.stringify({ type, app_user_id, product_id, new_product_id, effectiveProductId }))
+
   // app_user_id is the Supabase user UUID we passed as appUserID to Purchases.configure()
-  if (!app_user_id) return NextResponse.json({ received: true })
+  if (!app_user_id) {
+    console.log('[RC webhook] SKIPPED: no app_user_id')
+    return NextResponse.json({ received: true })
+  }
 
   try {
     if (ACTIVATE_EVENTS.has(type)) {
       const plan = PRODUCT_TO_PLAN[effectiveProductId as string]
+      console.log('[RC webhook] plan resolved:', plan, 'for effectiveProductId:', effectiveProductId)
       if (plan) {
         // サブスクリプション購入 → プラン更新
         const { error } = await supabaseAdmin

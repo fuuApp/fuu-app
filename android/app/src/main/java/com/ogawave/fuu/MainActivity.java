@@ -1,4 +1,4 @@
-package com.ogdstudio.fuu;
+package com.ogawave.fuu;
 
 import android.os.Bundle;
 import android.webkit.WebSettings;

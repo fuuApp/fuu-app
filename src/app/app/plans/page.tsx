@@ -171,17 +171,14 @@ function PlansContent() {
         (p: any) => p.product.identifier === targetProductId
       )
       if (!pkg) throw new Error('商品が見つかりませんでした。しばらく経ってから再試行してください。')
-      const { customerInfo } = await Purchases.purchasePackage({ aPackage: pkg })
-      const active = (customerInfo as any).entitlements?.active ?? {}
-      const newPlan = active['premium'] ? 'premium' : active['standard'] ? 'standard' : null
-      if (newPlan) {
-        setCurrentPlan(newPlan)
-        setToastMessage({ type: 'success', text: newPlan === 'premium' ? '🎉 プレミアムプランに登録しました！' : '🎉 スタンダードプランに登録しました！' })
-        // Webhook到着を待たずにSupabaseを直接更新（フォールバック）
-        if (userId) {
-          const supabase = createClient()
-          await supabase.from('profiles').update({ plan: newPlan }).eq('user_id', userId)
-        }
+      await Purchases.purchasePackage({ aPackage: pkg })
+      // entitlement判定ではなくplanIdを直接使用（Sandbox誤検知防止）
+      setCurrentPlan(planId)
+      setToastMessage({ type: 'success', text: planId === 'premium' ? '🎉 プレミアムプランに登録しました！' : '🎉 スタンダードプランに登録しました！' })
+      // Webhook到着を待たずにSupabaseを直接更新（フォールバック）
+      if (userId) {
+        const supabase = createClient()
+        await supabase.from('profiles').update({ plan: planId }).eq('user_id', userId)
       }
     } catch (err: any) {
       // ユーザーが自分でキャンセルした場合はエラー表示しない
