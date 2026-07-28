@@ -138,7 +138,8 @@ function PlansContent() {
       if (current?.availablePackages) {
         const prices: Record<string, string> = {}
         for (const pkg of current.availablePackages) {
-          prices[pkg.product.identifier] = pkg.product.priceString
+          // pkg.identifier = 'premium_monthly' / 'standard_monthly'（iOS/Android共通）
+          prices[pkg.identifier] = pkg.product.priceString
         }
         setRcPrices(prices)
       }
@@ -164,11 +165,11 @@ function PlansContent() {
         ? (process.env.NEXT_PUBLIC_REVENUECAT_ANDROID_KEY ?? '')
         : (process.env.NEXT_PUBLIC_REVENUECAT_IOS_KEY ?? '')
       if (apiKey) await Purchases.configure({ apiKey, appUserID: userId })
-      const targetProductId = planId === 'premium' ? 'fuu_premium_monthly' : 'fuu_standard_monthly'
+      const targetPackageId = planId === 'premium' ? 'premium_monthly' : 'standard_monthly'
       const offeringsResult = await Purchases.getOfferings()
       const current = (offeringsResult as any)?.current
       const pkg = current?.availablePackages?.find(
-        (p: any) => p.product.identifier === targetProductId
+        (p: any) => p.identifier === targetPackageId
       )
       if (!pkg) throw new Error('商品が見つかりませんでした。しばらく経ってから再試行してください。')
       await Purchases.purchasePackage({ aPackage: pkg })
@@ -693,8 +694,8 @@ function PlansContent() {
         {/* ── ネイティブ：RevenueCat IAP プランカード ── */}
         {isNative() && PLANS.map((plan, index) => {
           const isCurrentPlan = currentPlan === plan.id
-          const productId = plan.id === 'premium' ? 'fuu_premium_monthly' : 'fuu_standard_monthly'
-          const priceStr = rcPrices[productId] ?? `¥${plan.price.toLocaleString()}`
+          const packageId = plan.id === 'premium' ? 'premium_monthly' : 'standard_monthly'
+          const priceStr = rcPrices[packageId] ?? `¥${plan.price.toLocaleString()}`
 
           return (
             <Fragment key={plan.id}>
