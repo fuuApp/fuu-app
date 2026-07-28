@@ -62,7 +62,33 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    if (ACTIVATE_EVENTS.has(type)) {
+    if (type === 'NON_RENEWING_PURCHASE' && CONSUMABLE_PRODUCTS.has(product_id as string)) {
+      // 消耗型チケット購入（RevenueCatはconsumableをNON_RENEWING_PURCHASEで送信）
+      const transactionId = event.transaction_id ?? event.original_transaction_id ?? `rc_${Date.now()}`
+      console.log('[RC webhook] consumable purchase, transactionId:', transactionId)
+      // 重複挿入を防ぐため既存チェック
+      const { data: existing } = await supabaseAdmin
+        .from('tickets')
+        .select('id')
+        .eq('stripe_payment_intent_id', transactionId)
+        .maybeSingle()
+      if (!existing) {
+        const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        const { error } = await supabaseAdmin
+          .from('tickets')
+          .insert({
+            user_id: app_user_id,
+            quantity: 1,
+            used: 0,
+            stripe_payment_intent_id: transactionId,
+            expires_at: expiresAt,
+          })
+        if (error) throw error
+        console.log('[RC webhook] ticket inserted for user:', app_user_id)
+      } else {
+        console.log('[RC webhook] ticket already exists, skipping')
+      }
+    } else if (ACTIVATE_EVENTS.has(type)) {
       const plan = PRODUCT_TO_PLAN[effectiveProductId as string]
       console.log('[RC webhook] plan resolved:', plan, 'for effectiveProductId:', effectiveProductId)
       if (plan) {
@@ -72,29 +98,6 @@ export async function POST(req: NextRequest) {
           .update({ plan })
           .eq('user_id', app_user_id)
         if (error) throw error
-      } else if (type === 'INITIAL_PURCHASE' && CONSUMABLE_PRODUCTS.has(product_id as string)) {
-        // 消耗型チケット購入 → ticketsテーブルに挿入
-        const transactionId = event.transaction_id ?? event.original_transaction_id ?? `rc_${Date.now()}`
-        // 重複挿入を防ぐため既存チェック
-        const { data: existing } = await supabaseAdmin
-          .from('tickets')
-          .select('id')
-          .eq('stripe_payment_intent_id', transactionId)
-          .maybeSingle()
-        if (!existing) {
-          const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-          const { error } = await supabaseAdmin
-            .from('tickets')
-            .insert({
-              user_id: app_user_id,
-              quantity: 1,
-              used: 0,
-              stripe_payment_intent_id: transactionId, // RevenueCat transaction ID を流用
-              expires_at: expiresAt,
-              purchased_at: new Date().toISOString(),
-            })
-          if (error) throw error
-        }
       }
     } else if (type === 'EXPIRATION') {
       // Subscription fully expired — revoke access
