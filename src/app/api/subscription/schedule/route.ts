@@ -30,9 +30,12 @@ export async function GET(req: NextRequest) {
       .single()
 
     // RevenueCat（ネイティブ）経由のダウングレード予約をチェック
+    console.log('[schedule] profile:', JSON.stringify({ scheduled_plan: profile?.scheduled_plan, scheduled_plan_at: profile?.scheduled_plan_at, stripe_customer_id: profile?.stripe_customer_id ? 'set' : 'null' }))
     if (profile?.scheduled_plan && profile?.scheduled_plan_at) {
       const scheduledAt = new Date(profile.scheduled_plan_at)
+      console.log('[schedule] RC downgrade scheduled at:', scheduledAt.toISOString(), 'future?', scheduledAt > new Date())
       if (scheduledAt > new Date()) {
+        console.log('[schedule] returning scheduledDowngradeAt:', scheduledAt.toISOString())
         return NextResponse.json({
           ...empty,
           scheduledDowngradeAt: scheduledAt.toISOString(),
@@ -41,6 +44,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (!profile?.stripe_customer_id) {
+      console.log('[schedule] no stripe_customer_id, returning empty')
       return NextResponse.json(empty)
     }
 
