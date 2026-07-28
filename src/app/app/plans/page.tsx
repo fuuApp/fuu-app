@@ -3,7 +3,7 @@
 import { useState, useEffect, Fragment } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
-import { isNative, openStripeCheckout } from '@/lib/platform'
+import { isNative, isAndroid, openStripeCheckout } from '@/lib/platform'
 import { createClient } from '@/lib/supabase'
 
 // ─── プラン定義 ─────────────────────────────────────────────────
@@ -164,7 +164,8 @@ function PlansContent() {
       const apiKey = Capacitor.getPlatform() === 'android'
         ? (process.env.NEXT_PUBLIC_REVENUECAT_ANDROID_KEY ?? '')
         : (process.env.NEXT_PUBLIC_REVENUECAT_IOS_KEY ?? '')
-      if (apiKey) await Purchases.configure({ apiKey, appUserID: userId })
+      if (!apiKey) throw new Error('RevenueCatが設定されていません。サポートにお問い合わせください。')
+      await Purchases.configure({ apiKey, appUserID: userId })
       const targetPackageId = planId === 'premium' ? 'premium_monthly' : 'standard_monthly'
       const offeringsResult = await Purchases.getOfferings()
       const current = (offeringsResult as any)?.current
@@ -760,7 +761,7 @@ function PlansContent() {
                 )}
               </div>
             </div>
-            {index === 0 && (
+            {index === 0 && !isAndroid() && (
               <button
                 onClick={async () => {
                   try {
