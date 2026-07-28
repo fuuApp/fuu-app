@@ -25,9 +25,20 @@ export async function GET(req: NextRequest) {
     const supabase = createAdminClient()
     const { data: profile } = await supabase
       .from('profiles')
-      .select('stripe_customer_id')
+      .select('stripe_customer_id, scheduled_plan, scheduled_plan_at')
       .eq('user_id', userId)
       .single()
+
+    // RevenueCat（ネイティブ）経由のダウングレード予約をチェック
+    if (profile?.scheduled_plan && profile?.scheduled_plan_at) {
+      const scheduledAt = new Date(profile.scheduled_plan_at)
+      if (scheduledAt > new Date()) {
+        return NextResponse.json({
+          ...empty,
+          scheduledDowngradeAt: scheduledAt.toISOString(),
+        })
+      }
+    }
 
     if (!profile?.stripe_customer_id) {
       return NextResponse.json(empty)

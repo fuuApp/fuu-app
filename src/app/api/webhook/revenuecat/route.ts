@@ -61,12 +61,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ received: true })
   }
 
+  // プランランク（アップグレード判定用）
+  const PLAN_RANK: Record<string, number> = { free: 0, standard: 1, premium: 2 }
+
   try {
     if (type === 'NON_RENEWING_PURCHASE' && CONSUMABLE_PRODUCTS.has(product_id as string)) {
       // 消耗型チケット購入（RevenueCatはconsumableをNON_RENEWING_PURCHASEで送信）
       const transactionId = event.transaction_id ?? event.original_transaction_id ?? `rc_${Date.now()}`
       console.log('[RC webhook] consumable purchase, transactionId:', transactionId)
-      // 重複挿入を防ぐため既存チェック
       const { data: existing } = await supabaseAdmin
         .from('tickets')
         .select('id')
@@ -88,14 +90,41 @@ export async function POST(req: NextRequest) {
       } else {
         console.log('[RC webhook] ticket already exists, skipping')
       }
-    } else if (ACTIVATE_EVENTS.has(type)) {
+    } else if (type === 'PRODUCT_CHANGE') {
+      // プラン変更：アップグレードは即時反映、ダウングレードは期末まで猶予
+      const oldPlan = PRODUCT_TO_PLAN[product_id as string]
+      const newPlan = PRODUCT_TO_PLAN[effectiveProductId as string] // effectiveProductId = new_product_id
+      console.log('[RC webhook] PRODUCT_CHANGE:', oldPlan, '→', newPlan)
+      if (newPlan) {
+        const isUpgrade = (PLAN_RANK[newPlan] ?? 0) > (PLAN_RANK[oldPlan] ?? 0)
+        if (isUpgrade) {
+          // アップグレード：即時反映、スケジュールをクリア
+          const { error } = await supabaseAdmin
+            .from('profiles')
+            .update({ plan: newPlan, scheduled_plan: null, scheduled_plan_at: null })
+            .eq('user_id', app_user_id)
+          if (error) throw error
+          console.log('[RC webhook] upgrade applied immediately:', newPlan)
+        } else {
+          // ダウングレード：現在のplanは維持し、スケジュールとして保存
+          const expirationMs = event.expiration_at_ms
+          const scheduledAt = expirationMs ? new Date(expirationMs).toISOString() : null
+          const { error } = await supabaseAdmin
+            .from('profiles')
+            .update({ scheduled_plan: newPlan, scheduled_plan_at: scheduledAt })
+            .eq('user_id', app_user_id)
+          if (error) throw error
+          console.log('[RC webhook] downgrade scheduled:', newPlan, 'at:', scheduledAt)
+        }
+      }
+    } else if (type === 'RENEWAL' || type === 'INITIAL_PURCHASE' || type === 'UNCANCELLATION') {
       const plan = PRODUCT_TO_PLAN[effectiveProductId as string]
       console.log('[RC webhook] plan resolved:', plan, 'for effectiveProductId:', effectiveProductId)
       if (plan) {
-        // サブスクリプション購入 → プラン更新
+        // 更新・新規購入：プラン反映 + スケジュールをクリア
         const { error } = await supabaseAdmin
           .from('profiles')
-          .update({ plan })
+          .update({ plan, scheduled_plan: null, scheduled_plan_at: null })
           .eq('user_id', app_user_id)
         if (error) throw error
       }
