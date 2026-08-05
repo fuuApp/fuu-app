@@ -165,30 +165,32 @@ function PlansContent() {
       const androidKey = process.env.NEXT_PUBLIC_REVENUECAT_ANDROID_KEY ?? ''
       const iosKey = process.env.NEXT_PUBLIC_REVENUECAT_IOS_KEY ?? ''
       const apiKey = platform === 'android' ? androidKey : iosKey
-      // [DEBUG] プラットフォーム・キー確認用（後で削除）
-      if (!apiKey) throw new Error(`[DBG] platform=${platform} androidKey=${androidKey.slice(0,8)} iosKey=${iosKey.slice(0,8)} → キー未設定`)
+      const keyPrefix = apiKey.slice(0, 10)
+      setToastMessage({ type: 'error', text: `[DBG1] platform=${platform} key=${keyPrefix}` })
+      await new Promise(r => setTimeout(r, 3000))
+      if (!apiKey) throw new Error(`キー未設定 platform=${platform}`)
+      setToastMessage({ type: 'error', text: `[DBG2] configuring...` })
       await Purchases.configure({ apiKey, appUserID: userId })
+      setToastMessage({ type: 'error', text: `[DBG3] getOfferings...` })
       const targetPackageId = planId === 'premium' ? 'premium_monthly' : 'standard_monthly'
       const offeringsResult = await Purchases.getOfferings()
       const current = (offeringsResult as any)?.current
-      const pkg = current?.availablePackages?.find(
-        (p: any) => p.identifier === targetPackageId
-      )
-      if (!pkg) throw new Error('商品が見つかりませんでした。しばらく経ってから再試行してください。')
+      const pkgs = current?.availablePackages ?? []
+      setToastMessage({ type: 'error', text: `[DBG4] pkgs=${pkgs.map((p:any)=>p.identifier).join(',')}` })
+      await new Promise(r => setTimeout(r, 3000))
+      const pkg = pkgs.find((p: any) => p.identifier === targetPackageId)
+      if (!pkg) throw new Error(`商品なし target=${targetPackageId} found=${pkgs.map((p:any)=>p.identifier).join(',')}`)
       await Purchases.purchasePackage({ aPackage: pkg })
-      // entitlement判定ではなくplanIdを直接使用（Sandbox誤検知防止）
       setCurrentPlan(planId)
       setToastMessage({ type: 'success', text: planId === 'premium' ? '🎉 プレミアムプランに登録しました！' : '🎉 スタンダードプランに登録しました！' })
-      // Webhook到着を待たずにSupabaseを直接更新（フォールバック）
       if (userId) {
         const supabase = createClient()
         await supabase.from('profiles').update({ plan: planId }).eq('user_id', userId)
       }
     } catch (err: any) {
-      // ユーザーが自分でキャンセルした場合はエラー表示しない
       if (!err?.userCancelled && err?.code !== 'PURCHASE_CANCELLED') {
-        const debugInfo = `[DBG] code=${err?.code} underlying=${err?.underlyingErrorMessage ?? err?.localizedDescription ?? '-'}`
-        setToastMessage({ type: 'error', text: (err?.message ?? '購入に失敗しました') + '\n' + debugInfo })
+        const debugInfo = `[DBG] code=${err?.code} msg=${err?.message?.slice(0,60)}`
+        setToastMessage({ type: 'error', text: debugInfo })
       }
     } finally {
       setRcLoading(false)
