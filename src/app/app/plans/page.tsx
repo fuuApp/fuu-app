@@ -161,10 +161,12 @@ function PlansContent() {
       const { Purchases } = await import('@revenuecat/purchases-capacitor')
       const { Capacitor } = await import('@capacitor/core')
       // initRevenueCat完了前に押された場合に備えてここでも確実にconfigure
-      const apiKey = Capacitor.getPlatform() === 'android'
-        ? (process.env.NEXT_PUBLIC_REVENUECAT_ANDROID_KEY ?? '')
-        : (process.env.NEXT_PUBLIC_REVENUECAT_IOS_KEY ?? '')
-      if (!apiKey) throw new Error('RevenueCatが設定されていません。サポートにお問い合わせください。')
+      const platform = Capacitor.getPlatform()
+      const androidKey = process.env.NEXT_PUBLIC_REVENUECAT_ANDROID_KEY ?? ''
+      const iosKey = process.env.NEXT_PUBLIC_REVENUECAT_IOS_KEY ?? ''
+      const apiKey = platform === 'android' ? androidKey : iosKey
+      // [DEBUG] プラットフォーム・キー確認用（後で削除）
+      if (!apiKey) throw new Error(`[DBG] platform=${platform} androidKey=${androidKey.slice(0,8)} iosKey=${iosKey.slice(0,8)} → キー未設定`)
       await Purchases.configure({ apiKey, appUserID: userId })
       const targetPackageId = planId === 'premium' ? 'premium_monthly' : 'standard_monthly'
       const offeringsResult = await Purchases.getOfferings()
@@ -185,7 +187,8 @@ function PlansContent() {
     } catch (err: any) {
       // ユーザーが自分でキャンセルした場合はエラー表示しない
       if (!err?.userCancelled && err?.code !== 'PURCHASE_CANCELLED') {
-        setToastMessage({ type: 'error', text: err?.message ?? '購入に失敗しました' })
+        const debugInfo = `[DBG] code=${err?.code} underlying=${err?.underlyingErrorMessage ?? err?.localizedDescription ?? '-'}`
+        setToastMessage({ type: 'error', text: (err?.message ?? '購入に失敗しました') + '\n' + debugInfo })
       }
     } finally {
       setRcLoading(false)
