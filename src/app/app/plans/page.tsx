@@ -165,19 +165,34 @@ function PlansContent() {
       const androidKey = process.env.NEXT_PUBLIC_REVENUECAT_ANDROID_KEY ?? ''
       const iosKey = process.env.NEXT_PUBLIC_REVENUECAT_IOS_KEY ?? ''
       const apiKey = platform === 'android' ? androidKey : iosKey
-      const keyPrefix = apiKey.slice(0, 10)
-      setToastMessage({ type: 'error', text: `[DBG1] platform=${platform} key=${keyPrefix}` })
-      await new Promise(r => setTimeout(r, 3000))
       if (!apiKey) throw new Error(`キー未設定 platform=${platform}`)
-      setToastMessage({ type: 'error', text: `[DBG2] configuring...` })
-      await Purchases.configure({ apiKey, appUserID: userId })
-      setToastMessage({ type: 'error', text: `[DBG3] getOfferings...` })
+
+      // [DBG] Step1: configure
+      try {
+        await Purchases.configure({ apiKey, appUserID: userId })
+        setToastMessage({ type: 'error', text: `[DBG] configure OK` })
+        await new Promise(r => setTimeout(r, 2000))
+      } catch (e: any) {
+        setToastMessage({ type: 'error', text: `[DBG] configure FAIL code=${e?.code} ${e?.message?.slice(0,50)}` })
+        await new Promise(r => setTimeout(r, 5000))
+        throw e
+      }
+
+      // [DBG] Step2: getOfferings
       const targetPackageId = planId === 'premium' ? 'premium_monthly' : 'standard_monthly'
-      const offeringsResult = await Purchases.getOfferings()
-      const current = (offeringsResult as any)?.current
-      const pkgs = current?.availablePackages ?? []
-      setToastMessage({ type: 'error', text: `[DBG4] pkgs=${pkgs.map((p:any)=>p.identifier).join(',')}` })
-      await new Promise(r => setTimeout(r, 3000))
+      let offeringsResult: any
+      try {
+        offeringsResult = await Purchases.getOfferings()
+        const pkgs = offeringsResult?.current?.availablePackages ?? []
+        setToastMessage({ type: 'error', text: `[DBG] offerings OK pkgs=${pkgs.map((p:any)=>p.identifier).join(',')}` })
+        await new Promise(r => setTimeout(r, 3000))
+      } catch (e: any) {
+        setToastMessage({ type: 'error', text: `[DBG] getOfferings FAIL code=${e?.code} ${e?.message?.slice(0,50)}` })
+        await new Promise(r => setTimeout(r, 5000))
+        throw e
+      }
+
+      const pkgs = offeringsResult?.current?.availablePackages ?? []
       const pkg = pkgs.find((p: any) => p.identifier === targetPackageId)
       if (!pkg) throw new Error(`商品なし target=${targetPackageId} found=${pkgs.map((p:any)=>p.identifier).join(',')}`)
       await Purchases.purchasePackage({ aPackage: pkg })
@@ -189,8 +204,7 @@ function PlansContent() {
       }
     } catch (err: any) {
       if (!err?.userCancelled && err?.code !== 'PURCHASE_CANCELLED') {
-        const debugInfo = `[DBG] code=${err?.code} msg=${err?.message?.slice(0,60)}`
-        setToastMessage({ type: 'error', text: debugInfo })
+        // すでに上のステップでトースト表示済みの場合はスキップ
       }
     } finally {
       setRcLoading(false)
