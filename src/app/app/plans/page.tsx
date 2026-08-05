@@ -167,42 +167,12 @@ function PlansContent() {
       const apiKey = platform === 'android' ? androidKey : iosKey
       if (!apiKey) throw new Error(`キー未設定 platform=${platform}`)
 
-      // [DBG] Step1: configure
-      try {
-        await Purchases.configure({ apiKey, appUserID: userId })
-        setToastMessage({ type: 'error', text: `[DBG] configure OK` })
-        await new Promise(r => setTimeout(r, 2000))
-        // Step1b: getCustomerInfo test
-        try {
-          const ci = await Purchases.getCustomerInfo()
-          setToastMessage({ type: 'error', text: `[DBG] customerInfo OK` })
-        } catch (ce: any) {
-          setToastMessage({ type: 'error', text: `[DBG] customerInfo FAIL code=${ce?.code}` })
-        }
-        await new Promise(r => setTimeout(r, 2000))
-      } catch (e: any) {
-        setToastMessage({ type: 'error', text: `[DBG] configure FAIL code=${e?.code} ${e?.message?.slice(0,50)}` })
-        await new Promise(r => setTimeout(r, 5000))
-        throw e
-      }
+      await Purchases.configure({ apiKey, appUserID: userId })
 
-      // [DBG] Step2: getOfferings
       const targetPackageId = planId === 'premium' ? 'premium_monthly' : 'standard_monthly'
-      let offeringsResult: any
-      try {
-        offeringsResult = await Purchases.getOfferings()
-        const pkgs = offeringsResult?.current?.availablePackages ?? []
-        setToastMessage({ type: 'error', text: `[DBG] offerings OK pkgs=${pkgs.map((p:any)=>p.identifier).join(',')}` })
-        await new Promise(r => setTimeout(r, 3000))
-      } catch (e: any) {
-        const rcCode = e?.readableErrorCode ?? '?'
-        const msg2 = String(e?.message ?? '').slice(0, 40)
-        setToastMessage({ type: 'error', text: `[DBG] getOfferings FAIL code=${e?.code} rc=${rcCode} msg=${msg2}` })
-        await new Promise(r => setTimeout(r, 5000))
-        throw e
-      }
+      const offeringsResult = await Purchases.getOfferings()
 
-      const pkgs = offeringsResult?.current?.availablePackages ?? []
+      const pkgs = (offeringsResult as any)?.current?.availablePackages ?? []
       const pkg = pkgs.find((p: any) => p.identifier === targetPackageId)
       if (!pkg) throw new Error(`商品なし target=${targetPackageId} found=${pkgs.map((p:any)=>p.identifier).join(',')}`)
       await Purchases.purchasePackage({ aPackage: pkg })
@@ -213,9 +183,8 @@ function PlansContent() {
         await supabase.from('profiles').update({ plan: planId }).eq('user_id', userId)
       }
     } catch (err: any) {
-      if (!err?.userCancelled && err?.code !== 'PURCHASE_CANCELLED') {
-        // すでに上のステップでトースト表示済みの場合はスキップ
-      }
+      if (err?.userCancelled || err?.code === 'PURCHASE_CANCELLED') return
+      setToastMessage({ type: 'error', text: err?.message ?? '購入に失敗しました' })
     } finally {
       setRcLoading(false)
     }
@@ -814,8 +783,8 @@ function PlansContent() {
           <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
             <div style={{ fontSize:10, color:'#bbb', textAlign:'center', lineHeight:1.9 }}>
               ・サブスクリプションは自動更新されます<br />
-              ・次の更新日の24時間前までにApp Storeでキャンセルできます<br />
-              ・価格はApp Storeに表示される金額が適用されます
+              ・次の更新日の24時間前までに{isAndroid() ? 'Google Play' : 'App Store'}でキャンセルできます<br />
+              ・価格は{isAndroid() ? 'Google Play' : 'App Store'}に表示される金額が適用されます
             </div>
             <button
               onClick={handleRestorePurchases}
@@ -829,7 +798,7 @@ function PlansContent() {
                 onClick={handleManageSubscription}
                 style={{ background:'none', border:'none', color:'#aaa', fontSize:12, cursor:'pointer', fontFamily:'inherit', textDecoration:'underline' }}
               >
-                App Storeでサブスクを管理する（解約はこちら）
+                {isAndroid() ? 'Google Play' : 'App Store'}でサブスクを管理する（解約はこちら）
               </button>
             )}
           </div>
@@ -1111,7 +1080,7 @@ function PlansContent() {
                 onClick={handleManageSubscription}
                 style={{ background: 'none', border: 'none', color: '#aaa', fontSize: 13, cursor: 'pointer', textDecoration: 'underline', fontFamily: 'inherit' }}
               >
-                App Storeでサブスクを管理する（解約はこちら）
+                {isAndroid() ? 'Google Play' : 'App Store'}でサブスクを管理する（解約はこちら）
               </button>
             ) : (
               <button
