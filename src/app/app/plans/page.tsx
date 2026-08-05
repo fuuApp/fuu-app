@@ -172,6 +172,14 @@ function PlansContent() {
         await Purchases.configure({ apiKey, appUserID: userId })
         setToastMessage({ type: 'error', text: `[DBG] configure OK` })
         await new Promise(r => setTimeout(r, 2000))
+        // Step1b: getCustomerInfo test
+        try {
+          const ci = await Purchases.getCustomerInfo()
+          setToastMessage({ type: 'error', text: `[DBG] customerInfo OK` })
+        } catch (ce: any) {
+          setToastMessage({ type: 'error', text: `[DBG] customerInfo FAIL code=${ce?.code}` })
+        }
+        await new Promise(r => setTimeout(r, 2000))
       } catch (e: any) {
         setToastMessage({ type: 'error', text: `[DBG] configure FAIL code=${e?.code} ${e?.message?.slice(0,50)}` })
         await new Promise(r => setTimeout(r, 5000))
@@ -187,8 +195,9 @@ function PlansContent() {
         setToastMessage({ type: 'error', text: `[DBG] offerings OK pkgs=${pkgs.map((p:any)=>p.identifier).join(',')}` })
         await new Promise(r => setTimeout(r, 3000))
       } catch (e: any) {
-        const underlying = e?.underlyingErrorMessage ?? e?.userInfo?.NSLocalizedDescription ?? ''
-        setToastMessage({ type: 'error', text: `[DBG] getOfferings FAIL code=${e?.code} under=${underlying.slice(0,60)}` })
+        const rcCode = e?.readableErrorCode ?? '?'
+        const msg2 = String(e?.message ?? '').slice(0, 40)
+        setToastMessage({ type: 'error', text: `[DBG] getOfferings FAIL code=${e?.code} rc=${rcCode} msg=${msg2}` })
         await new Promise(r => setTimeout(r, 5000))
         throw e
       }
