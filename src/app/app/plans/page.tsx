@@ -187,7 +187,8 @@ function PlansContent() {
         setToastMessage({ type: 'error', text: `[DBG] offerings OK pkgs=${pkgs.map((p:any)=>p.identifier).join(',')}` })
         await new Promise(r => setTimeout(r, 3000))
       } catch (e: any) {
-        setToastMessage({ type: 'error', text: `[DBG] getOfferings FAIL code=${e?.code} ${e?.message?.slice(0,50)}` })
+        const underlying = e?.underlyingErrorMessage ?? e?.userInfo?.NSLocalizedDescription ?? ''
+        setToastMessage({ type: 'error', text: `[DBG] getOfferings FAIL code=${e?.code} under=${underlying.slice(0,60)}` })
         await new Promise(r => setTimeout(r, 5000))
         throw e
       }
