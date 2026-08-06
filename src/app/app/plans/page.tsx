@@ -352,14 +352,17 @@ function PlansContent() {
     }
   }, [toastMessage])
 
-  // iOSチケット購入ハンドラ（RevenueCat IAP 消耗型）
+  // ネイティブチケット購入ハンドラ（RevenueCat IAP 消耗型）
   const handleTicketIOS = async () => {
     setLoadingTicket(true)
     try {
       const { Purchases } = await import('@revenuecat/purchases-capacitor')
-      const { products } = await Purchases.getProducts({
-        productIdentifiers: ['fuu_ticket_daily'],
-      })
+      const { Capacitor } = await import('@capacitor/core')
+      const platform = Capacitor.getPlatform()
+      // Android は INAPP 型を明示しないと消耗型商品が取得できない
+      const getProductsParams: any = { productIdentifiers: ['fuu_ticket_daily'] }
+      if (platform === 'android') getProductsParams.type = 'INAPP'
+      const { products } = await Purchases.getProducts(getProductsParams)
       if (products.length === 0) throw new Error('商品情報を取得できませんでした。しばらく経ってから再試行してください。')
       await Purchases.purchaseStoreProduct({ product: products[0] })
       // Webhook処理が完了するまで「確認中」表示にして、10秒後にポーリング
