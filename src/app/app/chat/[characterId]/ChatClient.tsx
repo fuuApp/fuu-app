@@ -187,37 +187,12 @@ export default function ChatPage() {
     if (!character) return
 
     const savedNickname = localStorage.getItem(NICKNAME_KEY) ?? ''
-    const isSet = localStorage.getItem(NICKNAME_SET_KEY) === 'true'
-    const sessionConfirmed = sessionStorage.getItem(SESSION_CONFIRMED_KEY) === 'true'
-
     setNickname(savedNickname)
     setGuchiDone(false)
     setGuchiSummary('')
 
-    if (!isSet) {
-      // 初回 → ニックネームを聞く
-      setNicknamePhase('asking')
-      setMessages([{
-        id: 'welcome', conversationId: 'local', role: 'assistant',
-        content: nicknameGreetings[characterId] ?? 'なんて呼べばいい？',
-        createdAt: new Date().toISOString(),
-      }])
-    } else if (!sessionConfirmed) {
-      // 2回目以降・新セッション → 呼び名を確認
-      const displayName = savedNickname || 'あなた'
-      const confirmMsg = confirmGreetings[characterId]
-        ? confirmGreetings[characterId](displayName)
-        : `前回${displayName}って呼んでたけど、そのままでいい？`
-      setNicknamePhase('confirming')
-      setMessages([{
-        id: 'welcome', conversationId: 'local', role: 'assistant',
-        content: confirmMsg,
-        createdAt: new Date().toISOString(),
-      }])
-    } else {
-      // 同セッション内 → そのまま通常チャット
-      startNormalChat(savedNickname)
-    }
+    // 設定画面で管理するニックネームを使って直接チャット開始
+    startNormalChat(savedNickname)
 
     // 気持ちの箱コンテキスト読み込み
     // ① localStorageにあれば同期で即読み込み（高速パス）
@@ -951,73 +926,8 @@ export default function ChatPage() {
         <div ref={bottomRef} />
       </div>
 
-      {/* ── ニックネーム入力エリア（asking / confirming） ── */}
-      {(nicknamePhase === 'asking' || nicknamePhase === 'confirming') && (
-        <div style={{
-          background: '#fff', borderTop: '1px solid #FCE4EC',
-          padding: '12px 16px', flexShrink: 0,
-        }}>
-          <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-            <input
-              ref={nicknameInputRef}
-              value={nicknameInput}
-              onChange={e => setNicknameInput(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter' && nicknameInput.trim()) {
-                  nicknamePhase === 'asking'
-                    ? handleNicknameSubmit(nicknameInput)
-                    : handleNicknameChange(nicknameInput)
-                  setNicknameInput('')
-                }
-              }}
-              placeholder={nicknamePhase === 'confirming' ? '新しいニックネームを入力…' : 'ニックネームを入力…'}
-              maxLength={20}
-              style={{
-                flex: 1, border: '1.5px solid #F48FB1', borderRadius: 20,
-                padding: '10px 16px', fontSize: 14, outline: 'none',
-                background: '#fdf4f7', fontFamily: 'inherit',
-              }}
-            />
-            <button
-              onClick={() => {
-                if (!nicknameInput.trim()) return
-                nicknamePhase === 'asking'
-                  ? handleNicknameSubmit(nicknameInput)
-                  : handleNicknameChange(nicknameInput)
-                setNicknameInput('')
-              }}
-              disabled={!nicknameInput.trim()}
-              style={{
-                width: 44, height: 44, borderRadius: '50%', border: 'none',
-                background: nicknameInput.trim() ? 'linear-gradient(135deg,#E91E63,#C2185B)' : '#F8BBD9',
-                color: '#fff', fontSize: 18,
-                cursor: nicknameInput.trim() ? 'pointer' : 'not-allowed',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-              }}
-            >↑</button>
-          </div>
-
-          {/* asking: スキップ / confirming: このままでいい */}
-          {nicknamePhase === 'asking' ? (
-            <button onClick={() => { handleNicknameSubmit(''); setNicknameInput('') }}
-              style={{ background: 'none', border: 'none', fontSize: 12, color: '#bbb', cursor: 'pointer', padding: '0 4px' }}>
-              スキップ（名前なしで始める）
-            </button>
-          ) : (
-            <button onClick={handleNicknameKeep}
-              style={{
-                background: '#FCE4EC', border: '1px solid #F48FB1',
-                borderRadius: 16, padding: '6px 16px', fontSize: 13,
-                color: '#E91E63', cursor: 'pointer', fontFamily: 'inherit',
-              }}>
-              このままでいい
-            </button>
-          )}
-        </div>
-      )}
-
       {/* 通常入力エリア（モード切替・選択肢ボタン含む） */}
-      {nicknamePhase === 'done' && (
+      {(
         <div style={{
           background: '#fdf4f7', borderTop: '1px solid #FCE4EC',
           paddingBottom: inputFocused ? 4 : 'max(4px, env(safe-area-inset-bottom))', flexShrink: 0,
