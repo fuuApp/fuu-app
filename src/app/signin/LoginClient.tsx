@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 
@@ -8,6 +8,17 @@ const isSupabaseConfigured =
   typeof process !== 'undefined' &&
   !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
   process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://your-project.supabase.co'
+
+// Capacitor native iOS 判定（SSR時はfalse）
+const getIsNativeIOS = () => {
+  if (typeof window === 'undefined') return false
+  try {
+    const cap = (window as any).Capacitor
+    if (cap?.isNativePlatform?.()) return cap.getPlatform?.() === 'ios'
+    const { Capacitor } = require('@capacitor/core')
+    return Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios'
+  } catch { return false }
+}
 
 // props を削除し useSearchParams で直接読む（Capacitor静的ビルド対応）
 export default function LoginClient() {
@@ -20,11 +31,56 @@ export default function LoginClient() {
   const [otp, setOtp]       = useState('')
   const [step, setStep]     = useState<'email' | 'otp'>('email')
   const [loading, setLoading] = useState(false)
+  const [isNativeIOS, setIsNativeIOS] = useState(false)
   const [error, setError]   = useState(
     authErrorParam === 'auth_failed'   ? '認証に失敗しました。もう一度お試しください。'
     : authErrorParam === 'missing_code' ? 'リンクが無効です。再度ログインしてください。'
     : ''
   )
+
+  useEffect(() => {
+    setIsNativeIOS(getIsNativeIOS())
+  }, [])
+
+  const handleAppleSignIn = async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const { SignInWithApple } = await import('@capacitor-community/apple-sign-in')
+      const result = await SignInWithApple.authorize({
+        clientId: 'com.ogawave.fuu',
+        redirectURI: '',
+        scopes: 'email name',
+        state: '',
+        nonce: '',
+      })
+      const identityToken = result.response.identityToken
+      if (!identityToken) throw new Error('Apple sign in failed')
+
+      if (isSupabaseConfigured) {
+        const { createClient } = await import('@/lib/supabase')
+        const supabase = createClient()
+        const { data, error: authErr } = await supabase.auth.signInWithIdToken({
+          provider: 'apple',
+          token: identityToken,
+        })
+        if (authErr) throw authErr
+        if (data.session) {
+          const now = new Date().toISOString()
+          await supabase.from('profiles').upsert(
+            { user_id: data.session.user.id, email: data.session.user.email ?? '', plan: 'trial', trial_started_at: now },
+            { onConflict: 'user_id', ignoreDuplicates: true }
+          )
+        }
+      }
+      router.replace(nextPath)
+    } catch (err: any) {
+      if (err?.code === 'SIGN_IN_WITH_APPLE_CANCELLED') { setLoading(false); return }
+      setError('Appleサインインに失敗しました。もう一度お試しください。')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -133,6 +189,20 @@ export default function LoginClient() {
                 {loading ? '送信中...' : 'コードを送る →'}
               </button>
             </form>
+            <div style={{ display: 'flex', alignItems: 'center', margin: '20px 0 16px' }}>
+              <div style={{ flex: 1, height: 1, background: '#F48FB1' }} />
+              <span style={{ margin: '0 12px', fontSize: 12, color: '#bbb' }}>または</span>
+              <div style={{ flex: 1, height: 1, background: '#F48FB1' }} />
+            </div>
+            <button
+              type="button"
+              onClick={handleAppleSignIn}
+              disabled={loading}
+              style={{ width: '100%', padding: '14px 16px', background: '#000', color: '#fff', border: 'none', borderRadius: 50, fontSize: 16, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: 'inherit' }}
+            >
+              <svg width="18" height="22" viewBox="0 0 814 1000" fill="white"><path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.5 135.4-317.3 269-317.3 71 0 130.5 46.4 174.9 46.4 42.7 0 109.2-49.4 188.2-49.4 30.7 0 112.6 2.9 173.4 80.1zm-174.5-186.6c31.6-37.7 54.2-90.2 54.2-142.7 0-7.4-.7-14.9-2.1-21a437.1 437.1 0 0 0-106.6 53.4 285.1 285.1 0 0 0-84.2 133.3c0 8.4 1.4 16.8 2.1 19.6 4.2.7 11.2 1.4 18.2 1.4 31.6 0 73.6-16.9 118.4-43.9z"/></svg>
+              Appleでサインイン
+            </button>
             <p style={{ fontSize: 11, color: '#bbb', textAlign: 'center', marginTop: 20, lineHeight: 1.8 }}>
               ログインすると<Link href="/terms" style={{ color: '#E91E63', textDecoration: 'none' }}>利用規約</Link>と<Link href="/privacy" style={{ color: '#E91E63', textDecoration: 'none' }}>プライバシーポリシー</Link>に同意したことになります
             </p>
