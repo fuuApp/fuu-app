@@ -324,7 +324,7 @@ export default function LandingPage() {
             { icon: '💬', title: 'いつでも会話', desc: '24時間・深夜もOK' },
             { icon: '🧹', title: '気持ちの箱', desc: '感情を3タグで整理' },
             { icon: '🎵', title: 'BGM', desc: 'チャット中に癒やしのBGM' },
-            { icon: '💴', title: '月わずか¥300', desc: 'コーヒー1杯以下・いつでも解約可' },
+            { icon: '💴', title: '月わずか¥300', desc: '子どものおやつ1つ分・いつでも解約可' },
           ].map((f, i) => (
             <div key={i} style={{
               background: '#fff', borderRadius: 14, padding: '16px 14px',
