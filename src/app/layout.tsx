@@ -11,6 +11,18 @@ export const metadata: Metadata = {
     description: '育児中のママが、遠慮なく話せる場所。',
     type: 'website',
     locale: 'ja_JP',
+    images: [
+      {
+        url: 'https://fuu-app.vercel.app/og-image.png',
+        width: 348,
+        height: 348,
+        alt: 'fuu ふぅ — AIママ友アプリ',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary',
+    images: ['https://fuu-app.vercel.app/og-image.png'],
   },
 }
 
