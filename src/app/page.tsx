@@ -46,10 +46,27 @@ export default function LandingPage() {
           AIのママ友が、いつでもそばにいます。
         </p>
 
-        {/* ── アプリダウンロード（Webのみ表示） ── */}
-        {!isNative() && <p style={{ fontSize: 12, color: '#aaa', marginBottom: 10 }}>アプリから始める</p>}
-        {!isNative() && <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-          {/* iOS App Store */}
+        {/* ── Webボタン（最優先） ── */}
+        <Link href="/signin" style={{
+          display: 'inline-block',
+          background: 'linear-gradient(135deg,#E91E63,#C2185B)',
+          color: '#fff', padding: '16px 40px', borderRadius: 50,
+          fontWeight: 700, fontSize: 16, textDecoration: 'none',
+          boxShadow: '0 4px 20px rgba(233,30,99,0.35)',
+        }}>
+          10日間 無料で始める →
+        </Link>
+        <p style={{ fontSize: 12, color: '#aaa', marginTop: 10, marginBottom: 20 }}>
+          {isNative() ? 'クレジットカード不要・自動課金なし' : '10日間無料・続けるときだけカード登録'}
+        </p>
+
+        {/* ── App Storeへの導線（Webのみ表示） ── */}
+        {!isNative() && <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, padding: '0 8px' }}>
+          <div style={{ flex: 1, height: 1, background: '#e8c8d4' }}></div>
+          <span style={{ fontSize: 12, color: '#c0a0b0', whiteSpace: 'nowrap' }}>またはアプリでも使えます</span>
+          <div style={{ flex: 1, height: 1, background: '#e8c8d4' }}></div>
+        </div>}
+        {!isNative() && (
           <a
             href={APP_STORE_URL}
             target="_blank"
@@ -71,35 +88,7 @@ export default function LandingPage() {
               <div style={{ fontSize: 16, fontWeight: 700 }}>App Store</div>
             </div>
           </a>
-
-          {/* Android Google Play - 開発中 */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, opacity: 0.4, cursor: 'default' }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="#888" xmlns="http://www.w3.org/2000/svg">
-              <path d="M3.18 23.76c.3.17.64.24.99.2L14.9 12 11.1 8.2 3.18 23.76zm17.14-10.98L17.4 11.3l-3.64 3.64 3.67 3.67 2.87-1.62c.82-.47.82-1.55-.02-2.01zM2.34.27C2.13.5 2 .84 2 1.27v21.46c0 .43.13.77.35 1l.1.09 12.02-12.02v-.27L2.44.18l-.1.09zM14.9 12l2.5-2.5-2.87-1.62c-.84-.47-1.77-.02-2.08.87L14.9 12z"/>
-            </svg>
-            <span style={{ fontSize: 12, color: '#888' }}>Google Play — 開発中</span>
-          </div>
-        </div>}
-
-        {/* Webとの仕切り（Webのみ表示） */}
-        {!isNative() && <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, padding: '0 8px' }}>
-          <div style={{ flex: 1, height: 1, background: '#e8c8d4' }}></div>
-          <span style={{ fontSize: 12, color: '#c0a0b0', whiteSpace: 'nowrap' }}>または Web で</span>
-          <div style={{ flex: 1, height: 1, background: '#e8c8d4' }}></div>
-        </div>}
-
-        <Link href="/signin" style={{
-          display: 'inline-block',
-          background: 'linear-gradient(135deg,#E91E63,#C2185B)',
-          color: '#fff', padding: '16px 40px', borderRadius: 50,
-          fontWeight: 700, fontSize: 16, textDecoration: 'none',
-          boxShadow: '0 4px 20px rgba(233,30,99,0.35)',
-        }}>
-          10日間 無料で始める →
-        </Link>
-        <p style={{ fontSize: 12, color: '#aaa', marginTop: 10 }}>
-          クレジットカード不要・自動課金なし
-        </p>
+        )}
       </section>
 
       {/* ── ふぅという名前の理由 ── */}
